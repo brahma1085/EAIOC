@@ -1,0 +1,1209 @@
+<title>Control Plane Stress Test</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --ink:#161b22;
+    --ink-muted:#4b5560;
+    --paper:#eff1ee;
+    --surface:#ffffff;
+    --surface-2:#f5f6f2;
+    --line:#d9dbd3;
+    --accent:#1f6f6b;
+    --accent-soft:#e3efee;
+    --accent-warm:#a8631e;
+    --accent-warm-soft:#f4e9dc;
+    --sev-critical:#9b2f28;
+    --sev-critical-soft:#f6e3e1;
+    --sev-high:#b5651d;
+    --sev-high-soft:#f6ead9;
+    --sev-medium:#8c7a1e;
+    --sev-medium-soft:#f2eed7;
+    --sev-low:#54606a;
+    --sev-low-soft:#e7e9e6;
+    --tag-existing:#3d5a80;
+    --tag-research:#1f6f6b;
+    --tag-commercial:#a8631e;
+    --tag-inference:#6b5b6e;
+    --tag-recommend:#1f6f6b;
+    --tag-open:#7a7264;
+    --shadow: 0 1px 2px rgba(22,27,34,.04), 0 8px 24px rgba(22,27,34,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#e7e9e4;
+      --ink-muted:#a3aeb4;
+      --paper:#14181c;
+      --surface:#1b2126;
+      --surface-2:#1f262b;
+      --line:#2b333a;
+      --accent:#5cc2ba;
+      --accent-soft:#1c2f2e;
+      --accent-warm:#dba066;
+      --accent-warm-soft:#332920;
+      --sev-critical:#e2685f;
+      --sev-critical-soft:#3a2320;
+      --sev-high:#e0a05a;
+      --sev-high-soft:#382a1a;
+      --sev-medium:#d6c066;
+      --sev-medium-soft:#332e18;
+      --sev-low:#9aa5ac;
+      --sev-low-soft:#252b2f;
+      --tag-existing:#8aa9cc;
+      --tag-research:#5cc2ba;
+      --tag-commercial:#dba066;
+      --tag-inference:#b3a3b8;
+      --tag-recommend:#5cc2ba;
+      --tag-open:#b0a893;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#e7e9e4;
+    --ink-muted:#a3aeb4;
+    --paper:#14181c;
+    --surface:#1b2126;
+    --surface-2:#1f262b;
+    --line:#2b333a;
+    --accent:#5cc2ba;
+    --accent-soft:#1c2f2e;
+    --accent-warm:#dba066;
+    --accent-warm-soft:#332920;
+    --sev-critical:#e2685f;
+    --sev-critical-soft:#3a2320;
+    --sev-high:#e0a05a;
+    --sev-high-soft:#382a1a;
+    --sev-medium:#d6c066;
+    --sev-medium-soft:#332e18;
+    --sev-low:#9aa5ac;
+    --sev-low-soft:#252b2f;
+    --tag-existing:#8aa9cc;
+    --tag-research:#5cc2ba;
+    --tag-commercial:#dba066;
+    --tag-inference:#b3a3b8;
+    --tag-recommend:#5cc2ba;
+    --tag-open:#b0a893;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Serif', Georgia, 'Times New Roman', serif;
+    font-size:16px;
+    line-height:1.65;
+    padding-inline:20px;
+  }
+  h1,h2,h3,h4,.sans{font-family:'IBM Plex Sans', -apple-system, Segoe UI, sans-serif;}
+  .mono{font-family:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;}
+  h1,h2,h3,h4{text-wrap:balance; margin:0; color:var(--ink);}
+  a{color:var(--accent);}
+  p{margin:0 0 1em;}
+  p:last-child{margin-bottom:0;}
+
+  .shell{
+    max-width:1180px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:220px minmax(0,1fr);
+    gap:48px;
+    padding-block:32px 80px;
+  }
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr;}
+  }
+
+  /* ---------- Sidebar / TOC ---------- */
+  .toc-wrap{position:relative;}
+  .toc{
+    position:sticky;
+    top:24px;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .toc .brand{
+    font-family:'IBM Plex Mono';
+    font-size:11px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+    margin-bottom:14px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--line);
+  }
+  .toc a{
+    display:flex;
+    gap:10px;
+    align-items:baseline;
+    text-decoration:none;
+    color:var(--ink-muted);
+    font-family:'IBM Plex Sans';
+    font-size:13.5px;
+    padding:6px 8px;
+    border-radius:6px;
+    border-left:2px solid transparent;
+  }
+  .toc a:hover{background:var(--surface-2); color:var(--ink);}
+  .toc a .letter{
+    font-family:'IBM Plex Mono';
+    font-weight:600;
+    color:var(--accent);
+    font-size:12px;
+    width:14px;
+  }
+  @media (max-width:900px){
+    .toc-wrap{margin-bottom:8px;}
+    .toc{
+      position:static;
+      flex-direction:row;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .toc .brand{display:none;}
+    .toc a{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:5px 12px;
+    }
+  }
+
+  /* ---------- Header ---------- */
+  header.page{
+    grid-column:1 / -1;
+    padding-block:8px 28px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:8px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono';
+    font-size:11.5px;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px;height:1px;background:var(--accent);
+  }
+  h1.title{
+    font-size:clamp(30px,4.4vw,46px);
+    font-weight:600;
+    letter-spacing:-.01em;
+    margin-bottom:14px;
+  }
+  .dek{
+    font-family:'IBM Plex Serif';
+    font-size:18px;
+    color:var(--ink-muted);
+    max-width:62ch;
+    margin-bottom:20px;
+  }
+  .meta-line{
+    font-family:'IBM Plex Mono';
+    font-size:12px;
+    color:var(--ink-muted);
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+  .meta-line b{color:var(--ink); font-weight:600;}
+
+  .exec-read{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:24px;
+  }
+  @media (max-width:760px){ .exec-read{grid-template-columns:repeat(2,1fr);} }
+  .exec-tile{
+    background:var(--surface);
+    padding:16px 18px;
+  }
+  .exec-tile .k{
+    font-family:'IBM Plex Mono';
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+    margin-bottom:8px;
+  }
+  .exec-tile .v{
+    font-family:'IBM Plex Sans';
+    font-weight:600;
+    font-size:15px;
+    line-height:1.35;
+  }
+
+  /* ---------- Main column ---------- */
+  main{min-width:0;}
+  section.block{
+    margin-bottom:64px;
+    padding-left:22px;
+    border-left:2px solid var(--line);
+  }
+  section.block.active-rail{border-left-color:var(--accent);}
+  .sec-head{margin-bottom:26px;}
+  .sec-eyebrow{
+    font-family:'IBM Plex Mono';
+    font-size:13px;
+    color:var(--accent);
+    font-weight:600;
+    letter-spacing:.04em;
+    margin-bottom:6px;
+    display:block;
+  }
+  .sec-head h2{
+    font-size:clamp(22px,3vw,30px);
+    font-weight:600;
+  }
+  .sec-intro{
+    color:var(--ink-muted);
+    max-width:68ch;
+    margin-top:10px;
+    font-size:15.5px;
+  }
+
+  .prose{max-width:70ch;}
+  .prose p{font-size:16px;}
+
+  /* ---------- Evidence tags ---------- */
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-family:'IBM Plex Mono';
+    font-size:10px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    padding:2px 7px 2px 6px;
+    border-radius:4px;
+    font-weight:600;
+    white-space:nowrap;
+    line-height:1.6;
+    vertical-align:middle;
+  }
+  .tag::before{content:""; width:6px; height:6px; border-radius:50%; flex:none;}
+  .tag.t-existing{color:var(--tag-existing); background:color-mix(in srgb, var(--tag-existing) 12%, transparent);}
+  .tag.t-existing::before{background:var(--tag-existing);}
+  .tag.t-research{color:var(--tag-research); background:color-mix(in srgb, var(--tag-research) 14%, transparent);}
+  .tag.t-research::before{background:var(--tag-research);}
+  .tag.t-commercial{color:var(--tag-commercial); background:color-mix(in srgb, var(--tag-commercial) 14%, transparent);}
+  .tag.t-commercial::before{background:var(--tag-commercial);}
+  .tag.t-inference{color:var(--tag-inference); background:color-mix(in srgb, var(--tag-inference) 14%, transparent);}
+  .tag.t-inference::before{background:var(--tag-inference);}
+  .tag.t-recommend{color:var(--tag-recommend); background:color-mix(in srgb, var(--tag-recommend) 16%, transparent);}
+  .tag.t-recommend::before{background:var(--tag-recommend);}
+  .tag.t-open{color:var(--tag-open); background:color-mix(in srgb, var(--tag-open) 16%, transparent);}
+  .tag.t-open::before{background:var(--tag-open); border-radius:1px;}
+
+  .tag-legend{
+    display:flex; flex-wrap:wrap; gap:8px 14px;
+    padding:14px 16px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    margin-bottom:30px;
+    font-size:12.5px;
+  }
+  .tag-legend .item{display:flex; align-items:center; gap:6px; color:var(--ink-muted);}
+
+  /* ---------- Q&A cards (Section A) ---------- */
+  .qa{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:20px 22px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+  }
+  .qa .qnum{
+    font-family:'IBM Plex Mono';
+    font-size:11px;
+    color:var(--accent);
+    font-weight:600;
+    margin-bottom:6px;
+    display:block;
+  }
+  .qa h4{
+    font-family:'IBM Plex Sans';
+    font-size:16px;
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .qa .a{font-size:15px; color:var(--ink);}
+  .qa .a p{margin-bottom:.85em;}
+
+  /* ---------- Technique cards (Section B) ---------- */
+  .status-pill{
+    display:inline-block;
+    font-family:'IBM Plex Mono';
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    font-weight:600;
+    padding:3px 9px;
+    border-radius:999px;
+  }
+  .status-pill.covered{color:var(--accent); background:var(--accent-soft);}
+  .status-pill.partial{color:var(--sev-high); background:var(--sev-high-soft);}
+  .status-pill.missing{color:var(--sev-critical); background:var(--sev-critical-soft);}
+  .status-pill.notadd{color:var(--ink-muted); background:var(--surface-2); border:1px solid var(--line);}
+
+  .tech-card{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    margin-bottom:10px;
+    background:var(--surface);
+  }
+  .tech-card .row1{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .tech-card h4{font-family:'IBM Plex Sans'; font-size:15px; font-weight:600;}
+  .tech-card .layer{font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-muted);}
+  .tech-card p{font-size:14.5px; margin-bottom:.6em;}
+
+  .bucket-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:16px;
+    margin-top:20px;
+  }
+  @media (max-width:700px){.bucket-grid{grid-template-columns:1fr;}}
+  .bucket{
+    border-radius:12px;
+    padding:18px 20px;
+    border:1px solid var(--line);
+  }
+  .bucket h4{font-family:'IBM Plex Sans'; font-size:14.5px; margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+  .bucket ul{margin:0; padding-left:18px; font-size:14px;}
+  .bucket li{margin-bottom:6px;}
+  .bucket.cover{background:var(--accent-soft); border-color:transparent;}
+  .bucket.partial{background:var(--sev-high-soft); border-color:transparent;}
+  .bucket.missing{background:var(--sev-critical-soft); border-color:transparent;}
+  .bucket.notadd{background:var(--surface-2);}
+
+  .callout{
+    border-left:3px solid var(--accent-warm);
+    background:var(--accent-warm-soft);
+    border-radius:0 10px 10px 0;
+    padding:16px 20px;
+    margin:20px 0;
+    font-size:14.5px;
+  }
+  .callout .lab{font-family:'IBM Plex Mono'; font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--accent-warm); font-weight:700; margin-bottom:6px; display:block;}
+
+  /* ---------- Tier / classification cards (Section C) ---------- */
+  .class-pill{
+    font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:.04em;
+    padding:3px 9px; border-radius:999px; font-weight:600; white-space:nowrap;
+  }
+  .class-direct{background:var(--sev-critical-soft); color:var(--sev-critical);}
+  .class-partial{background:var(--sev-high-soft); color:var(--sev-high);}
+  .class-adjacent{background:var(--accent-soft); color:var(--accent);}
+  .class-infra{background:var(--surface-2); color:var(--ink-muted); border:1px solid var(--line);}
+  .class-complementary{background:var(--tag-inference); color:var(--surface);}
+
+  .co-card{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    margin-bottom:10px;
+    background:var(--surface);
+  }
+  .co-card .row1{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px;}
+  .co-card h4{font-family:'IBM Plex Sans'; font-size:15.5px; font-weight:600;}
+  .co-card p{font-size:14.5px; margin-bottom:.55em;}
+  .co-card .lbl{font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.03em;}
+
+  .tier-title{
+    font-family:'IBM Plex Mono';
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-muted);
+    margin:26px 0 12px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+  }
+  .tier-title:first-of-type{border-top:none; padding-top:0; margin-top:6px;}
+
+  /* ---------- Tables ---------- */
+  .table-wrap{
+    overflow-x:auto;
+    border:1px solid var(--line);
+    border-radius:10px;
+    margin:18px 0 26px;
+    background:var(--surface);
+  }
+  table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:640px;}
+  thead th{
+    text-align:left;
+    font-family:'IBM Plex Mono';
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--ink-muted);
+    background:var(--surface-2);
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:11px 14px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+    font-family:'IBM Plex Sans';
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-2);}
+  td.num, th.num{font-family:'IBM Plex Mono'; font-variant-numeric:tabular-nums;}
+
+  /* ---------- Build vs integrate verdict pills ---------- */
+  .verdict{font-family:'IBM Plex Mono'; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; padding:3px 9px; border-radius:999px; font-weight:600; white-space:nowrap; display:inline-block;}
+  .verdict.build{background:var(--accent-soft); color:var(--accent);}
+  .verdict.integrate{background:var(--accent-warm-soft); color:var(--accent-warm);}
+  .verdict.infra{background:var(--surface-2); color:var(--ink-muted); border:1px solid var(--line);}
+  .verdict.notbuild{background:var(--sev-low-soft); color:var(--sev-low);}
+
+  /* ---------- Positioning options (Section F) ---------- */
+  .opt-grid{display:flex; flex-direction:column; gap:10px; margin:20px 0;}
+  .opt{
+    display:grid;
+    grid-template-columns:64px 1fr 120px;
+    gap:16px;
+    align-items:center;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 18px;
+    background:var(--surface);
+  }
+  @media (max-width:640px){ .opt{grid-template-columns:1fr; }
+    .opt .letter-badge{width:36px;height:36px;font-size:15px;} }
+  .opt .letter-badge{
+    width:44px;height:44px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono'; font-weight:700; font-size:18px;
+    background:var(--surface-2); color:var(--ink-muted);
+    flex:none;
+  }
+  .opt.reject .letter-badge{background:var(--sev-critical-soft); color:var(--sev-critical);}
+  .opt.viable .letter-badge{background:var(--sev-medium-soft); color:var(--sev-medium);}
+  .opt.recommend{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent);}
+  .opt.recommend .letter-badge{background:var(--accent); color:var(--surface);}
+  .opt h4{font-family:'IBM Plex Sans'; font-size:15px; margin-bottom:3px;}
+  .opt p{font-size:13.5px; color:var(--ink-muted); margin:0;}
+  .opt .verdict-label{
+    font-family:'IBM Plex Mono'; font-size:11px; text-transform:uppercase; letter-spacing:.04em; font-weight:700;
+    text-align:right;
+  }
+  .opt.reject .verdict-label{color:var(--sev-critical);}
+  .opt.viable .verdict-label{color:var(--sev-medium);}
+  .opt.recommend .verdict-label{color:var(--accent);}
+
+  /* ---------- Blind spot table (Section G) ---------- */
+  .sev-pill{
+    font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:.05em;
+    font-weight:700; padding:3px 10px; border-radius:999px; white-space:nowrap; display:inline-block;
+  }
+  .sev-critical{background:var(--sev-critical-soft); color:var(--sev-critical);}
+  .sev-high{background:var(--sev-high-soft); color:var(--sev-high);}
+  .sev-medium{background:var(--sev-medium-soft); color:var(--sev-medium);}
+  .sev-low{background:var(--sev-low-soft); color:var(--sev-low);}
+
+  /* ---------- Section H panels ---------- */
+  .change-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:22px 0;}
+  @media (max-width:760px){.change-grid{grid-template-columns:1fr;}}
+  .change-panel{
+    border-radius:12px;
+    padding:18px 20px;
+    border:1px solid var(--line);
+  }
+  .change-panel h4{
+    font-family:'IBM Plex Mono'; font-size:12px; text-transform:uppercase; letter-spacing:.06em;
+    margin-bottom:12px; display:flex; align-items:center; gap:8px; font-weight:700;
+  }
+  .change-panel ul{margin:0; padding-left:18px; font-size:14px;}
+  .change-panel li{margin-bottom:8px;}
+  .change-panel.must{background:var(--sev-critical-soft);}
+  .change-panel.must h4{color:var(--sev-critical);}
+  .change-panel.should{background:var(--sev-high-soft);}
+  .change-panel.should h4{color:var(--sev-high);}
+  .change-panel.could{background:var(--accent-soft);}
+  .change-panel.could h4{color:var(--accent);}
+  .change-panel.dont{background:var(--surface-2); border-style:dashed;}
+  .change-panel.dont h4{color:var(--ink-muted);}
+  .change-panel.dont li{color:var(--ink-muted);}
+
+  .open-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .open-list li{
+    display:flex; gap:12px; align-items:flex-start;
+    border:1px solid var(--line); border-radius:10px; padding:14px 16px; background:var(--surface);
+    font-size:14.5px;
+  }
+  .open-list .q-mark{
+    font-family:'IBM Plex Mono'; font-weight:700; color:var(--accent-warm);
+    flex:none;
+  }
+
+  footer.page{
+    grid-column:1/-1;
+    margin-top:20px;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    font-family:'IBM Plex Mono';
+    font-size:12px;
+    color:var(--ink-muted);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+</style>
+
+<div class="shell">
+
+  <header class="page">
+    <div class="eyebrow">Strategy Memo &middot; EAIOC</div>
+    <h1 class="title">Control Plane Stress Test</h1>
+    <p class="dek">A critical architecture challenge, academic research review, and competitive landscape analysis of the Enterprise Agent &amp; LLM Inference Optimization Control Plane concept &mdash; before the documentation baseline freezes.</p>
+    <div class="meta-line">
+      <span><b>Scope:</b> Sections A&ndash;H</span>
+      <span><b>Files modified:</b> none</span>
+      <span><b>Mode:</b> read-only brainstorming</span>
+    </div>
+
+    <div class="exec-read">
+      <div class="exec-tile">
+        <div class="k">Recommended positioning</div>
+        <div class="v">Agent execution governance &amp; verified economics &mdash; not &ldquo;inference optimization&rdquo;</div>
+      </div>
+      <div class="exec-tile">
+        <div class="k">Strongest wedge</div>
+        <div class="v">Coding&#8209;agent loop &amp; repo&#8209;context optimization</div>
+      </div>
+      <div class="exec-tile">
+        <div class="k">Critical blind spots</div>
+        <div class="v">3 of 20 flagged &mdash; erasure, lock&#8209;in, provider absorption</div>
+      </div>
+      <div class="exec-tile">
+        <div class="k">Closest commercial analog</div>
+        <div class="v">LangGraph checkpointing &mdash; state&#8209;only, no reconciliation</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="toc-wrap">
+    <nav class="toc">
+      <div class="brand">On this page</div>
+      <a href="#sec-a"><span class="letter">A</span> Product &amp; architecture</a>
+      <a href="#sec-b"><span class="letter">B</span> Research landscape</a>
+      <a href="#sec-c"><span class="letter">C</span> Competitive landscape</a>
+      <a href="#sec-d"><span class="letter">D</span> Differentiation</a>
+      <a href="#sec-e"><span class="letter">E</span> Build vs. integrate</a>
+      <a href="#sec-f"><span class="letter">F</span> Positioning</a>
+      <a href="#sec-g"><span class="letter">G</span> Blind spots</a>
+      <a href="#sec-h"><span class="letter">H</span> Recommendations</a>
+    </nav>
+  </div>
+
+  <main>
+
+    <div class="tag-legend">
+      <span class="item"><span class="tag t-existing">Existing requirement</span></span>
+      <span class="item"><span class="tag t-research">Research evidence</span></span>
+      <span class="item"><span class="tag t-commercial">Commercial evidence</span></span>
+      <span class="item"><span class="tag t-inference">Architectural inference</span></span>
+      <span class="item"><span class="tag t-recommend">Recommendation</span></span>
+      <span class="item"><span class="tag t-open">Open question</span></span>
+    </div>
+
+    <!-- ================= SECTION A ================= -->
+    <section class="block" id="sec-a">
+      <div class="sec-head">
+        <span class="sec-eyebrow">A &mdash; Product / Architecture Challenge</span>
+        <h2>What are we actually building, and where does it strain?</h2>
+        <p class="sec-intro">Grounded in a full read of the problem statement, cross-checked against architecture.md, conventions.md, interfaces.md and edge-cases.md. Answers are evidence-tagged throughout.</p>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q1</span>
+        <h4>What is the actual product we are building?</h4>
+        <div class="a">
+          <p><span class="tag t-inference">Architectural inference</span> A fusion of four things: a per-request decision engine choosing among ~60 optimization techniques, a stateful execution/lifecycle manager, a cost/quality accounting substrate, and a policy/governance substrate &mdash; a superset of LLM&#8209;Gateway + FinOps + Agent&#8209;Runtime&#8209;Governance + Context&#8209;Engine, unified by one decision engine and one execution-state model. Not a single-category product.</p>
+          <p><span class="tag t-recommend">Recommendation</span> The OI layer implicitly plays the &ldquo;spine&rdquo; role every other module should answer to, but it's introduced as section 33 of 51 &mdash; one section among many &mdash; rather than foregrounded as the thing everything else is subordinate to.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q2</span>
+        <h4>Is the difference between token / context / inference / agent optimization, routing, execution control, and governance clear?</h4>
+        <div class="a">
+          <p><span class="tag t-existing">Existing requirement</span> The three-layer split (Agent/Workflow, Context, Inference/Serving under OI) exists and Layer 3 is required to stay measurement-separate.</p>
+          <p><span class="tag t-inference">Architectural inference</span> But &ldquo;token optimization&rdquo; vs. &ldquo;context optimization&rdquo; is never formally disambiguated across the 19 optimization domains. More consequential: execution control and governance are never separated as distinct runtime tiers &mdash; OI-001 (per-request, latency-sensitive) sits in the same layer as observability/governance (naturally async, org-wide).</p>
+          <p><span class="tag t-open">Open question</span> Is the Control Plane a synchronous request-path component, or a mostly-precomputed/cached-policy component? This single unstated decision changes the entire performance profile.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q3</span>
+        <h4>What important capabilities are still missing?</h4>
+        <div class="a">
+          <p><span class="tag t-inference">Architectural inference</span> Post-hardening, dynamic-execution gaps are largely closed. What remains sits at the enterprise-operations layer: no org/tenant-level spend circuit-breaker beyond per-request budgets and loop-waste heuristics; data residency is a provider-profile <em>attribute</em>, never an enforced routing rule; no human-approval gate for irreversible side effects (the Agent Stop Controller governs continuation, not authorization); no self-protection/backpressure model for the Control Plane's own decision engine under its own overload.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q4</span>
+        <h4>Which requirements are too vague, contradictory, overly ambitious, or unrealistic?</h4>
+        <div class="a">
+          <p><span class="tag t-existing">Existing requirement</span> P0 bundles &ldquo;basic logging&rdquo; with full three-audience dashboards as equally foundational. The §44 objective function reads as a literal per-request, 8-constraint constrained-optimization solve &mdash; very likely infeasible as written. The &ldquo;&ge;3 steps must checkpoint&rdquo; threshold is an unexplained magic number in the authoritative source itself.</p>
+          <p><span class="tag t-recommend">Recommendation</span> State explicitly that §44 is a conceptual frame realized via heuristics, not a real-time solver; split P0 logging from P2 dashboards.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q5</span>
+        <h4>Are we mixing responsibilities across Control Plane, orchestrator, provider, serving infra, and external systems?</h4>
+        <div class="a">
+          <p><span class="tag t-inference">Architectural inference</span> Yes. Programmatic and Parallel Tool Execution are classically orchestrator responsibilities, yet nothing states whether the Control Plane ever executes tools itself or only advises a plan the orchestrator executes &mdash; the advisor-vs-executor boundary is undefined per capability. Provider/model profile maintenance also pulls the core commodity function of existing LLM gateways into Control&#8209;Plane&#8209;owned scope rather than treating it as pluggable.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q6</span>
+        <h4>What architectural boundaries should be made explicit?</h4>
+        <div class="a">
+          <p><span class="tag t-recommend">Recommendation</span> An advisor-vs-executor boundary per execution-touching capability; sync decision path vs. async governance path as two explicit runtime tiers; the Layer&nbsp;3 boundary (in-process vs. tuned-via-adapter); Logical Task Context vs. an agent framework's own pre-existing memory abstraction when the Control Plane sits atop something like LangChain.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q7</span>
+        <h4>What assumptions could become major problems in real enterprise deployment?</h4>
+        <div class="a">
+          <p><span class="tag t-inference">Architectural inference</span> Full interception of every model-bound context is assumed across all four environments, but the coding-agent modules that depend on it are written as if full interception is always available. Provider token/usage accounting is assumed reliable. The 500K-token default soft-reset budget likely exceeds most production models' actual usable windows (128K&ndash;200K today) &mdash; the component may simply never trigger. No latency-overhead SLA bounds the Control Plane's own added hop, only a net-cost condition.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q8</span>
+        <h4>What security, authorization, tenant-isolation, compliance, privacy, or data-governance concerns are missing?</h4>
+        <div class="a">
+          <p><span class="tag t-inference">Architectural inference</span> No PII/PHI/PCI/secrets differentiation taxonomy; no encryption-at-rest requirement for the ledger, cache, or checkpoint stores; <strong>no GDPR/CCPA right-to-erasure mechanism</strong> spanning cache, memory, checkpoints, and audit logs; no active data-residency enforcement; <strong>prompt injection is absent from the problem statement's own SEC-NNN list entirely</strong> (it only surfaces two layers downstream, in edge-cases.md); no audit-log tamper-evidence requirement at the source level; no sub-processor disclosure framing for the many implied external dependencies.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q9</span>
+        <h4>What problems could arise during long-running or stateful agent execution?</h4>
+        <div class="a">
+          <p><span class="tag t-inference">Architectural inference</span> No hard runaway-cost stop independent of the loop-waste heuristic; no concurrent-collaboration model (supersession covers one new request obsoleting an execution, not two users legitimately co-driving one session); the <code>EXPIRED</code> terminal state is named but its triggering timeout policy is never specified.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q10</span>
+        <h4>What could go wrong with caching, memory, context optimization, routing, tool/MCP execution, recovery, checkpointing, concurrency, or supersession?</h4>
+        <div class="a">
+          <p><span class="tag t-inference">Architectural inference</span> Cache economics has no stated fallback for a wrong reuse-probability estimate. Memory's six hierarchical layers have no conflict-resolution rule when two disagree. The context tier system governs eviction priority but not per-tier compression <em>quality</em>. Routing partly on &ldquo;historical quality&rdquo; risks an undetected feedback loop. Dynamic tool loading introduces a new attack surface (adversarial tool-metadata manipulation) with no registry-integrity mention. Checkpoint retention directly tensions with retention-minimization and the erasure gap above. Reconciliation is defined at the single-execution level, not for concurrency over shared mutable resources (policy store, cache) under true multi-tenant load. Supersession validates context freshness on handoff but never addresses an already-<em>irreversible</em> side effect (an email already sent) from the superseded execution.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q11</span>
+        <h4>Are the coding-agent requirements strong enough for Claude Code, Cursor, Copilot, Codex, and Antigravity?</h4>
+        <div class="a">
+          <p><span class="tag t-existing">Existing requirement</span> All five are named, and the 25 developer-agent modules are genuinely the most detailed, well-thought-out part of the entire problem statement.</p>
+          <p><span class="tag t-inference">Architectural inference</span> Every module assumes the Control Plane can intercept and rewrite that agent's internal context construction. Today that's realistic for Claude Code and custom harnesses &mdash; not for Cursor, Copilot, Antigravity, or Codex, none of which expose a stable third-party interception surface. All five are presented with equal near-term feasibility despite this being untrue. Also missing: monorepo-scale (10K+ files) handling, and live-editor-state context (open tabs, cursor position, uncommitted diffs) the Control Plane structurally cannot see.</p>
+          <p><span class="tag t-recommend">Recommendation</span> Tier the claim explicitly &mdash; &ldquo;achievable today&rdquo; vs. &ldquo;partner-dependent / aspirational.&rdquo;</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q12</span>
+        <h4>Which capabilities should be mandatory platform capabilities vs. optional techniques?</h4>
+        <div class="a">
+          <p><span class="tag t-inference">Architectural inference</span> Mandatory: the token/cost ledger, quality gates, the fail-open/fail-closed model, security/tenant isolation, the OI-001 decision engine, execution-state management &mdash; without these it's a compression library, not a control plane. Optional: semantic caching, cascades, reasoning-budget control, batch optimization, most Layer&nbsp;3/P5 techniques, learned routing, continuous policy learning.</p>
+          <p><span class="tag t-recommend">Recommendation</span> The current P0&ndash;P5 ladder inverts this: OI-001/OI-002 sit at P4, <em>below</em> the individual techniques they're meant to govern &mdash; meaning each technique will hard-code its own throwaway enable/disable logic that later needs refactoring.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q13</span>
+        <h4>What should the Control Plane explicitly <em>not</em> attempt to control?</h4>
+        <div class="a">
+          <p><span class="tag t-recommend">Recommendation</span> An anti-<em>patterns</em> list exists; an anti-<em>scope</em> list doesn't. Candidates: the underlying model's weights; the agent's task-planning <em>content</em> (optimize the container, not the plan); end-user UX; provider-side infrastructure capacity scaling &mdash; the most tempting scope-creep vector in the whole design, never named as an explicit anti-goal.</p>
+          <p><span class="tag t-open">Open question</span> Is the Control Plane ever allowed to change response <em>semantic content</em> for cost reasons, or only length/schema? No blanket principle states this.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q14</span>
+        <h4>What are the hardest technical problems we will eventually have to solve?</h4>
+        <div class="a">
+          <p><span class="tag t-inference">Architectural inference</span> A generalizable utility/ROI scoring function is an unsolved attribution problem treated as a tunable formula. Compound-key cache correctness (tenant + auth + freshness + version + model, at enterprise QPS) is a hard distributed-systems problem presented as a checklist. Cross-provider quality-equivalence measurement without running both models has no general solution. Shared-state reconciliation under true multi-tenant concurrency is well-specified per execution, effectively assumed away for shared resources.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q15</span>
+        <h4>What assumptions should be validated experimentally before implementation?</h4>
+        <div class="a">
+          <p><span class="tag t-recommend">Recommendation</span> Whether OI-001's own decision overhead is smaller than the savings it enables at typical request sizes; whether the 500K-token default and the utility-scoring formula generalize across task types; whether semantic-cache hit rates hold up on genuinely agentic/coding traffic (far less repetitive than Q&amp;A traffic); whether &ldquo;developer acceptance&rdquo; is even measurable given no feedback-instrumentation interface exists anywhere in the docs.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q16</span>
+        <h4>Which requirements should become explicit invariants?</h4>
+        <div class="a">
+          <p><span class="tag t-recommend">Recommendation</span> &ldquo;Control-Plane overhead must never be the <em>majority</em> of total request cost/latency&rdquo; (today's NFR is a net condition, not a dominance condition); &ldquo;no optimization decision from state older than N since last reconciliation&rdquo;; &ldquo;classification failures default to most-restrictive, never most-permissive&rdquo;; &ldquo;cache authorization is checked at read time against the <em>current</em> requester, never solely at write time.&rdquo;</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q17</span>
+        <h4>What deserves P0/P1/P2/P3 prioritization?</h4>
+        <div class="a">
+          <p><span class="tag t-recommend">Recommendation</span> Pull a minimal, rule-based OI-001/OI-002 into P0/P1 rather than P4, since every other technique's &ldquo;should this even run&rdquo; gate logically depends on some decision layer existing first.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <span class="qnum">Q18</span>
+        <h4>What would make you reject this design for production adoption?</h4>
+        <div class="a">
+          <p><span class="tag t-recommend">Recommendation</span> Not an outright rejection &mdash; the security/tenant-isolation/fail-safe backbone and post-hardening execution-state model are unusually rigorous for a pre-implementation spec. Before approving further build-out: an explicit Control-Plane latency/cost SLA; a data-erasure mechanism across all persistent stores; feasibility-graded coding-agent claims; a crisp advisor-vs-executor boundary; confirmation §44 is heuristic, not literal; and the P0&ndash;P5 sequencing fix above. None are fatal &mdash; but exactly the kind of gaps that stall a real enterprise security review.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION B ================= -->
+    <section class="block" id="sec-b">
+      <div class="sec-head">
+        <span class="sec-eyebrow">B &mdash; Research / Academic Landscape</span>
+        <h2>What does the literature already know?</h2>
+        <p class="sec-intro">The problem statement's own citations are narrow: six named techniques (LLMLingua family, RouteLLM, FrugalGPT, Anthropic caching) plus three token-measurement papers. Sections on agent-loop economics and inference-serving contain <strong>zero</strong> citations. Percentages below are directional research findings, never production guarantees.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Prompt / context compression</h4><span class="status-pill covered">Already cover</span></div>
+        <p class="layer">Layer: context / prompt</p>
+        <p><span class="tag t-research">Research evidence</span> Selective Context, RECOMP (ICLR 2024, up to 6&times; on NQ/TriviaQA), AutoCompressors, ICAE, a NAACL 2025 survey. RECOMP matches the retrieval&rarr;compression boundary better than a generic LLMLingua citation.</p>
+        <p><span class="tag t-recommend">Recommendation</span> Add RECOMP and the survey as the umbrella reference.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Lost-in-the-middle / reordering</h4><span class="status-pill partial">Partially cover</span></div>
+        <p class="layer">Layer: context</p>
+        <p><span class="tag t-existing">Existing requirement</span> Already <em>implemented</em> (the reorderer, EC-021) &mdash;<span class="tag t-research">Research evidence</span> but the foundational Liu&nbsp;et&nbsp;al. finding is never cited. A one-line, high-value citation gap.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Retrieval / RAG optimization</h4><span class="status-pill partial">Partially cover</span></div>
+        <p class="layer">Layer: retrieval</p>
+        <p><span class="tag t-research">Research evidence</span> RAPTOR, Self-RAG, Adaptive-RAG. Self-RAG's &ldquo;decide whether to retrieve at all&rdquo; directly validates this project's own no-mandatory-LLM-call axiom &mdash; worth citing as independent validation of a choice already made.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Semantic caching</h4><span class="status-pill partial">Partially cover</span></div>
+        <p class="layer">Layer: cache</p>
+        <p><span class="tag t-research">Research evidence</span> GPTCache (30&ndash;70% hit rates reported), plus 2024&ndash;25 work on the <em>calibration gap</em> &mdash; similarity-threshold-only hits serving wrong or unauthorized answers.</p>
+        <p><span class="tag t-inference">Architectural inference</span> This project's own edge cases (EC-030/031/078 and this session's Stale Result Protection hardening) independently rediscovered this exact failure mode &mdash; worth citing as validation, not just a gap to fill.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Prefix / KV-cache reuse</h4><span class="status-pill partial">Partially cover</span></div>
+        <p class="layer">Layer: inference / serving</p>
+        <p><span class="tag t-research">Research evidence</span> vLLM/PagedAttention, SGLang/RadixAttention &mdash; production-ready, widely deployed.</p>
+        <p><span class="tag t-recommend">Recommendation</span> Cite as <strong>integration targets</strong>, not techniques to reimplement (see Section E).</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Continuous batching / PD-disaggregation</h4><span class="status-pill notadd">Should not add</span></div>
+        <p class="layer">Layer: inference / serving</p>
+        <p><span class="tag t-research">Research evidence</span> Orca, Splitwise, DistServe, Mooncake.</p>
+        <p><span class="tag t-recommend">Recommendation</span> A Control Plane at the API boundary cannot influence batching or disaggregation &mdash; only which already-optimized endpoint to route to. Building this would mean quietly becoming an inference-serving system.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Speculative decoding &amp; quantization</h4><span class="status-pill notadd">Should not add</span></div>
+        <p class="layer">Layer: inference / serving</p>
+        <p><span class="tag t-research">Research evidence</span> EAGLE, Medusa; GPTQ, AWQ, SmoothQuant &mdash; all production-ready.</p>
+        <p><span class="tag t-inference">Architectural inference</span> Both are model-deployment-time decisions, not per-request Control-Plane decisions. Quantization especially should be treated as a provider/model-profile <em>attribute</em>, like pricing &mdash; not a technique the Control Plane runs.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Agent loop / early exit</h4><span class="status-pill partial">Partially cover</span></div>
+        <p class="layer">Layer: agent workflow</p>
+        <p><span class="tag t-research">Research evidence</span> ReAct (base pattern), Reflexion (self-reflection on failure), and a 2025 paper studying agent early-exit behavior directly &mdash; both too-early and too-late exits are shown to be suboptimal.</p>
+        <p><span class="tag t-open">Open question</span> Reflexion's fix for a dead-end loop is <em>more</em> LLM calls &mdash; indistinguishable from &ldquo;waste&rdquo; to the Loop Waste Detector as currently specified. Nothing separates deliberate reflection from unproductive repetition.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Tool-use optimization</h4><span class="status-pill partial">Partially cover</span></div>
+        <p class="layer">Layer: tool / MCP</p>
+        <p><span class="tag t-research">Research evidence</span> Toolformer, Gorilla, ToolLLM/ToolBench. Gorilla's retrieval-aware training against API docs maps closely onto dynamic tool loading.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Agent memory</h4><span class="status-pill missing">Missing &mdash; highest value gap</span></div>
+        <p class="layer">Layer: memory</p>
+        <p><span class="tag t-research">Research evidence</span> MemGPT (core / archival / recall tiering) and Letta are never mentioned anywhere, despite MemGPT's tiering being close to a direct blueprint for the Logical Task Context / Model-Admitted Context split this project's own hardening pass formalized independently this session.</p>
+        <p><span class="tag t-recommend">Recommendation</span> Cite MemGPT explicitly. The project has converged on roughly two of its three tiers with no name for the third (&ldquo;recall&rdquo;) &mdash; which is almost exactly what this session's Context Expansion Controller already does under a different name. This turns &ldquo;independently reinvented&rdquo; into &ldquo;validated against the closest published prior art.&rdquo;</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Multi-agent / sub-agent economics</h4><span class="status-pill partial">Partially cover &mdash; strongest evidence found</span></div>
+        <p class="layer">Layer: multi-agent</p>
+        <p><span class="tag t-research">Research evidence</span> Directional figures: multi-agent systems reported using ~15&times; more tokens than single-agent chat; unoptimized multi-agent setups up to 8.5&times; without context isolation; enterprise TCO underestimated 40&ndash;60%.</p>
+        <p><span class="tag t-recommend">Recommendation</span> Sub-Agent Value Predictor is exactly the mechanism this research says is missing from most deployments &mdash; strong, citable, motivating evidence for elevating AL-003/AL-004's priority.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Verifier-guided escalation</h4><span class="status-pill partial">Partially cover &mdash; design gap</span></div>
+        <p class="layer">Layer: agent workflow</p>
+        <p><span class="tag t-research">Research evidence</span> A weak verifier can confidently select a wrong answer; verifier/generator distribution mismatch is a documented failure mode.</p>
+        <p><span class="tag t-recommend">Recommendation</span> This is a missing <em>requirement</em>, not just a citation gap &mdash; the escalation mechanism currently assumes the verifier is infallible, in tension with the project's own &ldquo;never fabricate measurements&rdquo; principle.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="row1"><h4>Coding-agent stale context</h4><span class="status-pill partial">Partially cover</span></div>
+        <p class="layer">Layer: developer agent</p>
+        <p><span class="tag t-research">Research evidence</span> RepoCoder (iterative retrieval using provisional completions) and a 2025/26 paper studying stale-repository-context failures directly &mdash; the exact failure mode this session's EC-136 documents.</p>
+      </div>
+
+      <div class="bucket-grid">
+        <div class="bucket cover">
+          <h4>Already cover</h4>
+          <ul><li>LLMLingua family</li><li>RouteLLM</li><li>FrugalGPT</li><li>Anthropic prompt caching</li><li>Token-measurement papers</li></ul>
+        </div>
+        <div class="bucket partial">
+          <h4>Partially cover</h4>
+          <ul><li>Reordering / lost-in-the-middle</li><li>Semantic caching</li><li>RAG / retrieval</li><li>Agent loop &amp; early exit</li><li>Tool-use / selection</li><li>Sub-agent economics</li><li>Verifier escalation</li><li>Coding-agent staleness</li></ul>
+        </div>
+        <div class="bucket missing">
+          <h4>Missing (worth citing)</h4>
+          <ul><li>MemGPT / Letta &mdash; highest value</li><li>Lost-in-the-Middle (Liu et al.)</li><li>vLLM / SGLang</li><li>RAPTOR / Self-RAG / Adaptive-RAG</li><li>Gorilla / ToolLLM / RepoCoder</li><li>Multi-agent token-overhead literature</li></ul>
+        </div>
+        <div class="bucket notadd">
+          <h4>Should NOT add as build targets</h4>
+          <ul><li>Continuous batching / PD-disaggregation</li><li>Speculative decoding</li><li>Quantization</li></ul>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="lab">Architecture-level implication</span>
+        The research suggests CL-006 (Memory) and the Context Expansion Controller are one MemGPT-style three-tier hierarchy split across two documentation eras, not genuinely separate concerns; that verification needs to be a first-class, <em>measured</em> pipeline stage rather than an assumed-reliable gate; and that Layer&nbsp;3 may currently be scoped as &ldquo;things the Control Plane does&rdquo; when it should be scoped as &ldquo;things the Control Plane is aware of and routes around.&rdquo;
+      </div>
+    </section>
+
+    <!-- ================= SECTION C ================= -->
+    <section class="block" id="sec-c">
+      <div class="sec-head">
+        <span class="sec-eyebrow">C &mdash; Commercial / Competitive Landscape</span>
+        <h2>Who else is standing in this space?</h2>
+        <p class="sec-intro">Classified by overlap, not assumed to compete. Depth concentrated on Direct/Partial competitors.</p>
+      </div>
+
+      <div class="tier-title">Tier 1 &mdash; Gateways &amp; routers with real optimization logic</div>
+
+      <div class="co-card">
+        <div class="row1"><h4>Portkey</h4><span class="class-pill class-partial">Partial competitor</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Semantic caching + routing + guardrails across 250+ providers. <strong>Acquired by Palo Alto Networks (April 2026)</strong> &mdash; being absorbed into a security/enterprise-governance platform, not pursuing independent optimization research.</p>
+        <p><span class="lbl">Risk to us</span> Could fold &ldquo;execution governance&rdquo; language into Prisma AIRS faster than we can build the substance, backed by PAN's distribution.</p>
+      </div>
+
+      <div class="co-card">
+        <div class="row1"><h4>LiteLLM</h4><span class="class-pill class-infra">Infrastructure provider</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Open-source proxy to 100+ providers, load-balancing, cost tracking, no semantic caching or context/agent-loop awareness.</p>
+        <p><span class="lbl">Verdict</span> The substrate we'd otherwise reinvent for provider adapters &mdash; a strong integration reference.</p>
+      </div>
+
+      <div class="co-card">
+        <div class="row1"><h4>Helicone</h4><span class="class-pill class-partial">Partial competitor (frozen)</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Observability + Rust AI-gateway layer. <strong>Acquired by Mintlify (Mar 2026)</strong>, now maintenance mode only.</p>
+      </div>
+
+      <div class="co-card">
+        <div class="row1"><h4>Cloudflare AI Gateway</h4><span class="class-pill class-adjacent">Adjacent / infrastructure</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Free-tier caching, rate limiting, analytics &mdash; explicitly marketed as an &ldquo;AI Application Control Plane.&rdquo;</p>
+        <p><span class="tag t-open">Open question</span> A hyperscaler already uses our exact term for a materially narrower capability &mdash; a branding-collision risk worth being ready to address.</p>
+      </div>
+
+      <div class="co-card">
+        <div class="row1"><h4>Kong AI Gateway</h4><span class="class-pill class-partial">Partial competitor</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> v3.8 added semantic caching, 6 load-balancing algorithms, PII redaction, and a jailbreak-aware Prompt Guard (94% cited block rate).</p>
+        <p><span class="tag t-inference">Architectural inference</span> Most security-forward gateway found &mdash; but stateless-per-request, plugin-model. Kong's own comparisons frame it as &ldquo;API-Gateway-Native&rdquo; vs. a &ldquo;self-improving runtime&rdquo; &mdash; the exact axis we'd be judged on.</p>
+      </div>
+
+      <div class="co-card">
+        <div class="row1"><h4>TrueFoundry</h4><span class="class-pill class-partial">Partial competitor &mdash; watch closely</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> &ldquo;LLM + MCP + Agent Gateway&rdquo; combined, sub-5ms overhead, VPC/on-prem with SOC2/HIPAA/ITAR.</p>
+        <p><span class="lbl">Risk to us</span> The closest gateway-vendor trajectory toward agent/MCP-aware governance &mdash; our territory.</p>
+      </div>
+
+      <div class="co-card">
+        <div class="row1"><h4>OpenRouter, Not Diamond, Martian, Unify</h4><span class="class-pill class-adjacent">Adjacent (routing specialists)</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Pure Layer&nbsp;3 model-routing specialists, genuine ML sophistication, well-funded.</p>
+        <p><span class="lbl">Verdict</span> Confirms model routing specifically is crowded &mdash; integrate or match, don't out-research.</p>
+      </div>
+
+      <div class="tier-title">Tier 2 &mdash; Observability &amp; eval platforms</div>
+      <div class="co-card">
+        <div class="row1"><h4>Langfuse, Arize, Braintrust</h4><span class="class-pill class-adjacent">Adjacent platforms</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Tracing, LLM-as-judge evaluation, prompt versioning (static templates, not live execution state).</p>
+        <p><span class="lbl">Verdict</span> Plausible sinks for our audit/span records &mdash; not competitors, not build targets.</p>
+      </div>
+
+      <div class="tier-title">Tier 3 &mdash; Hyperscalers &amp; inference infrastructure</div>
+      <div class="co-card">
+        <div class="row1"><h4>AWS Bedrock &amp; Google Vertex AI</h4><span class="class-pill class-infra">Infrastructure provider</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Provider-native prompt routing (up to 30% cost reduction claimed) and context caching (50&ndash;90% reported). Single/dual-vendor, structurally incompatible with provider neutrality.</p>
+      </div>
+      <div class="co-card">
+        <div class="row1"><h4>Azure APIM AI Gateway</h4><span class="class-pill class-partial">Infrastructure provider &mdash; watch closely</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Can front Bedrock and Vertex directly, not just Azure models &mdash; the most credible &ldquo;hyperscaler as horizontal gateway&rdquo; move found.</p>
+      </div>
+      <div class="co-card">
+        <div class="row1"><h4>Anthropic &amp; OpenAI, as providers</h4><span class="class-pill class-complementary">Complementary / highest strategic risk</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Anthropic's server-side Context Editing API and Memory Tool; OpenAI's largely-automated prompt caching.</p>
+        <p><span class="tag t-inference">Architectural inference</span> The model providers themselves are absorbing context/memory management into the serving layer &mdash; shrinking the addressable surface for basic third-party context optimization over time. The single most strategically important finding in this pass.</p>
+      </div>
+      <div class="co-card">
+        <div class="row1"><h4>Together, Fireworks, Baseten, Anyscale, NVIDIA Dynamo</h4><span class="class-pill class-infra">Infrastructure provider</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Custom-kernel-level KV-cache, speculative decoding, and PD-disaggregation work.</p>
+        <p><span class="lbl">Verdict</span> Confirms Layer&nbsp;3/P5's &ldquo;optional, infrastructure-dependent&rdquo; framing was correct &mdash; no business competing here.</p>
+      </div>
+
+      <div class="tier-title">Tier 4 &mdash; Notable adjacent findings</div>
+      <div class="co-card">
+        <div class="row1"><h4>LangGraph (+ CrewAI / AutoGen)</h4><span class="class-pill class-adjacent">Adjacent &mdash; closest analog</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Ships a durable checkpointer &mdash; pause / resume / inspect / fork-from-checkpoint. One benchmark cites 47% lower token cost than CrewAI via explicit edge transitions vs. LLM-driven routing.</p>
+        <p><span class="tag t-inference">Architectural inference</span> The closest existing commercial cousin to our Dynamic Execution hardening &mdash; but graph-state-only, with no evidence of reconciliation-before-resume, staleness rejection, or supersession handling for in-flight non-idempotent effects. Our best differentiation evidence, and our biggest strategic threat if it moves this direction with LangChain's distribution behind it.</p>
+      </div>
+      <div class="co-card">
+        <div class="row1"><h4>AI FinOps (CloudZero, Vantage, Finout)</h4><span class="class-pill class-partial">Partial competitor (cost only)</span></div>
+        <p><span class="tag t-commercial">Commercial evidence</span> Dynamic-routing-aware cost attribution and chargeback &mdash; all after the fact, none decisioning at request time, none requiring quality-gated net-positive savings.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Company</th><th>Classification</th><th>Primary layer(s)</th><th>Stateful control plane?</th><th>Biggest overlap risk</th></tr></thead>
+          <tbody>
+            <tr><td>Portkey &rarr; Palo Alto Networks</td><td>Partial</td><td>Gateway, cache, routing</td><td>Unclear</td><td>Folds governance into Prisma AIRS with enterprise distribution</td></tr>
+            <tr><td>LiteLLM</td><td>Infrastructure</td><td>Gateway / adapter</td><td>No</td><td>None &mdash; is the substrate we'd reinvent</td></tr>
+            <tr><td>Helicone</td><td>Partial (frozen)</td><td>Gateway + observability</td><td>No</td><td>Low, in maintenance mode</td></tr>
+            <tr><td>Langfuse</td><td>Adjacent</td><td>Observability / eval</td><td>No</td><td>Prompt versioning could blur with our CVM in perception</td></tr>
+            <tr><td>Cloudflare AI Gateway</td><td>Adjacent</td><td>Edge cache / rate-limit</td><td>No</td><td>Already markets &ldquo;AI Application Control Plane&rdquo;</td></tr>
+            <tr><td>Kong AI Gateway</td><td>Partial</td><td>Gateway, cache, security</td><td>No</td><td>Fastest to bolt on agent/MCP awareness among pure gateways</td></tr>
+            <tr><td>TrueFoundry</td><td>Partial</td><td>LLM+MCP+Agent Gateway</td><td>Unclear</td><td>Closest gateway trajectory toward our territory</td></tr>
+            <tr><td>OpenRouter / Not Diamond / Martian / Unify</td><td>Adjacent</td><td>Model routing</td><td>No</td><td>Could commoditize our routing catalog</td></tr>
+            <tr><td>Arize / Braintrust</td><td>Adjacent</td><td>Eval / observability</td><td>No</td><td>Low &mdash; integration targets</td></tr>
+            <tr><td>AWS / Vertex / Azure APIM</td><td>Infrastructure</td><td>T3 routing + caching</td><td>No</td><td>Azure APIM most cross-cloud-capable</td></tr>
+            <tr><td>Anthropic / OpenAI</td><td>Complementary</td><td>Context / memory / caching</td><td>No (provider-scoped)</td><td><strong>Highest strategic risk</strong> &mdash; native absorption</td></tr>
+            <tr><td>Together / Fireworks / Baseten / NVIDIA</td><td>Infrastructure</td><td>Inference serving</td><td>No</td><td>None &mdash; correctly out of core scope</td></tr>
+            <tr><td>LangGraph ecosystem</td><td>Adjacent</td><td>Orchestration, checkpoint/resume</td><td><strong>Partial (graph-state)</strong></td><td><strong>Closest analog</strong> &mdash; becomes direct if it adds reconciliation</td></tr>
+            <tr><td>CloudZero / Vantage / Finout</td><td>Partial</td><td>Cost attribution</td><td>No</td><td>Same enterprise budget line</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION D ================= -->
+    <section class="block" id="sec-d">
+      <div class="sec-head">
+        <span class="sec-eyebrow">D &mdash; Competitive Differentiation</span>
+        <h2>Is there a defensible position here, or just a rebrand?</h2>
+      </div>
+      <div class="prose">
+        <p><strong>1. Unique value proposition.</strong> A single per-request decision engine unifying agent, context, and inference optimization <em>and</em> treating execution as a versioned, resumable, reconcilable lifecycle &mdash; not any one technique, but that specific combination. Every commercial player found is either a stateless gateway/router with caching and routing but no execution-state model, or an orchestration framework with checkpoint/resume but no reconciliation-dimension model and no verified-savings discipline.</p>
+        <p><strong>2. Potential moat.</strong> Net-positive-savings-<em>verified</em> accounting (nobody else proves savings net of overhead &mdash; FinOps tools attribute after the fact); the dynamic-execution hardening making optimization safe under real-world drift (essentially unclaimed territory, confirmed by the Crab/DeltaBox papers being brand-new 2026 work); coding-agent-first treatment, where the competitive set shows zero comparable capability. A durable moat needs deep coding-agent interception partnerships, accumulated cross-tenant tuning data, and enterprise trust from provably non-fabricated savings.</p>
+        <p><strong>3. Hardest for gateways to replicate.</strong> Becoming execution-lifecycle-aware without becoming an orchestrator &mdash; an identity-crisis-inducing rewrite for Portkey/Kong/TrueFoundry, which are stateless-per-request at their architectural core; genuine coding-agent-loop interception; verified net-savings accounting; cross-layer decisioning spanning agent + context + inference at once.</p>
+        <p><strong>4. Differentiated, or repackaged?</strong> Honestly both. Every individual technique exists elsewhere. What's unreplicated anywhere in the commercial landscape is the execution-state/reconciliation/staleness/supersession model applied to LLM agent optimization, plus the unified net-savings-gated decision engine. Real, but the underlying ideas aren't secret &mdash; first-mover execution matters more than idea-novelty.</p>
+        <p><strong>5. If competitors already cover 60&ndash;80%.</strong> That's the Portkey/Kong/TrueFoundry &ldquo;gateway + cache + routing&rdquo; slice. Don't rebuild it &mdash; integrate with or sit above it. Differentiate on the execution-state layer, coding-agent economics, and verified accounting.</p>
+        <p><strong>6. &ldquo;10&times; better&rdquo; candidates.</strong> Reconciliation-before-action as a universal, testable invariant; verified net-savings accounting; coding-agent-loop-aware optimization (sub-agent value gating, loop-waste detection &mdash; LangGraph gives checkpointing, not &ldquo;should this sub-agent exist&rdquo; economics); cross-provider execution portability; fail-closed security woven into the execution-state model itself, not bolted on at the edge.</p>
+        <p><strong>7. Sitting above Application/Agent &rarr; Control Plane &rarr; Gateway/Provider &rarr; Model/Infra.</strong> Strategically attractive: keeps the Control Plane provider/gateway-neutral, composing with LiteLLM/Portkey/Kong beneath rather than competing for provider connectivity; concentrates IP in the genuinely hard, undersupplied territory; turns a large swath of the market from zero-sum competitors into potential partners.</p>
+      </div>
+
+      <div class="callout">
+        <span class="lab">Wedge ranking</span>
+        <strong>1.</strong> Coding-agent optimization (loop economics + repo/context-aware optimization) &mdash; no competitor has comparable capability, and the research validates real, unsolved problems here specifically.
+        &nbsp;<strong>2.</strong> Agentic / sub-agent token economics, broadly &mdash; strongly validated by the 15&times;/8.5&times; research.
+        &nbsp;<strong>3.</strong> State-aware optimization &amp; execution recovery &mdash; genuinely differentiated, harder to demo standalone.
+        &nbsp;<strong>4.</strong> Enterprise policy-aware optimization &mdash; a trust unlock for closing deals, not itself a wedge.
+        &nbsp;<strong>5.</strong> Cross-provider adaptive routing &mdash; most crowded, least differentiated; do the minimum.
+      </div>
+    </section>
+
+    <!-- ================= SECTION E ================= -->
+    <section class="block" id="sec-e">
+      <div class="sec-head">
+        <span class="sec-eyebrow">E &mdash; Build vs. Integrate</span>
+        <h2>Where should engineering effort actually go?</h2>
+        <p class="sec-intro">The goal is to avoid rebuilding infrastructure that provides no strategic differentiation.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Capability</th><th>Verdict</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Prompt / context compression</td><td><span class="verdict build">Build</span> + reference LLMLingua</td><td>Cheap; needs tight coupling to our tier/version model &mdash; the integration is the differentiation</td></tr>
+            <tr><td>Model routing / cascade</td><td><span class="verdict integrate">Integrate</span> (RouteLLM / evaluate Not Diamond, Martian, Unify)</td><td>Crowded, well-funded specialist territory &mdash; low value in rebuilding the router itself</td></tr>
+            <tr><td>Semantic caching</td><td><span class="verdict integrate">Integrate</span> engine + <span class="verdict build">build</span> the safety wrapper</td><td>Authorization-revalidation-on-every-hit is the real differentiation nobody else does rigorously</td></tr>
+            <tr><td>Prefix / prompt caching</td><td><span class="verdict infra">Provider-dependent</span></td><td>Anthropic / OpenAI already own this natively &mdash; use, don't rebuild</td></tr>
+            <tr><td>KV-cache, batching, PD-disaggregation</td><td><span class="verdict notbuild">Do not build</span></td><td>Custom-kernel-level infrastructure expertise (vLLM / SGLang / Baseten / NVIDIA territory)</td></tr>
+            <tr><td>Speculative decoding, quantization</td><td><span class="verdict notbuild">Do not build</span></td><td>Model-deployment-time decisions, not per-request Control-Plane decisions</td></tr>
+            <tr><td>Retrieval / RAG</td><td><span class="verdict build">Build</span> orchestration + <span class="verdict integrate">integrate</span> vector DB/embeddings</td><td>Don't build a vector database or embedding model; RAPTOR-class depth is optional research</td></tr>
+            <tr><td>Observability</td><td><span class="verdict integrate">Integrate</span> (Langfuse / Arize / Braintrust)</td><td>Full dashboards are scope creep with zero differentiation</td></tr>
+            <tr><td>Policy / authorization engine</td><td><span class="verdict build">Build</span> model + <span class="verdict integrate">integrate</span> OPA-style evaluation</td><td>Too security-sensitive and too core to fully outsource</td></tr>
+            <tr><td>Agent orchestration</td><td><span class="verdict notbuild">Do not build</span></td><td>Integrate/interoperate with LangGraph / CrewAI / AutoGen instead of competing on their home turf</td></tr>
+            <tr><td>Memory</td><td><span class="verdict build">Build</span>, align vocabulary with MemGPT</td><td>Core differentiation; optionally integrate Letta as a backend</td></tr>
+            <tr><td>MCP / tool optimization</td><td><span class="verdict build">Build</span> optimization + <span class="verdict integrate">integrate</span> the protocol</td><td>Our territory; don't build a competing tool-calling protocol</td></tr>
+            <tr><td>Provider adapters / gateway plumbing</td><td><span class="verdict integrate">Integrate</span> (LiteLLM OSS or Portkey-class)</td><td>Confirmed commodity, consolidating infrastructure &mdash; zero differentiation value</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION F ================= -->
+    <section class="block" id="sec-f">
+      <div class="sec-head">
+        <span class="sec-eyebrow">F &mdash; Architectural Positioning</span>
+        <h2>What should this product actually claim to be?</h2>
+      </div>
+
+      <div class="opt-grid">
+        <div class="opt reject"><div class="letter-badge">A</div><div><h4>Token optimization engine</h4><p>Too narrow, undersells execution-state work, commoditizing space.</p></div><div class="verdict-label">Reject</div></div>
+        <div class="opt reject"><div class="letter-badge">B</div><div><h4>LLM gateway optimization layer</h4><p>Direct, resource-disadvantaged fight against Portkey / Kong / TrueFoundry.</p></div><div class="verdict-label">Reject</div></div>
+        <div class="opt reject"><div class="letter-badge">C</div><div><h4>AI FinOps platform</h4><p>Undersells decisioning; CloudZero/Vantage/Finout already own attribution.</p></div><div class="verdict-label">Reject</div></div>
+        <div class="opt viable"><div class="letter-badge">D</div><div><h4>Agent optimization platform</h4><p>Strong wedge alignment, but risks head-to-head with LangGraph if not carefully scoped.</p></div><div class="verdict-label">Viable</div></div>
+        <div class="opt reject"><div class="letter-badge">E</div><div><h4>Inference optimization platform</h4><p>Wrong category &mdash; Baseten/Fireworks/Together/NVIDIA's custom-kernel territory.</p></div><div class="verdict-label">Reject</div></div>
+        <div class="opt viable"><div class="letter-badge">F</div><div><h4>Enterprise Agent &amp; LLM Inference Optimization Control Plane <span class="mono" style="font-size:11px;color:var(--ink-muted)">(current)</span></h4><p>Broadest, most defensible scope &mdash; if executed. Name invites confusion with the wrong market segment.</p></div><div class="verdict-label">Keep scope</div></div>
+        <div class="opt recommend"><div class="letter-badge">G</div><div><h4>Agent Execution Governance &amp; Verified Optimization Economics</h4><p>Same architecture as F, reordered emphasis: lead with execution safety + provable economics, the hard uncrowded part.</p></div><div class="verdict-label">Recommended</div></div>
+      </div>
+
+      <div class="prose">
+        <p><span class="tag t-recommend">Recommendation</span> Keep Option F's <em>scope</em> &mdash; the three-layer + OI + dynamic-execution design is sound and, per the research pass, ahead of what's commercially shipped. But shift <em>external emphasis</em> toward Option G. Internally the architecture stays exactly as specified; externally, lead with execution-state safety and provably net-positive economics, treat context/token optimization as the mechanism rather than the headline, and be explicit that Layer&nbsp;3/P5 is an optional extension, not a core value proposition. This directly answers the shared finding from Sections B and C: providers are absorbing basic context/memory management natively. The defensible position isn't &ldquo;we compress context better&rdquo; &mdash; it's &ldquo;we make agentic execution safe, reconcilable, and provably cost-accountable, regardless of who's compressing what.&rdquo;</p>
+      </div>
+    </section>
+
+    <!-- ================= SECTION G ================= -->
+    <section class="block" id="sec-g">
+      <div class="sec-head">
+        <span class="sec-eyebrow">G &mdash; Blind-Spot Analysis</span>
+        <h2>What are we not thinking about?</h2>
+        <p class="sec-intro">20 risks, assumptions, and threats not obvious from the problem statement alone, ranked by severity.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th class="num">#</th><th>Risk</th><th>Severity</th><th>Why it matters</th></tr></thead>
+          <tbody>
+            <tr><td class="num">1</td><td>No data-subject erasure (GDPR/CCPA) across cache, memory, checkpoint, audit</td><td><span class="sev-pill sev-critical">Critical</span></td><td>Blocks regulated-industry sales outright</td></tr>
+            <tr><td class="num">2</td><td>No portability requirement for Control-Plane-proprietary execution state</td><td><span class="sev-pill sev-critical">Critical</span></td><td>Switching cost eventually rivals switching agent frameworks entirely</td></tr>
+            <tr><td class="num">3</td><td>Providers absorbing context/memory management natively</td><td><span class="sev-pill sev-critical">Critical</span></td><td>Shrinks addressable surface for basic context optimization over time</td></tr>
+            <tr><td class="num">4</td><td>LangGraph is the closest existing analog to our hardening</td><td><span class="sev-pill sev-high">High</span></td><td>Backed by LangChain's distribution; could become a direct competitor fast</td></tr>
+            <tr><td class="num">5</td><td>No bounded Control-Plane-added latency SLA</td><td><span class="sev-pill sev-high">High</span></td><td>Could be a net latency loss for interactive workloads despite a cost win</td></tr>
+            <tr><td class="num">6</td><td>Coding-agent integration feasibility gradient unstated</td><td><span class="sev-pill sev-high">High</span></td><td>Much of DA-module value depends on interception surfaces we don't control</td></tr>
+            <tr><td class="num">7</td><td>No tenant/org-level hard spend circuit-breaker</td><td><span class="sev-pill sev-high">High</span></td><td>No kill switch exists for a systemic runaway-cost failure</td></tr>
+            <tr><td class="num">8</td><td>Verifier reliability unaddressed in escalation logic</td><td><span class="sev-pill sev-high">High</span></td><td>A bad verifier can silently degrade quality while looking like a savings win</td></tr>
+            <tr><td class="num">9</td><td>Deliberate reflection looks like &ldquo;waste&rdquo; to the loop detector</td><td><span class="sev-pill sev-high">High</span></td><td>Could suppress a legitimate quality-improving pattern</td></tr>
+            <tr><td class="num">10</td><td>A narrower competitor could out-execute on sub-agent economics</td><td><span class="sev-pill sev-high">High</span></td><td>The research is public; it's our best wedge and the easiest to copy narrowly</td></tr>
+            <tr><td class="num">11</td><td>Utility/ROI scoring functions are unsolved problems dressed as formulas</td><td><span class="sev-pill sev-medium">Medium</span></td><td>Real risk they stay permanent, unvalidated heuristics</td></tr>
+            <tr><td class="num">12</td><td>No conflict-resolution rule across memory's six layers</td><td><span class="sev-pill sev-medium">Medium</span></td><td>Undefined behavior when e.g. session state and org policy disagree</td></tr>
+            <tr><td class="num">13</td><td>Prompt injection absent from the source's own SEC-NNN list</td><td><span class="sev-pill sev-medium">Medium</span></td><td>Primary source under-specifies what its own derived docs found necessary</td></tr>
+            <tr><td class="num">14</td><td>No human-approval gate for irreversible side effects</td><td><span class="sev-pill sev-medium">Medium</span></td><td>Notable gap for a product explicitly covering autonomous agents</td></tr>
+            <tr><td class="num">15</td><td>&ldquo;Control Plane&rdquo; is already used by Cloudflare's marketing</td><td><span class="sev-pill sev-medium">Medium</span></td><td>Risk of reading as &ldquo;another gateway calling itself a control plane&rdquo;</td></tr>
+            <tr><td class="num">16</td><td>Provider/model profile maintenance duplicates commodity gateway infra</td><td><span class="sev-pill sev-medium">Medium</span></td><td>Called out independently by both the architecture and competitive passes</td></tr>
+            <tr><td class="num">17</td><td>Reconciliation/checkpoint overhead has no performance budget of its own</td><td><span class="sev-pill sev-medium">Medium</span></td><td>The differentiator could become its own overhead-inversion case</td></tr>
+            <tr><td class="num">18</td><td>No Control-Plane self-monitoring distinct from monitoring what it optimizes</td><td><span class="sev-pill sev-low">Low</span></td><td>Operational blind spot, not a design flaw</td></tr>
+            <tr><td class="num">19</td><td>500K-token default soft-reset budget likely miscalibrated</td><td><span class="sev-pill sev-low">Low</span></td><td>Could silently never trigger in typical deployments</td></tr>
+            <tr><td class="num">20</td><td>No standing citation-hygiene process</td><td><span class="sev-pill sev-low">Low</span></td><td>Minor, but compounds as more research gets cited</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION H ================= -->
+    <section class="block" id="sec-h">
+      <div class="sec-head">
+        <span class="sec-eyebrow">H &mdash; Recommended Changes Before Document Freeze</span>
+        <h2>What actually needs to move before we freeze the baseline.</h2>
+      </div>
+
+      <div class="change-grid">
+        <div class="change-panel must">
+          <h4>Must change</h4>
+          <ul>
+            <li>Data-subject erasure (GDPR/CCPA) across cache, memory, checkpoints, audit</li>
+            <li>Prompt injection as an explicit SEC-NNN in the source document itself</li>
+            <li>An explicit Control-Plane latency SLA, distinct from the cost-overhead NFR</li>
+            <li>A verifier-reliability/calibration requirement for AR-004</li>
+            <li>Fix the P0&ndash;P5 inversion &mdash; pull a minimal OI-001/OI-002 gate into P0/P1</li>
+          </ul>
+        </div>
+        <div class="change-panel should">
+          <h4>Should change</h4>
+          <ul>
+            <li>Add the uncited-but-implemented citations: Lost-in-the-Middle, MemGPT/Letta, GPTCache calibration-gap work, Gorilla/ToolLLM, RepoCoder</li>
+            <li>Add the multi-agent token-overhead research as motivating evidence for AL-003/AL-004</li>
+            <li>Add a tenant/org-level hard spend circuit-breaker</li>
+            <li>Add a feasibility tier for coding-agent integrations</li>
+            <li>Add an explicit advisor-vs-executor boundary per execution-touching capability</li>
+            <li>Add a conflict-resolution rule for memory's layer hierarchy</li>
+            <li>Reframe Layer 3 language as &ldquo;integrate/route-around,&rdquo; not &ldquo;optimize&rdquo;</li>
+          </ul>
+        </div>
+        <div class="change-panel could">
+          <h4>Could change</h4>
+          <ul>
+            <li>Add RAPTOR/Self-RAG/Adaptive-RAG as future-direction citations</li>
+            <li>Unify Memory and the Context Expansion Controller under MemGPT-style vocabulary</li>
+            <li>Add a human-approval gate for irreversible side effects</li>
+            <li>Distinguish deliberate reflection from unproductive looping in the loop detector</li>
+          </ul>
+        </div>
+        <div class="change-panel dont">
+          <h4>Do not change</h4>
+          <ul>
+            <li>Do not build a competing agent orchestration framework</li>
+            <li>Do not build 100+ provider adapter plumbing from scratch</li>
+            <li>Do not attempt true inference-serving techniques (KV-cache, batching, quantization, speculative decoding) yourselves</li>
+            <li>Do not implement §44 as a literal real-time constraint solver</li>
+            <li>Do not build a competing observability/dashboards product</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="font-size:16px; margin:34px 0 14px;">Open architectural decisions</h3>
+      <ul class="open-list">
+        <li><span class="q-mark">?</span> Is the Control Plane a synchronous request-path component, or a mostly-precomputed/cached-policy component?</li>
+        <li><span class="q-mark">?</span> Does the Control Plane ever execute actions itself, or only advise a plan the orchestrator executes &mdash; systemically, not just per capability?</li>
+        <li><span class="q-mark">?</span> Should external positioning shift toward &ldquo;Agent Execution Governance &amp; Verified Economics&rdquo; to avoid confusion with the inference-infrastructure market?</li>
+        <li><span class="q-mark">?</span> What's the go-to-market wedge sequencing &mdash; coding-agent optimization first, or a broader agentic-economics pitch?</li>
+        <li><span class="q-mark">?</span> Should Layer 3/P5 remain in the core architecture, or be spun out as a clearly-separate integration module?</li>
+        <li><span class="q-mark">?</span> How much of the provider-adapter/gateway layer should be built in-house vs. designed to sit atop an existing gateway as a pluggable dependency?</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer class="page">
+    <span>No repository files were modified &mdash; read-only architecture &amp; research review.</span>
+    <span>Enterprise Agent &amp; LLM Inference Optimization Control Plane &middot; pre-implementation documentation phase</span>
+  </footer>
+
+</div>
