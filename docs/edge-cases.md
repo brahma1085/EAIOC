@@ -9,8 +9,8 @@
 **Architecture cross-reference:** `architecture.md` (EAIOC-ARCH-001)
 **Interfaces cross-reference:** `interfaces.md` (EAIOC-INTF-001)
 **Conventions cross-reference:** `conventions.md` (EAIOC-CONV-001)
-**Date:** 2026-09-09 (Rev 1.1 hardening pass: 2026-09-10)
-**Version:** 1.1.0
+**Date:** 2026-09-09 (Rev 1.1 hardening pass: 2026-09-10; Rev 1.2 hardening pass: 2026-09-15, propagated 2026-09-16)
+**Version:** 1.2.0
 
 ---
 
@@ -44,6 +44,15 @@ Before reading individual cases, internalize these invariants. No edge case may 
 | **P-EC-016** | **A decision must be revalidated if the state it depended on changes before the corresponding action executes** (ARCH §46.2.5, §46.4). |
 | **P-EC-017** | **Terminal execution states are final.** No further mutation may be applied to a terminated execution (ARCH §46.3). |
 | **P-EC-018** | **Revoked permission or superseded policy never authorizes a new operation**, regardless of when it was originally granted (ARCH §46.2.8, §46.2.9). |
+| **P-EC-019** | **A budget/spend decision never substitutes for, and is never substituted by, a security/authorization/policy decision.** `WITHIN_BUDGET` never implies authorized; `HALTED` is never inferred from a failed authorization check (SEC-011, ARCH §47.2.1). |
+| **P-EC-020** | **Sensitive content is classified before it is admitted to any optimization stage; an unclassified item is treated as sensitive by default.** Never overridden by relevance score or budget pressure (SEC-012, ARCH §47.2.2). |
+| **P-EC-021** | **Externally-sourced content is untrusted until content-integrity screening returns PASS.** A screening failure fails closed, never open, for every content source — not only end-user input (SEC-016, ARCH §47.2.5). |
+| **P-EC-022** | **Tool/MCP identity and schema integrity are validated before a tool result is trusted, independent of the call's cost/ROI efficiency.** Efficiency never substitutes for a trust decision (SEC-014, ARCH §47.2.3). |
+| **P-EC-023** | **A human-approval gate, once configured for an action class, cannot be bypassed by an optimization decision, a budget decision, or an unavailable approval mechanism** (fails closed) (SEC-015, ARCH §47.2.4). |
+| **P-EC-024** | **Control-Plane self-protection sheds optimization depth before it ever silently skips a security/authorization/PII check under load.** Self-protection failures are optimization failures (fail-open) unless doing so would skip a governance/security stage, in which case the request fails closed (NFR-014, ARCH §47.4.1). |
+| **P-EC-025** | **Every decision's advisory/enforcement/execution-ownership category is recorded independently; an undeclared category defaults to the least-authority category (ADVISORY), never to execution-ownership by omission** (ARCH §47.6). |
+| **P-EC-026** | **A verifier's pass/fail output is never treated as ground truth without a calibrated confidence score and threshold.** A deterministic verifier's confidence is definitionally 1.0; a probabilistic verifier's confidence must be below 1.0 unless calibrated (ARCH §47.4.3). |
+| **P-EC-027** | **`TOKEN REDUCTION != VERIFIED NET SAVINGS`.** A technique is counted as a saving only when its full net-optimization-value accounting (benefit, overhead, cost, risk) is net-positive and applicable quality gates pass; an unmeasurable term is marked `UNVERIFIED` and excluded, never assumed favorable (ARCH §47.4.2). |
 
 ---
 
@@ -92,6 +101,7 @@ Before reading individual cases, internalize these invariants. No edge case may 
 41. Inference Serving Layer Edge Cases
 42. Adversarial and Abuse Scenarios
 43. Dynamic Execution and Control-Plane Hardening Edge Cases
+44. Hardening Amendment — Operating Model, Governance, and Trust Boundaries Edge Cases (2026-09-15)
 
 ---
 
@@ -5201,6 +5211,2770 @@ The edge cases in this section arise from conditions the static pipeline model (
 
 ---
 
+## 44. Hardening Amendment — Operating Model, Governance, and Trust Boundaries Edge Cases (2026-09-15)
+
+**Amendment:** EAIOC-EDGE-001 Rev 1.2 — Hardening Pass, 2026-09-15 (propagated 2026-09-16)
+**Traceability:** PS §52 (H01–H20); EAIOC-SPEC-001 §42; ARCH §47 (EAIOC-ARCH-001 Rev 1.3); INTF §43, INTF-063–071 (EAIOC-INTF-001 v1.2.0); OBJ-023–035; SEC-011–016; NFR-014; AC-039–053
+
+> [!IMPORTANT]
+> This section is additive. EC-001–EC-140 (including §43's Dynamic Execution set) are unchanged. It closes the edge-case coverage gap for the nine new/extended components introduced by the 2026-09-15 hardening pass: Spend Governance Engine (SGE), Data Governance Engine (DGE), Tool/MCP Trust Gate (TMG), Human Approval Gate (HAG), Content Integrity Screen (CIS), Feasibility Tier Registry (FTR), Cross-Execution Coordinator (XEC), Self-Protection Controller (SPC), and Verifier Calibration Layer (VCL) — plus the cross-cutting Operating Model (H01), Advisory/Enforcement/Execution-Ownership boundary (H02), Verified Net Optimization Economics (H04), Decision Explainability (H15), and Execution State Portability (H16) concerns that apply across all components.
+>
+> **Format note:** every edge case below follows the same fixed structure used throughout this document (Domain/Objective/Severity/Likelihood/Reversible + Scenario/Trigger/Why It Matters/Detection/Expected Behavior/Fallback/Recovery/Safety Implications/Observability/Testing Requirements — see "Edge Case Format" above), per the project's standing instruction that the edge-case format is fixed and new entries must stay structurally consistent with existing ones. One field is added, additively, to every case in this section only: **Failure Classification**, which names the category from the taxonomy this hardening pass introduces (SECURITY / AUTHORIZATION / POLICY / INTEGRITY / QUALITY / RELIABILITY / AVAILABILITY / CONSISTENCY / STALENESS / CONCURRENCY / COST / LATENCY / OPTIMIZATION / DATA_GOVERNANCE / HUMAN_APPROVAL / SIDE_EFFECT / CONFIGURATION / INTEGRATION / UNKNOWN). This does not alter or redefine the meaning of any existing field in EC-001–140.
+
+Every case below traces to `architecture.md` §47, `interfaces.md` §43 (INTF-063–071), or `Ent_Agent_LLM_Inference_Opt_Control_Plane_Engineering_Spec.md` §42, and ultimately to the Problem Statement §52 (H01–H20).
+
+---
+
+**44.1 Control Plane Operating Model and Ownership Boundary** — INTF-063 shared types (§43.10) · ARCH §47.5, §47.6 · SPEC §42.1, §42.2 · OBJ-023, OBJ-024
+
+---
+
+### EC-141: HYBRID Component's Synchronous Validation Cannot Complete Within Its Self-Protection Latency Budget
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Operating Model (ARCH §47.5; INTF §43.10) |
+| Objective | OBJ-023, AC-039 |
+| Severity | HIGH |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** A HYBRID-mode component (e.g., a provider/prompt cache, or VCL's confidence recheck) consults a precomputed artifact synchronously, but the freshness/confidence revalidation step it must run before trusting that artifact cannot complete within the SPC latency budget allotted to the decision.
+
+**Trigger:** Backend latency spike on the revalidation dependency (e.g., a freshness check against an external source, or VCL's calibration lookup) under load.
+
+**Why It Matters:** ARCH §47.5's failure rule is explicit: on this timeout, the component must fail open to SYNC recomputation or the unoptimized path — never to an unvalidated precomputed result. Silently trusting the stale precomputed artifact because validation was slow would reintroduce exactly the staleness risk HYBRID mode exists to guard against.
+
+**Detection:** SPC's `check_latency_budget()` (INTF-070, §43.8) is consulted by the HYBRID component before it commits to using the precomputed artifact; exceeding budget is a distinct, logged condition, not a silent pass-through.
+
+**Expected Behavior:**
+1. On budget exhaustion during revalidation, the component falls back to SYNC recomputation of the decision, or to the unoptimized/original path if recomputation is also infeasible within budget.
+2. The precomputed artifact is not used unvalidated under any circumstance.
+3. The fallback is logged with the elapsed time and the budget that was exceeded.
+
+**Fallback/Recovery:** Fail open to SYNC recomputation or the unoptimized path; never fail open to an unvalidated precomputed result.
+
+**Safety Implications:** This is an optimization-mode failure, not a security failure — quality/consistency risk only, since using a stale artifact could still leak incorrect (but not necessarily unauthorized) content.
+
+**Failure Classification:** STALENESS
+
+**Observability:**
+- `operating_mode.hybrid_validation_timeout.count` +1
+- `operating_mode.fallback_path` = `SYNC_RECOMPUTE` | `UNOPTIMIZED`
+
+**Testing Requirements:**
+- Integration test: Inject latency into a HYBRID component's revalidation dependency past the SPC budget → assert fallback to recomputation/unoptimized path, never use of the stale precomputed artifact.
+
+---
+
+### EC-142: Decision Type Misdeclared ASYNC When Its Underlying Information Actually Changes Per-Request
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Operating Model (ARCH §47.5) |
+| Objective | OBJ-023, AC-039 |
+| Severity | MEDIUM |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A component is configured as ASYNC (e.g., treating a permission grant as slowly-changing) but the underlying information actually changes at request granularity for a specific tenant/workflow (e.g., permissions revoked mid-session frequently in a high-turnover environment).
+
+**Trigger:** A configuration/policy-authoring error that assigns ASYNC mode to a decision class whose actual volatility does not match the ASYNC assumption in ARCH §47.5's table.
+
+**Why It Matters:** An ASYNC decision is not revalidated per-request by design; if the real volatility is higher than assumed, decisions are made against information that is stale far more often than the mode's design intends, silently degrading the staleness protections established in ARCH §46.
+
+**Detection:** SRP-style staleness monitoring (ARCH §46.2.11) tracks the observed rate at which an ASYNC-mode decision is later found stale at action time; a rate above a configured threshold flags the mode assignment itself as suspect.
+
+**Expected Behavior:**
+1. A sustained above-threshold stale-detection rate on an ASYNC-mode decision type triggers a configuration review flag — it does not silently continue treating the information as slowly-changing.
+2. Pending review, individual stale detections still trigger normal reconciliation (ARCH §46.2.5); no request is served from a decision known-stale at execution time regardless of the component's declared mode.
+
+**Fallback/Recovery:** Individual stale detections reconcile per existing SRP/RE behavior; the mode-assignment review is a configuration-level corrective action, not a per-request fallback.
+
+**Safety Implications:** Mode misconfiguration is an optimization/consistency risk, not by itself a security breach — but repeated staleness increases the surface for downstream security-relevant staleness (e.g., stale permission state) if compounded with other cases (see EC-202).
+
+**Failure Classification:** CONFIGURATION
+
+**Observability:**
+- `operating_mode.async_staleness_rate` (per decision type)
+- Alert: `operating_mode.async_staleness_rate` exceeds configured threshold.
+
+**Testing Requirements:**
+- Test: Simulate an ASYNC-mode decision type receiving high-frequency underlying changes → assert the staleness-rate monitor flags it, and individual stale detections still reconcile correctly regardless of the flag.
+
+---
+
+### EC-143: Component's Advisory/Enforcement/Execution-Ownership Category Is Undeclared at Configuration Time
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Ownership Boundary (ARCH §47.6; INTF §43.10) |
+| Objective | OBJ-024, AC-040 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A newly integrated or misconfigured component's `decision_ownership` value is never explicitly set.
+
+**Trigger:** Incomplete configuration during integration of a new optimization stage or adapter; a default value omitted during deployment.
+
+**Why It Matters:** ARCH §47.14 Invariant 9 and INTF §43.10's default rule are explicit: an undeclared category defaults to ADVISORY (least authority), never to EXECUTION-OWNERSHIP by omission. Defaulting the other way would let a component silently perform external side effects (e.g., a cache write, a tool execution) that no one explicitly authorized it to own.
+
+**Detection:** Configuration validation at component registration checks for a `decision_ownership` value; absence is logged and the default is applied, not silently assumed correct.
+
+**Expected Behavior:**
+1. An undeclared `decision_ownership` defaults to `ADVISORY`.
+2. The component is prevented from performing any side-effecting (EXECUTION-OWNERSHIP-class) action until the category is explicitly declared and reviewed.
+3. The omission itself is surfaced as a configuration warning, not silently accepted as intentional.
+
+**Fallback/Recovery:** Operate in ADVISORY mode (recommend only, no side effect) until explicitly reclassified.
+
+**Safety Implications:** Prevents an unreviewed component from acquiring unintended authority to act with external side effects.
+
+**Failure Classification:** CONFIGURATION
+
+**Observability:**
+- `ownership.undeclared_category.count` +1
+- Config warning: `{component_id, defaulted_to: ADVISORY}`
+
+**Testing Requirements:**
+- Unit test: Register a component without declaring `decision_ownership` → assert it defaults to ADVISORY and cannot perform a side-effecting action.
+
+---
+
+### EC-144: A Single Request Crosses ADVISORY, ENFORCEMENT, and EXECUTION-OWNERSHIP at Different Pipeline Stages
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Ownership Boundary (ARCH §47.6, §47.16) |
+| Objective | OBJ-024, AC-040 |
+| Severity | MEDIUM |
+| Likelihood | HIGH |
+| Reversible | YES |
+
+**Scenario:** One request passes through CIS in ENFORCEMENT mode (blocking on screening failure), T0.1 model routing in ADVISORY mode (recommends a model), and a T3.3 tool-result cache write in EXECUTION-OWNERSHIP mode (the Control Plane itself commits the write) — three different ownership categories in one request lifecycle.
+
+**Trigger:** Normal multi-stage pipeline execution; not itself an anomaly, but a required audit/consistency case.
+
+**Why It Matters:** ARCH §47.6 requires each category to be recorded independently per decision, not collapsed into a single request-level label. Losing per-decision granularity would make it impossible to reconstruct, during audit, exactly which decisions the Control Plane merely advised versus which it was directly responsible for.
+
+**Detection:** Each decision's audit record (ARCH §47.16) carries its own `decision_ownership` value; a request-level summary that fails to preserve per-decision categories is a defect.
+
+**Expected Behavior:**
+1. Each of the three decisions is logged with its own independent `decision_ownership` value.
+2. No aggregation collapses the request into a single ownership category.
+3. Audit retrieval for the request surfaces all three categories distinctly.
+
+**Fallback/Recovery:** N/A — this is a positive/boundary case verifying correct per-decision recording, not a failure path.
+
+**Safety Implications:** Correct per-decision ownership recording is required for SEC-008-consistent audit reconstruction.
+
+**Failure Classification:** UNKNOWN (N/A — positive case; classification applies only on defect)
+
+**Observability:**
+- Audit record per decision includes `decision_ownership`; request-level trace links all decisions for the `execution_id`.
+
+**Testing Requirements:**
+- Integration test: Execute a request touching CIS, T0.1 routing, and a cache write → assert three independently-recorded ownership categories are retrievable for the same `execution_id`.
+
+---
+
+### EC-145: EXECUTION-OWNERSHIP Action Lacks a Required Reversibility Record
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Ownership Boundary (ARCH §47.6) |
+| Objective | OBJ-024, AC-040 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A component crosses into EXECUTION-OWNERSHIP (e.g., a programmatic tool execution, TE-004) but does not record a CL-004 reversibility reference for the action it performed.
+
+**Trigger:** An implementation gap where a new EXECUTION-OWNERSHIP-class action is added without wiring up the existing CL-004 reversibility-recording requirement.
+
+**Why It Matters:** ARCH §47.6 states a component crossing into EXECUTION-OWNERSHIP inherits CL-004's reversibility requirements. Without a reversibility record, a later rollback/compensation decision (e.g., EC-131-style uncertain-outcome recovery) has no basis to act on.
+
+**Detection:** A post-action audit check confirms every EXECUTION-OWNERSHIP-class action has an associated CL-004 reversibility record (reversible flag + recovery reference, or an explicit "irreversible" declaration).
+
+**Expected Behavior:**
+1. An EXECUTION-OWNERSHIP action missing a reversibility record is flagged as a compliance gap at audit time.
+2. Where feasible, the action is blocked until the reversibility contract is implemented; where the action already executed historically, the gap is surfaced for remediation, not silently ignored.
+
+**Fallback/Recovery:** Block new occurrences pending remediation; existing gaps are surfaced to observability/audit for backfill or policy decision.
+
+**Safety Implications:** Missing reversibility records undermine recovery correctness (RCO, ARCH §46.2.13) for EXECUTION-OWNERSHIP actions specifically.
+
+**Failure Classification:** RELIABILITY
+
+**Observability:**
+- `ownership.execution_ownership_missing_reversibility.count` +1
+
+**Testing Requirements:**
+- Contract test: Every registered EXECUTION-OWNERSHIP-class action type has a CL-004 reversibility record schema populated.
+
+---
+
+### EC-146: Mode Assigned SYNC Where HYBRID Would Achieve Equivalent Safety at Lower Cost/Latency
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Operating Model (ARCH §47.5, §41 anti-patterns) |
+| Objective | OBJ-023, AC-039 |
+| Severity | LOW |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** A component is configured SYNC (full per-request recomputation) when a HYBRID precomputed-plus-revalidation design would achieve the same safety/quality outcome at materially lower latency and cost.
+
+**Trigger:** Conservative default configuration that was never revisited after a component's actual volatility characteristics were understood.
+
+**Why It Matters:** ARCH §47.5 explicitly names this the "expensive optimizer" anti-pattern (Section 41): mode assignment is itself subject to the same net-value accounting as any other optimization choice. Needlessly paying SYNC-mode latency/cost when HYBRID is equally safe is a negative-optimization-adjacent inefficiency in the Control Plane's own operation.
+
+**Detection:** Net Optimization Economics (§44.3.1/EC-152 below) periodically evaluates whether a SYNC-mode component's observed decision volatility would support HYBRID mode without increasing staleness incidents.
+
+**Expected Behavior:**
+1. A SYNC component whose decisions are, in practice, rarely invalidated by per-request-only information is flagged as a HYBRID-mode candidate.
+2. Reassignment to HYBRID is a deliberate, reviewed configuration change — not automatic — since the safety analysis (is per-request information truly unnecessary) requires explicit sign-off.
+
+**Fallback/Recovery:** N/A — this is an efficiency observation, not a failure requiring fallback.
+
+**Safety Implications:** None directly; this case exists to prevent over-conservative configuration from being mistaken for a safety requirement.
+
+**Failure Classification:** OPTIMIZATION
+
+**Observability:**
+- `operating_mode.sync_hybrid_candidate.count` (components flagged for review)
+
+**Testing Requirements:**
+- Review checklist item: Periodic audit of SYNC-mode components against observed volatility data to identify HYBRID candidates.
+
+---
+
+**44.2 Self-Protection Controller (SPC)** — INTF-070 · ARCH §47.4.1 · SPEC §42.3 · OBJ-025, NFR-014
+
+---
+
+### EC-147: Latency Budget Exhausted Mid-Decision Forces Fail-Open to the Unoptimized Path
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SPC (ARCH §47.4.1; INTF-070) |
+| Objective | OBJ-025, NFR-014, AC-041 |
+| Severity | MEDIUM |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** A SYNC or HYBRID optimization decision (e.g., context compression) is still processing when its configured maximum added-latency budget is exhausted.
+
+**Trigger:** Backend slowness in the optimization stage itself (e.g., an LLM-based compressor under load).
+
+**Why It Matters:** SPC's core purpose (ARCH §47.4.1) is exactly this: the Control Plane must not let its own optimization overhead become the source of unbounded added latency for the request.
+
+**Detection:** `check_latency_budget()` (INTF-070) is polled/invoked by the in-flight stage; `within_budget = false` triggers the fail-open path.
+
+**Expected Behavior:**
+1. On budget exhaustion, the stage aborts and falls back to the unoptimized/original path (`action = FAIL_OPEN`, INTF-070 `LatencyBudgetStatus`).
+2. The request proceeds without blocking on the optimization stage.
+3. The abort is logged with elapsed time vs. budget.
+
+**Fallback/Recovery:** Fail open to the unoptimized path; the request is never blocked by an optimization-stage timeout.
+
+**Safety Implications:** None — this is a pure optimization fail-open case, consistent with P-EC-001.
+
+**Failure Classification:** LATENCY
+
+**Observability:**
+- `spc.latency_budget_exceeded.count` +1 (per stage_id)
+
+**Testing Requirements:**
+- Test: Inject latency into an optimization stage past its SPC budget → assert fail-open to unoptimized path, request not blocked.
+
+---
+
+### EC-148: Overload Condition Would Skip a Governance/Security Check — Must Fail Closed Instead
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SPC (ARCH §47.4.1; INTF-070) |
+| Objective | OBJ-025, NFR-014, AC-041, SEC-011–016 |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** Under sustained overload, SPC's depth-shedding logic considers shedding stages to relieve backpressure. One of the candidate stages is SGE, DGE, TMG, HAG, or CIS evaluation.
+
+**Trigger:** Extreme load causing SPC to shed as many stages as possible to stay within budget, potentially including governance/security stages if not explicitly excluded.
+
+**Why It Matters:** This is the single named exception to SPC's general fail-open behavior. ARCH §47.4.1's failure-behavior rule and INTF-070's `security_stages_preserved` invariant (NFR-014) are both explicit: self-protection failures are optimization failures (fail-open) *unless* the overload condition would otherwise cause a security/authorization/PII check to be skipped — in that specific case the affected request fails closed. Getting this precedence backwards would let a system overload become a security bypass.
+
+**Detection:** `report_overload_signal()` → `DepthSheddingDecision` (INTF-070) is validated: `security_stages_preserved` MUST always be `true`; the shed-stage list is checked against SGE/DGE/TMG/HAG/CIS before being applied.
+
+**Expected Behavior:**
+1. SGE, DGE, TMG, HAG, and CIS evaluation are never included in `shed_stages`, regardless of overload severity.
+2. If honoring this requirement means a request cannot be served within its latency budget, that specific request fails closed (rejected or queued) rather than proceeding with an unchecked governance/security stage.
+3. Only §5/§6-class (non-governance) optimization stages are eligible for shedding.
+
+**Fallback/Recovery:** Fail closed for the affected request when preserving a governance/security check would otherwise be violated; never fail open on a governance/security stage.
+
+**Safety Implications:** This is the precedence-critical case validating ARCH §47.14 Invariant 8 and INTF-070's `security_stages_preserved` invariant directly. A defect here is a CRITICAL security regression.
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `spc.security_stage_shed.count` — MUST remain 0 always; any nonzero value is a P1 alert.
+- `spc.overload_fail_closed.count` +1 (requests rejected to preserve governance stages)
+
+**Testing Requirements:**
+- Chaos/security test: Simulate extreme overload and confirm `DepthSheddingDecision.security_stages_preserved` remains `true` in every observed decision; confirm no SGE/DGE/TMG/HAG/CIS stage ever appears in `shed_stages`.
+- Regression test: This test MUST be part of every release's security gate, not merely edge-case coverage.
+
+---
+
+### EC-149: Sustained Overload Forces the Optimization Depth Tier to LOW Even for a Request That Would Otherwise Warrant HIGH
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SPC (ARCH §47.4.1; INTF-070) |
+| Objective | OBJ-025, NFR-014, AC-041 |
+| Severity | MEDIUM |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** A tenant's OI-003 policy tier would normally select HIGH optimization depth for a complex request, but Control-Plane-wide overload forces `get_current_depth_tier()` to return LOW for that tenant.
+
+**Trigger:** Queue depth, p99 latency, or error-rate signals (`OverloadSignal`, INTF-070) crossing the backpressure threshold.
+
+**Why It Matters:** ARCH §47.4.1's backpressure requirement exists so the Control Plane degrades its own optimization ambition under load rather than degrading correctness/security or failing entirely.
+
+**Detection:** `report_overload_signal()` returns a `DepthSheddingDecision` with `new_depth_tier = LOW`, applied ahead of the per-request OI-003 tier selection.
+
+**Expected Behavior:**
+1. The forced LOW tier overrides the tenant's normally-selected tier for the duration of the overload condition.
+2. Non-governance optimization stages beyond LOW-tier scope are skipped (fail-open, per P-EC-001), not degraded in correctness.
+3. The forced downgrade is logged distinctly from a per-tenant policy-driven LOW selection, so root cause (overload vs. policy) remains distinguishable.
+
+**Fallback/Recovery:** Optimization proceeds at reduced (LOW) depth rather than failing the request entirely.
+
+**Safety Implications:** None directly — governance/security stages remain unaffected per EC-148.
+
+**Failure Classification:** OPTIMIZATION
+
+**Observability:**
+- `spc.depth_tier_forced.count` (tenant_id, from_tier, to_tier, cause=OVERLOAD)
+
+**Testing Requirements:**
+- Load test: Drive the Control Plane into a backpressure condition → assert depth tier is forced to LOW and governance/security stages remain unaffected (cross-check with EC-148).
+
+---
+
+### EC-150: Optimization/Retry/Cache Storm Consumes SPC's Own Compute Budget (Self-Inflicted Overload)
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SPC (ARCH §47.4.1) |
+| Objective | OBJ-025, NFR-014, AC-041 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A pathological interaction — e.g., an escalation storm (EC-041) combined with aggressive retry behavior — causes the Control Plane's own optimization/classification stages to consume compute far beyond normal, exhausting the per-tenant `ComputeBudgetStatus` (INTF-070) budget.
+
+**Trigger:** Compounding failure/retry conditions that amplify Control-Plane-side compute consumption independent of the underlying request volume.
+
+**Why It Matters:** SPC exists precisely to bound the Control Plane's own resource consumption; a storm that evades this bound could degrade the Control Plane for all tenants, not just the one experiencing the storm, unless tenant-scoped budgets contain it.
+
+**Detection:** `check_compute_budget()` (INTF-070) per-tenant metering detects consumption trending toward or past `budget_units`.
+
+**Expected Behavior:**
+1. On approaching the compute budget, SPC sheds non-governance optimization stages for the offending tenant specifically (tenant isolation preserved — other tenants are unaffected).
+2. If the storm continues, the tenant's requests proceed via the unoptimized path rather than continuing to amplify compute consumption.
+3. `RUNAWAY_COST_DETECTED`-style monitoring (analogous to SGE, §44.4) flags the anomaly for investigation.
+
+**Fallback/Recovery:** Fail open to the unoptimized path for the affected tenant; contain the storm within that tenant's scope.
+
+**Safety Implications:** Tenant isolation (NFR-004) must hold even under this compounding failure — one tenant's storm must not degrade compute available to another tenant's governance/security-critical stages.
+
+**Failure Classification:** RELIABILITY
+
+**Observability:**
+- `spc.compute_budget_exceeded.count` (tenant_id)
+- Cross-tenant isolation check: other tenants' `spc.compute_budget` remains unaffected during the storm.
+
+**Testing Requirements:**
+- Chaos test: Simulate an escalation/retry storm for one tenant → assert compute budget containment and that other tenants' optimization depth is unaffected.
+
+---
+
+### EC-151: SPC Itself Fails to Complete Processing — Deterministic Safe Fallback Required
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SPC (ARCH §47.4.1) |
+| Objective | OBJ-025, NFR-014, AC-041 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** SPC's own overload-detection/depth-shedding logic fails to complete (e.g., a crash or exception within the self-protection controller itself), leaving the request's optimization depth decision unresolved.
+
+**Trigger:** A defect or resource exhaustion within SPC's own implementation, not the request pipeline it is meant to protect.
+
+**Why It Matters:** A component whose entire purpose is to provide a deterministic safe fallback for the rest of the system must itself have a deterministic safe fallback when it fails — otherwise a meta-level single point of failure undermines the whole self-protection design.
+
+**Detection:** A timeout/exception boundary around SPC's own decision logic.
+
+**Expected Behavior:**
+1. On SPC's own failure, the affected request defaults to the same deterministic safe path used for any Section 30 failure/fallback — the unoptimized path for optimization-class stages.
+2. Governance/security stages (SGE/DGE/TMG/HAG/CIS) are NOT gated on SPC's availability — they run independent of whether SPC itself is healthy, consistent with SEC-011's independence invariant applied by analogy to all governance components.
+3. SPC's own failure is a P1 operational alert distinct from ordinary stage-level fallback events.
+
+**Fallback/Recovery:** Deterministic fallback to the unoptimized path for optimization-class stages; governance/security stages proceed independently of SPC's health.
+
+**Safety Implications:** Governance/security independence from SPC's own health status is the critical invariant this case verifies.
+
+**Failure Classification:** RELIABILITY
+
+**Observability:**
+- `spc.self_failure.count` +1 — P1 alert
+- `governance.independent_of_spc_health` = true (invariant metric)
+
+**Testing Requirements:**
+- Chaos test: Force an internal SPC failure → assert deterministic fallback for optimization stages and unaffected operation of governance/security stages.
+
+---
+**44.3 Verified Net Optimization Economics** — Accounting extension to INTF-002/INTF-047 (§43.14) · ARCH §47.4.2 · SPEC §42.4 · OBJ-026
+
+---
+
+### EC-152: Positive Token Reduction Produces a Net-Negative `NetOptimizationValue`
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Net Optimization Economics (ARCH §47.4.2; INTF §43.14) |
+| Objective | OBJ-026, AC-042 |
+| Severity | HIGH |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** A compression technique reduces `tokens_saved` by a meaningful amount, but when `optimization_compute_cost`, `retrieval_overhead`, `added_latency_ms`-attributable retry cost, and `downstream_tool_cost` are all netted in, `net_benefit <= 0`.
+
+**Trigger:** An optimization stage whose own overhead (e.g., an LLM-based compressor's inference cost) exceeds the inference savings it produces for this particular request shape.
+
+**Why It Matters:** This is the exact failure mode the whole Net Optimization Economics extension exists to catch: `TOKEN REDUCTION != VERIFIED NET SAVINGS` (INTF §43.14 invariant). A system that reports savings based on `tokens_saved` alone, ignoring this accounting, would systematically overstate value.
+
+**Detection:** `NetOptimizationValue.net_benefit` is computed for every candidate optimization before it is counted as applied; `net_benefit <= 0` is checked prior to reporting.
+
+**Expected Behavior:**
+1. The technique is not counted as a saving despite positive `tokens_saved`.
+2. The `OptimizationDecisionOutcome` for this candidate is `DO_NOT_OPTIMIZE` or `SKIP`, not `APPLY`.
+3. The full accounting breakdown (benefit, overhead, cost, risk categories per ARCH §47.4.2's table) is retained for audit, not just the net figure.
+
+**Fallback/Recovery:** Use the unoptimized/original path; do not apply a technique whose own accounting shows it is not beneficial.
+
+**Safety Implications:** None directly (optimization/cost-accounting integrity, not security) — but see P-EC-002/P-EC-004 (never fabricate measurements; overhead is a real cost).
+
+**Failure Classification:** COST
+
+**Observability:**
+- `net_economics.net_negative_technique.count` (per technique)
+- `net_economics.net_benefit` distribution, logged per decision
+
+**Testing Requirements:**
+- Test: Construct a request shape where a compressor's overhead exceeds its savings → assert the technique is not applied and is not counted as a saving.
+
+---
+
+### EC-153: A Net-Optimization-Value Term Cannot Be Measured — Result Must Be `UNVERIFIED`
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Net Optimization Economics (ARCH §47.4.2; INTF §43.14) |
+| Objective | OBJ-026, AC-042, AC-002 |
+| Severity | MEDIUM |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** `downstream_tool_cost` cannot be attributed reliably for a given optimization (e.g., a routing decision whose downstream tool-usage effect is not separable from other concurrent changes).
+
+**Trigger:** Missing instrumentation, or a genuinely non-attributable cost category for a specific technique/request combination.
+
+**Why It Matters:** INTF §43.14's invariant is explicit: where any input term cannot be measured, `verification_status = UNVERIFIED` and the result is excluded from reported savings — never assumed favorable. This directly implements P-EC-002 (never fabricate measurements) for the new accounting model.
+
+**Detection:** Each `NetOptimizationValue` field is checked for a valid, attributable measurement before the record is finalized; an unmeasurable field forces `verification_status = UNVERIFIED`.
+
+**Expected Behavior:**
+1. `verification_status = UNVERIFIED` is set.
+2. The record is excluded from governance/savings reporting (extends EC-067's existing UNVERIFIED-ledger-entry handling to the new accounting fields specifically).
+3. The unmeasurable field is identified in the record so root-cause instrumentation gaps can be tracked and closed over time.
+
+**Fallback/Recovery:** The optimization decision itself may still proceed (this is an accounting/reporting gap, not a safety gap) — only the savings claim is excluded.
+
+**Safety Implications:** None — pure measurement-integrity case, extending EC-067.
+
+**Failure Classification:** OPTIMIZATION
+
+**Observability:**
+- `net_economics.unverified_term.count` (per field name)
+
+**Testing Requirements:**
+- Test: Force a downstream-cost attribution to be unavailable for a technique → assert `verification_status = UNVERIFIED` and exclusion from savings reporting, while the optimization decision itself is unaffected.
+
+---
+
+### EC-154: `DO_NOT_OPTIMIZE` Selected Proactively Despite Technical Feasibility
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Net Optimization Economics (ARCH §47.4.2; INTF §43.14) |
+| Objective | OBJ-026, AC-042 |
+| Severity | MEDIUM |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** A candidate optimization (e.g., aggressive context pruning for a short, latency-insensitive request) is technically feasible and would reduce tokens, but the net-value/quality-risk accounting determines it should not be attempted at all — not merely skipped for this instance, but a deliberate `DO_NOT_OPTIMIZE` classification.
+
+**Trigger:** Net-value accounting (or a quality-gate risk assessment) determines the technique's expected value for this task/tenant/intent combination is negative or unacceptably risky, independent of any transient failure.
+
+**Why It Matters:** The user's explicit requirement (and INTF §43.14) establishes `DO_NOT_OPTIMIZE` as a first-class valid outcome, distinct from `SKIP` (an opportunistic pass on this instance) or `FALLBACK` (recovering from a failure). Conflating these three into one undifferentiated "did not optimize" bucket would lose information needed for tuning and audit.
+
+**Detection:** OI-002's Cost-of-Optimization Controller (ARCH §14) evaluates `OptimizationDecisionOutcome` candidates before applying a technique; `DO_NOT_OPTIMIZE` is a distinct decision path from `SKIP`/`FALLBACK`/`REJECT`.
+
+**Expected Behavior:**
+1. `OptimizationDecisionOutcome = DO_NOT_OPTIMIZE` is recorded explicitly, with the net-value/risk basis for the decision.
+2. This is never conflated with `SKIP` (opportunistic, e.g., cache miss) or `FALLBACK` (failure recovery) in reporting — each outcome value is preserved distinctly through the ledger.
+3. Optimization success is never measured "token count decreased" alone (P-EC-003); a correct `DO_NOT_OPTIMIZE` decision that produces zero token reduction is a successful outcome, not a coverage gap.
+
+**Fallback/Recovery:** N/A — proceed with the unoptimized path by design, not as a failure fallback.
+
+**Safety Implications:** None directly; this case validates correct semantic distinction in the outcome taxonomy, preventing metrics from mischaracterizing deliberate restraint as failure.
+
+**Failure Classification:** OPTIMIZATION
+
+**Observability:**
+- `optimization.outcome_distribution` — `DO_NOT_OPTIMIZE` tracked as a distinct bucket from `SKIP`/`FALLBACK`/`REJECT`/`APPLY`/`REQUIRE_REVALIDATION`.
+
+**Testing Requirements:**
+- Test: Construct a request where net-value accounting favors not attempting optimization → assert `DO_NOT_OPTIMIZE` is recorded distinctly and is not miscounted as a missed-optimization defect.
+
+---
+
+### EC-155: `REQUIRE_REVALIDATION` Outcome Returned but the Caller Proceeds Without Revalidating
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Net Optimization Economics (ARCH §47.4.2; INTF §43.14) |
+| Objective | OBJ-026, AC-042 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** An optimization decision engine returns `OptimizationDecisionOutcome = REQUIRE_REVALIDATION` (e.g., a cache hit whose freshness is borderline), but a defect in the calling stage proceeds to use the result as if it had received `APPLY`.
+
+**Trigger:** An integration defect where a caller does not branch on all six `OptimizationDecisionOutcome` values, silently treating `REQUIRE_REVALIDATION` as equivalent to `APPLY`.
+
+**Why It Matters:** `REQUIRE_REVALIDATION` exists precisely to force a revalidation step (SRP, ARCH §46.2.11) before the result is trusted; silently skipping that step reintroduces the stale-result risk the outcome value exists to flag.
+
+**Detection:** A contract/integration test enumerates all six `OptimizationDecisionOutcome` values and confirms each calling site has an explicit branch; a caller lacking a `REQUIRE_REVALIDATION` branch is a defect.
+
+**Expected Behavior:**
+1. `REQUIRE_REVALIDATION` mandates the revalidation step complete successfully before the result is used.
+2. If revalidation itself fails or cannot complete, the caller falls back to recomputation/unoptimized path (per SRP's existing stale-result handling), not silent use.
+3. This defect class is caught by contract testing, not left to runtime discovery.
+
+**Fallback/Recovery:** Revalidate before use; if revalidation is infeasible, fall back to recomputation or the unoptimized path.
+
+**Safety Implications:** A silent `REQUIRE_REVALIDATION` bypass reintroduces stale-result risk (P-EC-011).
+
+**Failure Classification:** STALENESS
+
+**Observability:**
+- `net_economics.require_revalidation_bypassed.count` — MUST remain 0; nonzero is a defect alert.
+
+**Testing Requirements:**
+- Contract test: Every caller of an interface returning `OptimizationDecisionOutcome` has an explicit branch for all six enum values, including `REQUIRE_REVALIDATION`.
+
+---
+
+**44.4 Spend Governance Engine (SGE)** — INTF-063 · ARCH §47.2.1 · SPEC §42.5 · OBJ-027, SEC-011
+
+---
+
+### EC-156: Request-Level Budget Exhausted Mid-Execution
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SGE (ARCH §47.2.1; INTF-063) |
+| Objective | OBJ-027, SEC-011, AC-043 |
+| Severity | HIGH |
+| Likelihood | MEDIUM |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A long-running multi-step execution consumes its allotted budget partway through, as recorded by `SpendGovernanceEngine.evaluate_budget()`.
+
+**Trigger:** Cumulative spend (`record_spend()`) crossing the scope's configured limit before the workflow completes.
+
+**Why It Matters:** ARCH §47.2.1 requires this to be handled identically to ARCH §46's existing `SUSPENDED_BUDGET_EXCEEDED` pattern — return PARTIAL, remaining budget = 0, a per-section consumption breakdown — never a silent overspend that continues past the configured limit.
+
+**Detection:** `evaluate_budget()` returns `status = HALTED` for the scope; the execution's WVM state transitions to a suspended/partial state.
+
+**Expected Behavior:**
+1. The execution halts for the exhausted scope; other scopes (other tenants/users/applications) are unaffected (tenant isolation preserved).
+2. The response is `PARTIAL` with `remaining_budget = 0` and a breakdown of consumption by pipeline section.
+3. This follows CPM checkpoint semantics — the partial state is checkpointed for possible resume once budget is replenished, not discarded.
+
+**Fallback/Recovery:** Checkpoint and suspend (identical to ARCH §46's `SUSPENDED_BUDGET_EXCEEDED`); resume via RCO once budget is available, subject to full reconciliation (resume ≠ replay).
+
+**Safety Implications:** Budget exhaustion is never inferred as, or substituted for, an authorization/security failure (SEC-011) — it is handled purely as a cost-governance event.
+
+**Failure Classification:** COST
+
+**Observability:**
+- `BUDGET_HALTED` event (§43.11) — `scope_type`, `scope_id`, `circuit_breaker_id`
+- `sge.halted_execution.count`
+
+**Testing Requirements:**
+- Integration test: Drive an execution's cumulative spend past its scope's limit mid-workflow → assert PARTIAL/checkpoint/suspend behavior identical to the existing budget-exhaustion pattern.
+
+---
+
+### EC-157: Runaway-Cost Acceleration Detected Before the Configured Limit Is Exhausted
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SGE (ARCH §47.2.1; INTF-063) |
+| Objective | OBJ-027, AC-043 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** An agent loop or sub-agent fan-out begins consuming cost at an accelerating rate that, if left unchecked, will exhaust the scope's budget far faster than typical — but the absolute limit has not yet been reached.
+
+**Trigger:** A runaway agent loop (EC-045-adjacent), an unbounded sub-agent spawn cascade, or a retry storm driving up cost acceleration.
+
+**Why It Matters:** ARCH §47.2.1 requires runaway-cost detection to act *before* the configured limit is exhausted, not only after — waiting for the hard limit would allow substantial uncontrolled spend before any protection engages.
+
+**Detection:** `detect_runaway()` (INTF-063) computes `acceleration_factor` against the scope's historical baseline; an anomalous acceleration triggers `action_recommended = THROTTLE` or `HALT` ahead of the absolute limit.
+
+**Expected Behavior:**
+1. On detecting anomalous acceleration, SGE recommends throttling or halting the scope before the absolute budget is exhausted.
+2. T0.1 Model Router, T0.3 Reasoning Budget Controller, and T3.1 Agent Stop Controller may consume this signal to proactively slow or stop the runaway process.
+3. A `RUNAWAY_COST_DETECTED` event is emitted with the acceleration factor for investigation.
+
+**Fallback/Recovery:** Throttle or halt the scope proactively; this is a protective optimization/cost action, not a security rejection.
+
+**Safety Implications:** None directly — a cost-governance protection distinct from security enforcement (SEC-011 independence preserved).
+
+**Failure Classification:** COST
+
+**Observability:**
+- `RUNAWAY_COST_DETECTED` event — `scope_id`, `acceleration_factor`
+- `sge.proactive_throttle.count`
+
+**Testing Requirements:**
+- Chaos test: Simulate an accelerating agent loop / sub-agent fan-out → assert `detect_runaway()` fires and a throttle/halt recommendation is issued before the absolute limit is reached.
+
+---
+
+### EC-158: Budget Race Between Two Concurrent Executions Against the Same Scope
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SGE + XEC (ARCH §47.2.1, §47.3.2; INTF-063, INTF-069) |
+| Objective | OBJ-027, OBJ-032, AC-043, AC-049 |
+| Severity | MEDIUM |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** Two concurrent executions under the same `BudgetScope` (e.g., the same user) both call `evaluate_budget()` near-simultaneously when only one of their combined projected costs actually fits within the remaining budget.
+
+**Trigger:** Concurrent request processing for the same tenant/user/application scope, without serialized budget evaluation.
+
+**Why It Matters:** Without a serialization point, both evaluations could independently observe `WITHIN_BUDGET` and both proceed, jointly exceeding the scope's actual limit — a classic check-then-act race.
+
+**Detection:** `record_spend()` updates are atomic per scope (compare-and-swap on cumulative spend, mirroring ESM's `execution_version` pattern, EC-081); a losing evaluator's projected cost, once actual cumulative spend is re-checked, may push the scope over budget.
+
+**Expected Behavior:**
+1. `evaluate_budget()` and `record_spend()` are serialized per `BudgetScope` sufficient to prevent both concurrent evaluations from independently passing when only one combined amount fits.
+2. The losing execution (whichever's spend recording arrives second and would exceed the limit) is throttled/halted, not silently allowed to overspend.
+3. This reuses XEC's conflict-detection pattern (INTF-069) where the shared resource is the budget scope itself.
+
+**Fallback/Recovery:** The second-arriving execution is throttled/halted for the exhausted portion; already-completed spend from the first execution is not rolled back (spend is not itself reversible), but further spend is blocked.
+
+**Safety Implications:** None directly — a cost/concurrency correctness case, not a security case.
+
+**Failure Classification:** CONCURRENCY
+
+**Observability:**
+- `sge.concurrent_budget_race.count`
+
+**Testing Requirements:**
+- Concurrency test: Fire two near-simultaneous requests under the same budget scope whose combined projected cost exceeds remaining budget → assert exactly one is throttled/halted, not both silently passing.
+
+---
+
+### EC-159: `evaluate_budget()` Cannot Determine Remaining Budget
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SGE (ARCH §47.2.1; INTF-063) |
+| Objective | OBJ-027, SEC-011, AC-043 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** The backing store for cumulative spend/budget policy is unavailable when `evaluate_budget()` is called.
+
+**Trigger:** Ledger/backing-store outage or timeout.
+
+**Why It Matters:** INTF §43.1's failure behavior is explicit: `status` defaults to the tenant's policy-configured safe default (`THROTTLED` or `HALTED`) — never `WITHIN_BUDGET` by default. Defaulting to unconstrained spend on a governance-component failure would be a silent safety regression.
+
+**Detection:** `evaluate_budget()` call fails/times out against its backing store.
+
+**Expected Behavior:**
+1. `BudgetEvaluationResult.status` is set to the tenant's configured safe default — `THROTTLED` or `HALTED`, never `WITHIN_BUDGET`.
+2. The request proceeds under the conservative default until the backing store recovers.
+3. This failure is distinguished in observability from an ordinary budget-exhaustion `HALTED` (EC-156), since the cause is component unavailability, not actual spend.
+
+**Fallback/Recovery:** Conservative default (`THROTTLED`/`HALTED`) — never unconstrained spend.
+
+**Safety Implications:** Governance-component unavailability must never default to permissive behavior.
+
+**Failure Classification:** AVAILABILITY
+
+**Observability:**
+- `sge.evaluation_unavailable.count` +1
+
+**Testing Requirements:**
+- Chaos test: Make SGE's backing store unavailable → assert `evaluate_budget()` returns the conservative default, never `WITHIN_BUDGET`.
+
+---
+
+### EC-160: `WITHIN_BUDGET` Status Mistakenly Consulted as an Authorization Signal
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SGE (ARCH §47.2.1; INTF-063) |
+| Objective | SEC-011, AC-043 |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** A calling component, due to an integration defect, treats `BudgetEvaluationResult.status = WITHIN_BUDGET` as sufficient grounds to proceed with an action, without separately consulting `AuthorizationDecision` (INTF-038) or `EnforcementResult` (INTF-036).
+
+**Trigger:** An integration shortcut that conflates "affordable" with "allowed."
+
+**Why It Matters:** This is precisely the conflation SEC-011 and INTF §43.1's invariant exist to prevent: `WITHIN_BUDGET` never implies authorized, and `HALTED` is never inferred from a failed authorization check. A caller that receives both signals must apply both independently.
+
+**Detection:** A contract test verifies that every code path consuming `BudgetEvaluationResult` also independently consults the authorization/policy interfaces before proceeding with a gated action.
+
+**Expected Behavior:**
+1. An action requiring both budget and authorization checks is blocked if authorization fails, regardless of `WITHIN_BUDGET` status.
+2. The two checks are evaluated and logged independently; neither substitutes for the other.
+3. This defect class is caught by contract/integration testing, not left to runtime discovery.
+
+**Fallback/Recovery:** N/A — this is a defect-prevention case; correct behavior is to always independently gate on both signals.
+
+**Safety Implications:** A defect here would let an unauthorized action proceed merely because it was affordable — a CRITICAL security regression.
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `sge.budget_used_as_authorization.count` — MUST remain 0; nonzero is a P1 alert.
+
+**Testing Requirements:**
+- Security regression test: For every gated action type, confirm a `WITHIN_BUDGET` + authorization-denied combination results in the action being blocked.
+
+---
+
+### EC-161: Budget Threshold Crossed Mid-Flight While a Non-Idempotent Side Effect Is Already Dispatched
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — SGE + RCO (ARCH §47.2.1, §46.2.13; INTF-063, INTF-062) |
+| Objective | OBJ-027, AC-043, AC-049 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A tool call with an external side effect (e.g., sending an email, committing a transaction-like operation) is already in flight when the scope's budget crosses `HALTED`.
+
+**Trigger:** Budget exhaustion racing against an outstanding non-idempotent action's completion.
+
+**Why It Matters:** A budget halt must not retroactively attempt to cancel or blindly retry a side effect already dispatched — that risks duplicate side effects (P-EC-012). The outcome of the in-flight action must be determined before any further budget-driven decision is made.
+
+**Detection:** SGE's halt applies to *new* spend/actions; RCO's non-idempotent-action tracking (ARCH §46.2.13) governs the already-dispatched action independently.
+
+**Expected Behavior:**
+1. The already-dispatched non-idempotent action is allowed to complete and its outcome is determined (success/failure/uncertain) through RCO's existing uncertain-outcome handling — it is not blindly cancelled or retried due to the budget halt.
+2. No *new* action is dispatched under the halted scope.
+3. The action's actual cost, once known, is recorded against the scope (even if it pushes recorded spend slightly over the configured limit, since the action was already committed before the halt took effect) — this is logged as an over-limit reconciliation, not silently absorbed.
+
+**Fallback/Recovery:** Let the in-flight non-idempotent action resolve via RCO's existing pattern; halt only new spend.
+
+**Safety Implications:** Prevents compounding a cost-governance event with a duplicate-side-effect risk (P-EC-012).
+
+**Failure Classification:** SIDE_EFFECT
+
+**Observability:**
+- `sge.halt_during_inflight_side_effect.count`
+
+**Testing Requirements:**
+- Compound test: Trigger a budget halt while a non-idempotent tool call is outstanding → assert the in-flight action resolves via RCO's uncertain-outcome path, not blind cancellation or retry, and no new action is dispatched under the halted scope.
+
+---
+**44.5 Verifier Calibration Layer (VCL)** — INTF-071 · ARCH §47.4.3 · SPEC §42.6 · OBJ-028
+
+---
+
+### EC-162: Probabilistic Verifier's Pass/Fail Treated as Unconditional Ground Truth Absent Calibration
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — VCL (ARCH §47.4.3; INTF-071) |
+| Objective | OBJ-028, AC-044 |
+| Severity | HIGH |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** An LLM-judge semantic-equivalence verifier (`verifier_type = LLM_JUDGE_SEMANTIC_EQUIVALENCE`) gates acceptance of a compressed context representation, but its `passed = true` result is consumed as ground truth without checking `calibrated` or `confidence` against `CalibrationMetadata`.
+
+**Trigger:** An integration shortcut that reads only `VerificationResult.passed` and ignores `confidence`/`calibrated`.
+
+**Why It Matters:** INTF §43.9's invariant (OBJ-028) is explicit: a probabilistic verifier's `confidence` MUST be `< 1.0` unless `calibrated = true` against a benchmark set; `passed` is never exposed or consumed as unconditional ground truth. Treating an uncalibrated probabilistic verifier as authoritative could let a semantically-incorrect compression pass silently.
+
+**Detection:** A contract test verifies every caller of `verify()` checks both `passed` and `calibrated`/`confidence` against the applicable `acceptance_threshold` before trusting the result.
+
+**Expected Behavior:**
+1. An uncalibrated probabilistic verifier's result is not trusted to gate the optimization decision on `passed` alone.
+2. Calibration against a benchmark set (ARCH §42's maturity-model LEVEL 0–5, applied to the verifier itself) is required before the verifier gates a production decision.
+3. Until calibrated, the technique it would gate defaults to the more conservative path (e.g., a deterministic verifier only, or no optimization).
+
+**Fallback/Recovery:** Fall back to a deterministic verifier or skip the optimization until calibration is complete.
+
+**Safety Implications:** Quality-integrity case — an uncalibrated verifier's false pass could let a quality-degrading transformation through undetected.
+
+**Failure Classification:** QUALITY
+
+**Observability:**
+- `vcl.uncalibrated_verifier_gating_attempt.count`
+
+**Testing Requirements:**
+- Contract test: Confirm every `verify()` caller branches on `calibrated`/`confidence`, not `passed` alone.
+
+---
+
+### EC-163: Verifier Acceptance-Rate Drift Without a Corresponding Technique Change
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — VCL (ARCH §47.4.3; INTF-071) |
+| Objective | OBJ-028, AC-044 |
+| Severity | MEDIUM |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A verifier that historically rejects ~15% of a technique's outputs begins accepting nearly all of them (or vice versa) over a short window, with no corresponding change to the technique itself.
+
+**Trigger:** Verifier model/prompt drift (e.g., an underlying LLM-judge model update), a data-distribution shift in inputs, or a latent verifier defect.
+
+**Why It Matters:** ARCH §47.4.3 explicitly extends EL-005's existing drift-detection concept to verifiers themselves: an unexplained acceptance-rate shift is a signal the verifier's judgment, not the technique, has changed — and an increasingly lenient verifier could silently let quality degrade.
+
+**Detection:** `report_drift()` (INTF-071) compares `previous_acceptance_rate` to `current_acceptance_rate`; a delta beyond a configured threshold emits `DriftEvent`.
+
+**Expected Behavior:**
+1. A `VERIFIER_DRIFT_DETECTED` event (§43.11) is emitted with the observed delta.
+2. The verifier's calibration is flagged for re-review; its results continue to be consumed, but with heightened scrutiny (e.g., a lower acceptance threshold or increased sampling for human review) until re-calibrated.
+3. Drift investigation is a distinct workflow from ordinary technique-level regression detection (EC-071).
+
+**Fallback/Recovery:** Continue operating with heightened scrutiny pending re-calibration; do not silently continue trusting a drifting verifier at its original threshold.
+
+**Safety Implications:** Prevents a drifting verifier from silently eroding a quality gate over time.
+
+**Failure Classification:** QUALITY
+
+**Observability:**
+- `VERIFIER_DRIFT_DETECTED` event — `verifier_id`, `delta`
+
+**Testing Requirements:**
+- Test: Simulate a verifier's acceptance rate shifting sharply within a monitoring window → assert `report_drift()` emits a `DriftEvent` and downstream consumers apply heightened scrutiny.
+
+---
+
+### EC-164: Verifier Confidence Below Acceptance Threshold on a Cascade/Compression Decision
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — VCL (ARCH §47.4.3; INTF-071) |
+| Objective | OBJ-028, AC-044 |
+| Severity | MEDIUM |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** A verifier gating a model-cascade escalation decision (AR-004) or a compression-acceptance decision (QO-002) returns `confidence` below the configured `acceptance_threshold`.
+
+**Trigger:** Genuinely ambiguous input where the verifier itself is uncertain about equivalence/correctness.
+
+**Why It Matters:** INTF §43.9's failure behavior requires QO-002's existing `FallbackStrategy` (INTF-041) to apply — restore the prior representation, increase context/reasoning budget, escalate the model, or disable the offending optimization — never silent acceptance below threshold.
+
+**Detection:** `VerificationResult.escalation_required = true` when `confidence < acceptance_threshold`.
+
+**Expected Behavior:**
+1. The caller applies the configured `FallbackStrategy` rather than accepting the below-threshold result.
+2. The specific fallback chosen (restore/escalate/disable) is logged alongside the verifier's confidence value.
+3. This is distinguished from a verifier *failure* (EC-166-adjacent unavailability) — it is a low-confidence *result*, not an unavailable verifier.
+
+**Fallback/Recovery:** Apply `FallbackStrategy` — restore, escalate, or disable, per policy.
+
+**Safety Implications:** None directly — a quality-gate correctness case.
+
+**Failure Classification:** QUALITY
+
+**Observability:**
+- `vcl.below_threshold_fallback.count` (fallback_type)
+
+**Testing Requirements:**
+- Test: Force a verifier to return low confidence on a cascade decision → assert the configured fallback strategy is applied, not silent acceptance.
+
+---
+
+### EC-165: Deterministic and Probabilistic Verifier Confidence Values Conflated
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — VCL (ARCH §47.4.3; INTF-071) |
+| Objective | OBJ-028, AC-044 |
+| Severity | LOW |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A deterministic verifier (e.g., a unit test or schema check) reports `confidence < 1.0`, or a probabilistic verifier (e.g., an LLM-judge) reports `confidence = 1.0` without `calibrated = true`.
+
+**Trigger:** A `VerifierDescriptor.deterministic` misconfiguration, or an implementation bug in a verifier adapter.
+
+**Why It Matters:** INTF §43.9 is explicit that a deterministic verifier's confidence is definitionally `1.0`, and a probabilistic verifier's confidence must be `< 1.0` unless calibrated. Violating either direction misrepresents the verifier's actual epistemic status to downstream consumers making accept/escalate decisions.
+
+**Detection:** A contract/schema validation check on `VerificationResult` cross-references `VerifierDescriptor.deterministic` against the reported `confidence`/`calibrated` combination.
+
+**Expected Behavior:**
+1. A deterministic verifier reporting `confidence != 1.0` is flagged as a defect and corrected at the adapter level.
+2. A probabilistic verifier reporting `confidence = 1.0` without `calibrated = true` is treated as a configuration/implementation defect, not trusted at face value.
+
+**Fallback/Recovery:** Treat the misreported confidence as untrustworthy pending correction; fall back to the more conservative interpretation (i.e., treat as uncalibrated/lower-confidence).
+
+**Safety Implications:** Prevents an implementation defect from inflating apparent verifier trustworthiness.
+
+**Failure Classification:** CONFIGURATION
+
+**Observability:**
+- `vcl.confidence_type_mismatch.count` (verifier_id)
+
+**Testing Requirements:**
+- Contract test: For every registered verifier, confirm `deterministic` flag and reported `confidence`/`calibrated` combination are internally consistent.
+
+---
+
+**44.6 Data Governance Engine (DGE)** — INTF-064 · ARCH §47.2.2 · SPEC §42.7 · OBJ-029, SEC-012, SEC-013
+
+---
+
+### EC-166: `classify()` Fails or Is Unavailable — Content Must Default to SENSITIVE
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — DGE (ARCH §47.2.2; INTF-064) |
+| Objective | OBJ-029, SEC-012, AC-045 |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** A classification request against `DataGovernanceEngine.classify()` fails (backend unavailable, timeout, or malformed content that the classifier cannot process).
+
+**Trigger:** Classifier backend outage; malformed or unusually-encoded content.
+
+**Why It Matters:** INTF §43.2's invariant (SEC-012) is explicit and CRITICAL: a `classify()` failure defaults `classification` to `SENSITIVE` — never `NON_SENSITIVE`. This is a Tier 0 (SEC-protected) concern under ARCH §46's tier model, never overridden by relevance score or budget pressure.
+
+**Detection:** `classify()` call fails/times out or returns malformed output.
+
+**Expected Behavior:**
+1. `classification = SENSITIVE` is applied by default; `encryption_required = true`, `caching_eligible = false` follow the sensitive-data-handling path.
+2. The content is not admitted to caching, compression, or retrieval decisions until a valid classification is obtained.
+3. This failure is a security/integrity failure per ARCH §47.2.2's failure-behavior rule — it does not fall back to unoptimized processing of *unclassified* content; it fails closed on the classification requirement itself.
+
+**Fallback/Recovery:** Treat as SENSITIVE by default; retry classification; do not proceed with optimization stages that depend on knowing the content is non-sensitive until classified.
+
+**Safety Implications:** This is the DGE analogue of EC-059 (PII classification failure) — a CRITICAL fail-closed requirement.
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `dge.classification_failure.count` +1
+- `dge.default_sensitive_applied.count` +1
+
+**Testing Requirements:**
+- Security test: Force `classify()` to fail → assert `SENSITIVE` default is applied and the content is excluded from caching/compression until classified.
+
+---
+
+### EC-167: Deletion/Erasure Request While Data Is Present Across Cache, Memory, Ledger, Logs, and Checkpoints Simultaneously
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — DGE (ARCH §47.2.2; INTF-064) |
+| Objective | OBJ-029, SEC-013, AC-045 |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** A `request_deletion()` call targets a subject whose data has already propagated into exact and semantic caches, agent/session memory, a cost/token ledger that retains content, log/trace records, and a CPM checkpoint — all at once.
+
+**Trigger:** A user/tenant data-erasure request (e.g., GDPR-style right-to-erasure, deployment-configured) arriving after extensive prior processing of the subject's data.
+
+**Why It Matters:** SEC-013 and ARCH §47.2.2 require propagation to every surface the Control Plane persisted data to, with verifiable reporting of what remains — not merely an assertion that deletion "succeeded."
+
+**Detection:** `get_deletion_propagation_status(deletion_id)` (INTF-064) is polled until `verified = true` or `surfaces_pending`/`surfaces_holding_data` is empty.
+
+**Expected Behavior:**
+1. Deletion propagates to all six documented `DataSurface` types: `CACHE_EXACT`, `CACHE_SEMANTIC`, `MEMORY`, `LEDGER`, `LOG`, `TRACE`, `CHECKPOINT`.
+2. `DeletionPropagationReport.surfaces_holding_data` explicitly lists any surface still holding derived data and why (`SurfaceHoldRecord.reason`) — e.g., a checkpoint within its retention window that legitimately still needs the data for an in-progress resume.
+3. Propagation status is verifiable, not merely asserted — a caller can confirm actual completion via `get_deletion_propagation_status()`.
+
+**Fallback/Recovery:** Surfaces that cannot be immediately cleared (e.g., an active checkpoint needed for in-progress recovery) are reported as pending/holding with a reason, not silently marked cleared.
+
+**Safety Implications:** Directly implements SEC-013; a defect here is a CRITICAL data-governance/compliance failure.
+
+**Failure Classification:** DATA_GOVERNANCE
+
+**Observability:**
+- `DELETION_PROPAGATED` event — `deletion_id`, `surfaces_cleared`
+- `dge.deletion_surfaces_pending.count` (deletion_id)
+
+**Testing Requirements:**
+- Integration test: Seed data across all six `DataSurface` types for one subject, issue `request_deletion()`, and assert `DeletionPropagationReport` accurately reflects cleared vs. pending vs. holding surfaces.
+
+---
+
+### EC-168: Data-Residency Constraint on a Provider/Model Conflicts With a Routing Decision
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — DGE (ARCH §47.2.2; INTF-064) |
+| Objective | OBJ-029, AC-045 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** `SensitivityClassificationResult.residency_constraint` requires data to stay within a specific region, but T0.1's routing decision (based purely on cost/quality signals) would select a provider/model outside that region.
+
+**Trigger:** A cost-optimal routing candidate that does not satisfy the classified content's residency requirement.
+
+**Why It Matters:** ARCH §47.2.2 requires T0.1 routing and T1.6/T1.7 caching to honor a declared residency constraint — cost optimization must never override a data-residency requirement established by classification.
+
+**Detection:** T0.1's routing candidate list is filtered against `residency_constraint` before cost/quality ranking is applied.
+
+**Expected Behavior:**
+1. Any routing candidate that violates the residency constraint is excluded before cost/quality ranking, not selected and then overridden after the fact.
+2. If no compliant candidate is available, the request fails closed (no model selection) rather than routing to a non-compliant provider for cost reasons.
+3. This is logged as a residency-driven routing constraint, distinguishable from an ordinary cost-based routing decision.
+
+**Fallback/Recovery:** Select the best-ranked *compliant* candidate; if none exists, reject rather than violate residency.
+
+**Safety Implications:** Never select an inaccessible or unauthorized model/provider (established principle) — residency compliance is a mandatory precondition on the candidate set, not a post-hoc filter.
+
+**Failure Classification:** DATA_GOVERNANCE
+
+**Observability:**
+- `dge.residency_constraint_applied.count`
+- `dge.no_compliant_candidate.count` (when routing fails closed)
+
+**Testing Requirements:**
+- Test: Classify content with a residency constraint that excludes the cost-optimal provider → assert routing selects a compliant candidate, never the excluded one, and fails closed if none exists.
+
+---
+
+### EC-169: Retention Period Unconfigured for a Surface Defaults to Unbounded
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — DGE (ARCH §47.2.2; INTF-064) |
+| Objective | OBJ-029, AC-045 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** `get_retention_policy()` is called for a `DataSurface`/tenant combination whose `retention_days` was never explicitly configured.
+
+**Trigger:** A newly onboarded tenant or a newly introduced `DataSurface` type that predates explicit retention configuration.
+
+**Why It Matters:** ARCH §47.2.2 requires every cache, memory layer, ledger, and log/trace to carry a configurable retention period whose default is the organization's policy, never unbounded. An unconfigured surface silently retaining data indefinitely would violate both SEC-013's spirit and typical data-minimization requirements.
+
+**Detection:** `get_retention_policy()` returning a null/undefined `retention_days` is treated as a configuration gap, not a valid "keep forever" answer.
+
+**Expected Behavior:**
+1. An unconfigured surface falls back to the organization's configured default retention policy, never to unbounded retention.
+2. If no organization-level default exists either, the surface is flagged as a configuration gap requiring explicit resolution before data is persisted to it.
+3. This is a preventive check at surface-registration time, not merely a runtime edge case.
+
+**Fallback/Recovery:** Apply the organization default retention; block persistence to genuinely unconfigured surfaces pending explicit policy.
+
+**Safety Implications:** Prevents silent indefinite retention, a data-governance/compliance risk.
+
+**Failure Classification:** CONFIGURATION
+
+**Observability:**
+- `dge.retention_policy_missing.count` (surface, tenant_id)
+
+**Testing Requirements:**
+- Config test: Register a new `DataSurface` without explicit retention configuration → assert the organization default applies, never unbounded retention.
+
+---
+
+### EC-170: Content's Sensitivity Classification Changes Mid-Execution
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — DGE (ARCH §47.2.2; INTF-064) |
+| Objective | OBJ-029, SEC-012, AC-045 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** An item classified `NON_SENSITIVE` at admission time (and consequently cached, compressed, or retained under looser rules) is later reclassified `SENSITIVE` — e.g., a policy update, or a delayed classifier result that supersedes an initial fast-path classification.
+
+**Trigger:** Asynchronous/delayed classification result arriving after synchronous admission already proceeded under a provisional classification; or a policy change altering what counts as sensitive.
+
+**Why It Matters:** Any derived copies (cache entries, compressed representations, memory entries) created under the stale `NON_SENSITIVE` classification may now violate encryption/retention/caching-eligibility requirements that should have applied from the start.
+
+**Detection:** A reclassification event is compared against the item's prior classification; a change from `NON_SENSITIVE`/`UNKNOWN` to `SENSITIVE` triggers reconciliation across all surfaces holding a derived copy.
+
+**Expected Behavior:**
+1. All derived copies of the reclassified item (cache entries, memory entries) are re-evaluated against `SENSITIVE`-tier handling — re-encrypted, retention-tightened, or evicted from caching-ineligible surfaces as required.
+2. This reconciliation follows the same DGE deletion-propagation-style traversal as EC-167, targeted at reclassification rather than deletion.
+3. The reclassification and its downstream reconciliation are logged (`DATA_CLASSIFIED_SENSITIVE` event, §43.11).
+
+**Fallback/Recovery:** Reconcile all derived copies to the new (stricter) classification; when in doubt about a surface's compliance, treat it as still holding sensitive data pending confirmed reconciliation.
+
+**Safety Implications:** A reclassification-to-sensitive event that is not propagated is functionally equivalent to a classification failure (EC-166) for any surface it misses.
+
+**Failure Classification:** DATA_GOVERNANCE
+
+**Observability:**
+- `DATA_CLASSIFIED_SENSITIVE` event — `item_id`, `classification`
+- `dge.reclassification_reconciliation.count`
+
+**Testing Requirements:**
+- Test: Admit content as `NON_SENSITIVE`, cache/derive copies, then reclassify to `SENSITIVE` → assert all derived copies are reconciled to sensitive-tier handling.
+
+---
+
+### EC-171: Deletion Request Arrives After Data Already Persisted Into a Checkpoint Record
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — DGE + CPM (ARCH §47.2.2, §46.2.4; INTF-064, INTF-053) |
+| Objective | OBJ-029, SEC-013, AC-045 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A subject's data was captured in a checkpoint record (for possible resume) before a deletion request for that subject arrives.
+
+**Trigger:** A deletion request racing against an existing checkpoint whose retention window has not yet expired.
+
+**Why It Matters:** This is a direct compound of DGE's propagation requirement (SEC-013) and CPM's retention model (EC-134 in §43): a checkpoint is a `DataSurface` (`CHECKPOINT`) subject to the same deletion-propagation obligation, but deleting or scrubbing it may also need to preserve enough structural information for any in-progress resume to still reconcile correctly.
+
+**Detection:** `DeletionPropagationReport` includes `CHECKPOINT` in its surface traversal; an active (not-yet-resumed) checkpoint referencing the subject's data is identified.
+
+**Expected Behavior:**
+1. If the checkpoint is not needed for an active in-progress resume, the subject's data within it is scrubbed/deleted and the surface is marked cleared.
+2. If the checkpoint is actively needed for an in-progress resume, it is reported in `surfaces_holding_data` with an explicit reason, rather than silently deleted (which could break an in-flight recovery) or silently ignored (which would violate SEC-013).
+3. Once the active resume completes or the checkpoint expires, deletion is re-attempted and propagation status updated.
+
+**Fallback/Recovery:** Defer deletion of an actively-needed checkpoint with an explicit, reported reason; complete deletion once the dependency clears.
+
+**Safety Implications:** Balances SEC-013 (deletion propagation) against RCO's resume-correctness requirements — neither is silently sacrificed for the other.
+
+**Failure Classification:** DATA_GOVERNANCE
+
+**Observability:**
+- `dge.checkpoint_deletion_deferred.count` (deletion_id)
+
+**Testing Requirements:**
+- Compound test: Create a checkpoint containing a subject's data, issue a deletion request while the checkpoint is still actively resumable, then again after it expires/completes → assert correct deferred-then-completed propagation in both phases.
+
+---
+**44.7 Tool/MCP Trust Gate (TMG)** — INTF-065 · ARCH §47.2.3 · SPEC §42.11 · SEC-014
+
+---
+
+### EC-172: Tool/MCP Identity Authentication Fails
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — TMG (ARCH §47.2.3; INTF-065) |
+| Objective | SEC-014, AC-048 |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** `authenticate_identity()` fails for a tool/MCP server — the identity assertion cannot be verified.
+
+**Trigger:** A spoofed or misconfigured tool/MCP server; an expired or revoked identity credential.
+
+**Why It Matters:** INTF §43.3's failure behavior is explicit: an identity or schema-integrity failure returns `QUARANTINED` (fail-closed) — not an optimization fallback to using the untrusted tool anyway. Tool identity is part of the security/control boundary (SEC-014), not an optimization concern.
+
+**Detection:** `authenticate_identity()` returns `authenticated = false`.
+
+**Expected Behavior:**
+1. `ToolTrustResult.status = QUARANTINED`.
+2. The tool/MCP server is not invoked; any pending call is refused.
+3. This is independent of TE-001's ROI/efficiency signal — a highly cost-effective tool is refused just the same as an expensive one if identity cannot be authenticated.
+
+**Fallback/Recovery:** Refuse the call; do not fall back to using the tool without authenticated identity.
+
+**Safety Implications:** Directly implements SEC-014; unauthenticated tool/MCP identity is a CRITICAL trust-boundary violation if bypassed.
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `TOOL_TRUST_QUARANTINED` event — `tool_id`, `reason`
+
+**Testing Requirements:**
+- Security test: Present an unauthenticatable tool/MCP identity → assert `QUARANTINED` and the call is refused, independent of the tool's cost/ROI profile.
+
+---
+
+### EC-173: Tool Schema Changes Between Calls Without a Version Bump
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — TMG (ARCH §47.2.3; INTF-065) |
+| Objective | SEC-014, AC-048 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A tool's schema (parameters, return shape) changes between two calls in the same execution, but the tool's declared version identifier does not change to reflect it.
+
+**Trigger:** A tool/MCP server pushing a live schema update without version discipline; a compromised or misbehaving tool server.
+
+**Why It Matters:** ARCH §47.2.3 treats an unversioned schema change as a staleness/trust event, not something silently accepted — a schema change could alter argument semantics in a way that makes a previously-validated call invocation incorrect or unsafe.
+
+**Detection:** `validate_schema()` compares the current schema hash against `previous_schema_hash`; a mismatch without a corresponding version bump sets `changed_since_last_call = true`.
+
+**Expected Behavior:**
+1. `SchemaValidationResult.valid = false` is returned; `integrity_event_ref` records the event.
+2. The call using the stale schema assumption is blocked until the new schema is explicitly validated and (if applicable) the calling code adapts to it.
+3. Any cached tool result or cached schema (T3.3) keyed to the old schema is invalidated — extends CL-003 Dependency-Aware Cache Invalidation to tool/MCP version changes.
+
+**Fallback/Recovery:** Block the call pending schema re-validation; invalidate dependent caches.
+
+**Safety Implications:** An unnoticed schema change could cause an argument to be misinterpreted, a security-relevant case if the schema governs access-controlling parameters.
+
+**Failure Classification:** INTEGRITY
+
+**Observability:**
+- `tmg.schema_staleness_event.count` (tool_id)
+
+**Testing Requirements:**
+- Test: Change a tool's schema between two calls without a version bump → assert `SchemaValidationResult.valid = false`, the call is blocked, and dependent caches are invalidated.
+
+---
+
+### EC-174: Tool Authorized via a Favorable Cost/ROI Signal but TMG's Independent Trust Check Fails
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — TMG (ARCH §47.2.3; INTF-065) |
+| Objective | SEC-014, AC-048 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** TE-001's ROI predictor scores a tool call very favorably (low cost, high information gain), but TMG's `trust_decision()` independently returns `UNAUTHORIZED` or `QUARANTINED`.
+
+**Trigger:** A tool whose cost/utility profile is attractive but whose authorization (per `AuthorizationService.check_tool_access`, INTF-038) or trust status is not valid for this caller/context.
+
+**Why It Matters:** ARCH §47.2.3 and INTF §43.3 are explicit that tool call authorization is evaluated independently of the ROI predictor — cost/token efficiency never substitutes for an authorization check. This mirrors EC-160's SGE analogue for the tool-trust boundary.
+
+**Detection:** Both signals are computed and applied independently; a favorable ROI score never short-circuits the trust/authorization check.
+
+**Expected Behavior:**
+1. TMG's `UNAUTHORIZED`/`QUARANTINED` result blocks the call regardless of ROI favorability.
+2. The two signals are logged independently so it is clear the call was blocked on trust grounds, not cost grounds.
+
+**Fallback/Recovery:** Refuse the call; consider an alternative, authorized tool if one exists and satisfies the task.
+
+**Safety Implications:** Prevents a favorable cost signal from being mistaken for, or substituting for, authorization — a direct instance of the SEC-014/ROI-independence invariant.
+
+**Failure Classification:** AUTHORIZATION
+
+**Observability:**
+- `tmg.roi_favorable_but_unauthorized.count`
+
+**Testing Requirements:**
+- Security test: Configure a tool with a highly favorable ROI score but no authorization for the calling context → assert the call is blocked on trust grounds.
+
+---
+
+### EC-175: Dynamically-Discovered Tool's Availability Assumed to Persist Past Its Revalidation Interval
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — TMG (ARCH §47.2.3; INTF-065) |
+| Objective | SEC-014, AC-048 |
+| Severity | MEDIUM |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** A tool discovered via DA-007/TE-003 dynamic discovery was last revalidated well beyond its configured `revalidation_interval_s`, but a caller invokes it assuming it is still available/valid.
+
+**Trigger:** A long-running agent session where a tool discovered early in the session is invoked much later, past the freshness window.
+
+**Why It Matters:** ARCH §47.2.3 requires a tool index used for dynamic discovery to be revalidated on a policy-defined interval — discovered availability is not assumed to persist indefinitely, since the underlying tool/MCP server's capabilities or authorization could have changed.
+
+**Detection:** `check_staleness()` (INTF-065) compares current time against `last_revalidated_at + revalidation_interval_s`.
+
+**Expected Behavior:**
+1. `ToolFreshnessResult.fresh = false` triggers re-validation (re-run `authenticate_identity()`/`validate_schema()`) before the call proceeds.
+2. The call is not blocked outright merely for staleness — it is revalidated; only a revalidation failure (EC-172/EC-173) blocks it.
+3. Successful revalidation refreshes `last_revalidated_at`.
+
+**Fallback/Recovery:** Revalidate before use; proceed if revalidation succeeds, block if it fails.
+
+**Safety Implications:** Prevents indefinite trust in a stale discovery result, consistent with ARCH §46.2.11's SRP pattern applied to tool discovery specifically.
+
+**Failure Classification:** STALENESS
+
+**Observability:**
+- `tmg.stale_discovery_revalidated.count` (tool_id)
+
+**Testing Requirements:**
+- Test: Advance time past a discovered tool's `revalidation_interval_s`, then invoke it → assert revalidation occurs before the call proceeds.
+
+---
+
+### EC-176: Cached Tool Result or Schema Not Invalidated on Tool/MCP Version Change
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — TMG (ARCH §47.2.3; INTF-065) |
+| Objective | SEC-014, AC-048 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A tool/MCP server's version changes (e.g., a new deployment), but a T3.3 cached tool result or cached schema from the prior version is still served.
+
+**Trigger:** Version tracking not correctly wired into T3.3's cache-key composition, or a missed invalidation event on version change.
+
+**Why It Matters:** ARCH §47.2.3 explicitly extends CL-003 Dependency-Aware Cache Invalidation to tool/MCP version changes; a cached result from a superseded tool version may no longer reflect correct behavior/semantics.
+
+**Detection:** Tool/MCP version is tracked as part of the cache key composition; a version mismatch between the cached entry's recorded version and the tool's current version is detected before serving the cache hit.
+
+**Expected Behavior:**
+1. A version mismatch invalidates the cached entry; the cache is treated as a miss and the tool is re-invoked.
+2. This is logged distinctly from an ordinary cache-freshness invalidation (EC-023/EC-034), to make tool-version-driven invalidation traceable.
+
+**Fallback/Recovery:** Treat as cache miss; re-invoke the tool (subject to TMG's own identity/schema checks).
+
+**Safety Implications:** A stale cross-version cache hit could serve output computed under different tool semantics, potentially incorrect or unsafe.
+
+**Failure Classification:** STALENESS
+
+**Observability:**
+- `tmg.cache_invalidated_on_version_change.count` (tool_id)
+
+**Testing Requirements:**
+- Test: Change a tool's version between calls → assert the T3.3 cache treats the change as a miss, not a stale hit.
+
+---
+
+**44.8 Human Approval Gate (HAG)** — INTF-066 · ARCH §47.2.4 · SPEC §42.13 · SEC-015, OBJ-033
+
+---
+
+### EC-177: Action Executes Before Its Required Approval Resolves
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — HAG (ARCH §47.2.4; INTF-066) |
+| Objective | SEC-015, OBJ-033, AC-050 |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** An action classified `designated_for_approval = true` is dispatched by a defect in the calling code before `get_approval_status()` returns `APPROVED`.
+
+**Trigger:** An integration defect that fails to gate the action's dispatch on the approval outcome.
+
+**Why It Matters:** This is the core invariant HAG exists to enforce (SEC-015): a designated consequential/irreversible action must receive explicit human approval before execution. Bypassing this gate defeats the entire purpose of the human-approval requirement.
+
+**Detection:** A pre-dispatch check confirms `ApprovalStatus.status = APPROVED` for any action where `ApprovalRequirement.required = true`; dispatch without this check is a defect caught by contract testing and, at runtime, by an execution-boundary guard.
+
+**Expected Behavior:**
+1. The Control Plane's execution boundary (independent of the calling code's own logic) refuses to dispatch a designated action unless `APPROVED` status is confirmed at dispatch time — not merely requested.
+2. Any attempt to bypass this is blocked and logged as a P1 security event, not merely an ordinary rejection.
+
+**Fallback/Recovery:** Block dispatch; require approval resolution before retry.
+
+**Safety Implications:** A bypass here is a CRITICAL security failure — this is precisely the scenario SEC-015 exists to prevent.
+
+**Failure Classification:** HUMAN_APPROVAL
+
+**Observability:**
+- `hag.dispatch_without_approval_blocked.count` — MUST remain 0 in normal operation; any nonzero value from the boundary guard firing is a P1 alert (it means an upstream defect attempted the bypass, even though it was caught).
+
+**Testing Requirements:**
+- Security regression test: Attempt to dispatch a designated action without a prior `APPROVED` status → assert the execution boundary refuses it.
+
+---
+
+### EC-178: Approval Mechanism Itself Unavailable
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — HAG (ARCH §47.2.4; INTF-066) |
+| Objective | SEC-015, AC-050 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** The approval workflow's backing system (e.g., an approver notification/response service) is unavailable when `request_approval()` is called.
+
+**Trigger:** Outage of the approval-routing dependency.
+
+**Why It Matters:** INTF §43.4's failure behavior is explicit: if the approval mechanism itself is unavailable, the gated action is blocked (fail-closed) rather than proceeding without approval.
+
+**Detection:** `request_approval()` fails/times out against its backing system.
+
+**Expected Behavior:**
+1. The gated action remains blocked (`AWAITING_APPROVAL` or an explicit unavailability state), never defaulted to `APPROVED`.
+2. This follows the same suspension handling as any other `SUSPENDED_*` state (ARCH §46.3) — checkpoint via CPM, return `PARTIAL`/`AWAITING_APPROVAL`.
+3. Resume proceeds via RCO once the approval mechanism recovers and approval is actually obtained.
+
+**Fallback/Recovery:** Suspend/checkpoint; block the action until approval is obtainable.
+
+**Safety Implications:** Fail-closed on approval-mechanism unavailability is required by SEC-015; defaulting to approved would be a CRITICAL regression.
+
+**Failure Classification:** HUMAN_APPROVAL
+
+**Observability:**
+- `hag.mechanism_unavailable.count` +1
+
+**Testing Requirements:**
+- Chaos test: Make the approval backend unavailable → assert the gated action remains blocked/suspended, never defaults to approved.
+
+---
+
+### EC-179: Approval Request Times Out
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — HAG (ARCH §47.2.4; INTF-066) |
+| Objective | SEC-015, AC-050 |
+| Severity | HIGH |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** `ApprovalRequest.timeout_at` passes without an approver resolving the request.
+
+**Trigger:** No approver responds within the configured window (approver unavailable, notification missed).
+
+**Why It Matters:** INTF §43.4 requires the policy-defined default (deny, or escalate to a different approver) to apply on timeout — never silent `APPROVED`.
+
+**Detection:** `get_approval_status()` observes current time past `timeout_at` with `status` still `AWAITING_APPROVAL`.
+
+**Expected Behavior:**
+1. `ApprovalStatus.status` transitions to `EXPIRED`.
+2. The policy-defined default applies: either the action is denied, or the request is escalated to a different/backup approver per policy.
+3. This is logged and, if escalation occurs, a new `ApprovalRequest` with its own timeout is created — the original expiry does not silently retry indefinitely without bound.
+
+**Fallback/Recovery:** Apply the policy default (deny or escalate); never silently approve.
+
+**Safety Implications:** Directly implements SEC-015's timeout handling.
+
+**Failure Classification:** HUMAN_APPROVAL
+
+**Observability:**
+- `APPROVAL_RESOLVED` event — `approval_id`, `status = EXPIRED`, `approver_id = null`
+
+**Testing Requirements:**
+- Test: Let an approval request pass its `timeout_at` with no approver action → assert the policy-defined default (deny/escalate) applies, not silent approval.
+
+---
+
+### EC-180: Approval Resolves After the Execution It Gates Was Already Superseded or Cancelled
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — HAG + SPM (ARCH §47.2.4, §46.2.12; INTF-066, INTF-061) |
+| Objective | SEC-015, OBJ-033, AC-050, AC-049 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** An approver finally resolves (`resolve_approval`) an `ApprovalRequest` as `APPROVE`, but by that time the execution the gated action belonged to has already been cancelled or superseded (ARCH §46.2.12).
+
+**Trigger:** A long approval-resolution delay racing against an independent cancellation/supersession event.
+
+**Why It Matters:** This directly instantiates the compound case the Problem Statement calls out explicitly ("human approval + superseded action"): an approval, once granted, must not resurrect an action whose owning execution no longer exists to perform it.
+
+**Detection:** Before dispatching the now-approved action, the execution's current state (ESM) is checked; a terminal `SUPERSEDED`/`CANCELLED` state blocks dispatch regardless of the approval outcome.
+
+**Expected Behavior:**
+1. The `APPROVED` resolution is recorded (for audit completeness — the human decision itself is preserved), but the action is not dispatched because its owning execution is terminal.
+2. This is treated identically to EC-102 (superseded execution attempts a side effect) — the terminal-state check at the Control Plane boundary is the same enforcement point, now additionally gated by HAG for this action class.
+3. The approver/requester is notified that the approval was granted but the action could not proceed because the execution was superseded, rather than leaving this silently unresolved.
+
+**Fallback/Recovery:** Do not dispatch; notify of the outcome.
+
+**Safety Implications:** Prevents an approval race from reviving a superseded execution's side effect — consistent with P-EC-013.
+
+**Failure Classification:** HUMAN_APPROVAL
+
+**Observability:**
+- `hag.approval_after_supersession.count`
+
+**Testing Requirements:**
+- Compound test: Request approval, cancel/supersede the owning execution while approval is pending, then resolve the approval as APPROVE → assert the action is not dispatched.
+
+---
+
+### EC-181: Approved Action's Context or Policy Version Changes Between Approval Grant and Execution
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — HAG (ARCH §47.2.4; INTF-066) |
+| Objective | SEC-015, OBJ-033, AC-050 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** An approval is granted against a specific `ApprovalRequest.policy_version`/action snapshot, but by the time the action is actually about to execute, the underlying context or policy version has changed — the approved action and the about-to-execute action are no longer the same thing in substance.
+
+**Trigger:** A significant delay between approval grant and dispatch, during which a policy update or context mutation occurs.
+
+**Why It Matters:** The Problem Statement's edge-case taxonomy explicitly calls out "approval applies to one version but action uses another" as a required case. An approval granted for one version of an action must not be silently treated as covering a materially different version.
+
+**Detection:** At dispatch time, the current policy/context version is compared against the version recorded in the `ApprovalRequest`; a mismatch beyond a configured tolerance invalidates the approval for that dispatch.
+
+**Expected Behavior:**
+1. A version mismatch beyond tolerance requires re-approval against the current version — the stale approval is not treated as still valid.
+2. Minor, policy-defined-immaterial version bumps (if any are explicitly declared immaterial by policy) may be tolerated, but this is an explicit configuration, not an assumption.
+3. The re-approval requirement is logged with both the original and current versions for audit clarity.
+
+**Fallback/Recovery:** Require re-approval against the current version; do not dispatch under a stale approval.
+
+**Safety Implications:** Prevents an approval from being stretched to cover a materially different action than what was actually reviewed.
+
+**Failure Classification:** HUMAN_APPROVAL
+
+**Observability:**
+- `hag.approval_version_mismatch.count`
+
+**Testing Requirements:**
+- Test: Grant approval, then change the policy version before dispatch → assert re-approval is required rather than dispatching under the stale approval.
+
+---
+
+### EC-182: Approval Revoked After Being Granted but Before the Action Executes
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — HAG (ARCH §47.2.4; INTF-066) |
+| Objective | SEC-015, OBJ-033, AC-050 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** An approver grants approval, then revokes it (or a higher-authority override denies it) before the gated action has actually dispatched.
+
+**Trigger:** An approver reconsidering, or an organizational policy allowing approval revocation within a window.
+
+**Why It Matters:** The most current, valid approval decision governs dispatch — a previously-granted approval that has since been revoked must not be treated as still authorizing the action.
+
+**Detection:** `get_approval_status()` is re-checked immediately before dispatch, not only at the time approval was originally granted; a status change to `DENIED` after prior `APPROVED` is detected.
+
+**Expected Behavior:**
+1. Dispatch is blocked if the current status is not `APPROVED` at dispatch time, regardless of a prior `APPROVED` state.
+2. The revocation is logged alongside the original grant for a complete audit trail.
+
+**Fallback/Recovery:** Block dispatch; the requester may re-request approval if the action is still needed.
+
+**Safety Implications:** Ensures HAG enforces the most current human decision, not a stale one — directly analogous to EC-108 (cached result under revoked permission), applied to approvals specifically.
+
+**Failure Classification:** HUMAN_APPROVAL
+
+**Observability:**
+- `hag.approval_revoked_before_dispatch.count`
+
+**Testing Requirements:**
+- Test: Grant approval, revoke it, then attempt dispatch → assert dispatch is blocked on the current (revoked) status, not the stale granted status.
+
+---
+**44.9 Content Integrity Screen (CIS)** — INTF-067 · ARCH §47.2.5 · SPEC §42.14 · SEC-016, OBJ-034
+
+---
+
+### EC-183: Screening Unavailable — Content Must Be Rejected or Quarantined, Never Silently Admitted
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — CIS (ARCH §47.2.5; INTF-067) |
+| Objective | SEC-016, OBJ-034, AC-051 |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** `screen()` cannot complete for an incoming RAG chunk, search result, tool result, sub-agent handoff, or MCP result — the screening backend is unavailable or times out.
+
+**Trigger:** Screening-service outage; malformed content the screener cannot process.
+
+**Why It Matters:** INTF §43.5's invariant (SEC-016) is unconditional: content is untrusted by default until CIS returns `PASS`. `SCREENING_UNAVAILABLE` is fail-closed — the content is `REJECT`ed or `QUARANTINE`d, never silently admitted because the check itself failed.
+
+**Detection:** `screen()` fails/times out; `ScreeningResult.status = SCREENING_UNAVAILABLE`.
+
+**Expected Behavior:**
+1. The content is rejected or quarantined — it is not admitted, ranked, compressed, cached, or used to authorize an action.
+2. This applies uniformly to every `ExternalContentItem.source` value (`RAG_CHUNK`, `SEARCH_RESULT`, `TOOL_RESULT`, `SUBAGENT_HANDOFF`, `MCP_RESULT`), not only end-user input (already separately covered by the Sanitizer).
+3. `CONTENT_SCREENING_UNAVAILABLE` event (§43.11) is emitted for observability/alerting.
+
+**Fallback/Recovery:** Reject/quarantine; the request proceeds without the unscreened content (fail-open on the *optimization* value of that content, fail-closed on its *admission*) rather than blocking the whole request if the content was optional, or rejecting the whole request if the content was mandatory and no substitute exists.
+
+**Safety Implications:** This is the CIS analogue of EC-057 (prompt injection through compressed context) and directly implements SEC-016; a bypass here is a CRITICAL prompt-injection exposure.
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `CONTENT_SCREENING_UNAVAILABLE` event — `item_id`, `source`
+- `cis.unavailable_reject.count` / `cis.unavailable_quarantine.count`
+
+**Testing Requirements:**
+- Security test: Make the screening backend unavailable for each `source` value → assert every content source is rejected/quarantined, never silently admitted.
+
+---
+
+### EC-184: Content Admitted, Ranked, Compressed, or Cached Before Screening Completes
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — CIS (ARCH §47.2.5; INTF-067) |
+| Objective | SEC-016, OBJ-034, AC-051 |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** A pipeline defect (or a latency-motivated shortcut) allows a retrieval/ranking/compression/caching stage to process an `ExternalContentItem` before `screen()` has returned `PASS`.
+
+**Trigger:** An implementation ordering bug, or a well-intentioned attempt to parallelize screening with downstream processing for latency reasons.
+
+**Why It Matters:** INTF §43.5 is explicit that this ordering requirement takes precedence over any Operating Mode preference (§43.10): precomputation may speed up the screening mechanism itself, but the screening step may not be skipped or deferred until after admission in the interest of latency. ARCH §47.2.5 states this even more strongly: this ordering constraint overrides the general hybrid/precomputed preference.
+
+**Detection:** A pipeline-ordering contract test/runtime assertion confirms every `ExternalContentItem` has a `PASS` `ScreeningResult` recorded before it enters ranking/compression/caching stages.
+
+**Expected Behavior:**
+1. No stage past admission processes content whose `screen()` result is not yet `PASS`.
+2. Where latency is a genuine concern, the correct optimization is speeding up the screening mechanism itself (e.g., precomputing a fast classifier pass) — never reordering it after admission.
+3. A detected ordering violation is treated as a security defect (not merely a performance one) and blocks release.
+
+**Fallback/Recovery:** N/A — this is a defect-prevention case; correct behavior is strict ordering, with no fallback other than fixing the pipeline.
+
+**Safety Implications:** An ordering violation here defeats the entire purpose of CIS — malicious content could act on ranking/compression/caching before ever being screened.
+
+**Failure Classification:** INTEGRITY
+
+**Observability:**
+- `cis.ordering_violation.count` — MUST remain 0; nonzero is a P1 security alert.
+
+**Testing Requirements:**
+- Pipeline contract test: For every content-ingestion path, assert `screen()` → `PASS` occurs strictly before any ranking/compression/caching stage touches the content.
+
+---
+
+### EC-185: Indirect Prompt Injection Embedded in a RAG Chunk Survives Initial Relevance Filtering Undetected
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — CIS (ARCH §47.2.5; INTF-067) |
+| Objective | SEC-016, OBJ-034, AC-051 |
+| Severity | CRITICAL |
+| Likelihood | MEDIUM |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A retrieved document chunk contains an indirect prompt injection (e.g., hidden instructions styled as content, or embedded in metadata) crafted to evade a simple keyword-based or low-effort screening pass, and is initially assessed `PASS` with low confidence.
+
+**Trigger:** An adversarial document deliberately engineered to defeat CIS's detection technique, planted in a corpus the retrieval stage will surface.
+
+**Why It Matters:** This extends EC-057 (prompt injection through compressed context) to the specific new CIS component and to indirect (non-user-supplied) content sources, which is exactly the class of threat H14/SEC-016 was introduced to address.
+
+**Detection:** `InjectionAssessment.confidence` below a configured threshold, or a post-hoc detection (e.g., an anomalous model behavior correlated back to a specific admitted chunk) triggers re-screening or quarantine.
+
+**Expected Behavior:**
+1. Low-confidence `PASS` results are treated conservatively — a policy may require `QUARANTINE` rather than `PASS` when `confidence` is below a stricter secondary threshold for injection-detection specifically (distinct from VCL's general calibration mechanism, since CIS's security-relevant confidence threshold is not the same knob as an optimization-quality threshold).
+2. Detected injection technique (`InjectionAssessment.technique_detected`) is logged and used to improve future screening (a research/evidence-improvement loop, not a production guarantee per P-EC-005).
+3. If injection is detected post-hoc (after admission), the affected execution's subsequent decisions are reviewed for compromise, consistent with a security-event response.
+
+**Fallback/Recovery:** Quarantine on low confidence; investigate and potentially roll back decisions made using the compromised content if detected post-hoc.
+
+**Safety Implications:** This is the CRITICAL-severity core threat case for CIS/SEC-016/H14 — direct security exposure if missed.
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `CONTENT_SCREENING_REJECTED` event — `item_id`, `source`, `severity`
+- `cis.low_confidence_pass.count`
+
+**Testing Requirements:**
+- Security test: Inject adversarial content crafted to evade simple detection into a RAG corpus → assert CIS's confidence-threshold policy correctly escalates to quarantine rather than a low-confidence silent pass.
+
+---
+
+### EC-186: Malicious Content Engineered Specifically to Survive Compression/Summarization
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — CIS × Compression (ARCH §47.2.5, §15) |
+| Objective | SEC-016, OBJ-034, AC-051 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** Content that passed CIS screening in its original form is then compressed; the compression process either (a) removes the injection payload's obviously-suspicious framing while preserving its semantic instruction, making it harder to detect on a second pass, or (b) the compressed form itself is never re-screened, on the assumption that screening the original was sufficient.
+
+**Trigger:** A compression stage summarizing/rewriting screened content without re-screening the transformed output.
+
+**Why It Matters:** This is one of the Problem Statement's explicitly required compound cases ("prompt injection + compression"). Screening the original is necessary but not obviously sufficient if the transformation itself could alter the content's effective instruction-following surface.
+
+**Detection:** Policy determines whether compressed/transformed derivatives of already-screened content require re-screening; at minimum, a transformation that meaningfully rewrites content (rather than merely truncating it) is treated as new content for screening purposes.
+
+**Expected Behavior:**
+1. A compression/summarization technique that meaningfully rewrites (rather than truncates) externally-sourced content triggers re-screening of the transformed output before it is admitted downstream.
+2. A pure truncation/pruning (which can only remove content, not introduce new instruction-following surface) is not required to re-screen, since it cannot add injected content — only original-content screening applies, consistent with not over-scoping CIS to non-risk-bearing transformations.
+3. This distinction (rewriting vs. truncation) is an explicit policy decision, not an assumption.
+
+**Fallback/Recovery:** Re-screen rewritten derivatives; treat unscreened rewritten content conservatively (quarantine) if re-screening cannot be confirmed.
+
+**Safety Implications:** Closes a potential gap where compression could be used (deliberately or incidentally) to launder previously-flagged-but-passed borderline content into a form less likely to be caught on any secondary review.
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `cis.rewritten_derivative_rescreened.count`
+
+**Testing Requirements:**
+- Compound test: Screen content, compress/rewrite it, and confirm the compressed derivative is re-screened before downstream use (for rewriting transformations) versus correctly exempted (for pure truncation).
+
+---
+
+### EC-187: MCP Result's Content-Integrity Screening Skipped Because TMG Already Authorized the Call
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — CIS × TMG (ARCH §47.2.3, §47.2.5) |
+| Objective | SEC-014, SEC-016, AC-048, AC-051 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** An integration defect assumes that because TMG authorized and trusted the MCP tool/server making a call, the *result* of that call does not need independent CIS content-integrity screening.
+
+**Trigger:** A conflation of "the tool/MCP server is trusted" with "the content the tool returns is safe."
+
+**Why It Matters:** ARCH §47.2.3 is explicit: a tool result is untrusted content by default and additionally passes through CIS before admission, in addition to T3.2 Tool Output Filter and TE-006 Tool Result Value Filter — a trusted, authenticated tool can still return content (e.g., fetched from an external, untrusted source on the tool's behalf) that itself carries an injection payload.
+
+**Detection:** A pipeline contract test confirms `MCP_RESULT`-sourced `ExternalContentItem`s go through `screen()` regardless of the originating tool's `ToolTrustResult`.
+
+**Expected Behavior:**
+1. TMG's trust decision and CIS's content screening are applied independently to every MCP result; neither substitutes for the other, mirroring the SGE/authorization independence pattern (EC-160) and the TMG/ROI independence pattern (EC-174).
+2. A trusted tool returning content that fails CIS screening still results in `REJECT`/`QUARANTINE` for that content.
+
+**Fallback/Recovery:** Apply CIS screening independent of TMG's trust status; reject/quarantine on failure regardless of tool trust.
+
+**Safety Implications:** Prevents tool/server-level trust from being mistaken for content-level safety — a distinct and equally CRITICAL threat surface (H11 vs. H14 are separate hardening requirements for a reason).
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `cis.mcp_result_screened.count` vs. `tmg.trusted_call.count` — cross-checked to confirm 1:1 coverage, no skip.
+
+**Testing Requirements:**
+- Contract test: Confirm every `MCP_RESULT` content item passes through `screen()` regardless of the originating call's `ToolTrustResult.status`.
+
+---
+
+**44.10 Feasibility Tier Registry (FTR)** — INTF-068 · ARCH §47.10 · SPEC §42.8 · OBJ-030
+
+---
+
+### EC-188: Platform's Actual Access Degrades Below Its Declared Tier at Runtime
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — FTR (ARCH §47.10; INTF-068) |
+| Objective | OBJ-030, AC-046 |
+| Severity | MEDIUM |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A coding-agent platform integration was declared `DEEP_NATIVE`, but a platform API used to achieve that tier is deprecated/removed, reducing actual reachable capability to something closer to `GATEWAY_INTERCEPTION`.
+
+**Trigger:** An upstream platform API deprecation or access-model change outside the Control Plane's control.
+
+**Why It Matters:** ARCH §47.10's failure behavior is explicit: continuing to silently claim the stale (higher) tier is prohibited. Silently overclaiming would misrepresent actual optimization coverage to anyone relying on the tier declaration (e.g., for compliance or capability planning).
+
+**Detection:** A runtime capability probe (platform-specific) detects the degraded access surface relative to `reachable_modules` declared for the current tier.
+
+**Expected Behavior:**
+1. `redeclare_tier()` is called with the lower tier and a `reason`.
+2. `FEASIBILITY_TIER_DOWNGRADED` event (§43.11) fires with `from_tier`/`to_tier`.
+3. `reachable_modules` is updated to reflect the actual (reduced) set of DA-001–DA-025 modules now reachable; any `DeveloperAgentRequest` fields that depended on the lost capability are no longer populated for this platform.
+
+**Fallback/Recovery:** Operate at the newly-declared (lower) tier; the framework does not claim full-pipeline coverage it can no longer deliver.
+
+**Safety Implications:** None directly (a capability/accuracy-of-claims case rather than a security case) — but prevents downstream over-reliance on stale coverage claims.
+
+**Failure Classification:** AVAILABILITY
+
+**Observability:**
+- `FEASIBILITY_TIER_DOWNGRADED` event — `platform_id`, `from_tier`, `to_tier`
+
+**Testing Requirements:**
+- Test: Simulate a platform capability degradation → assert `redeclare_tier()` is invoked and `reachable_modules` is correctly reduced.
+
+---
+
+### EC-189: Full-Pipeline Optimization Coverage Incorrectly Inferred for a Tier 4/5 Integration
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — FTR (ARCH §47.10; INTF-068) |
+| Objective | OBJ-030, AC-046 |
+| Severity | MEDIUM |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A reporting/observability surface (or a caller integrating against the Control Plane) assumes a platform declared `PROTOCOL_TOOL_LEVEL` or `ADVISORY_OBSERVABILITY_ONLY` receives the same optimization coverage as a `DEEP_NATIVE` integration.
+
+**Trigger:** A dashboard or savings report that does not condition its coverage claims on the declared tier.
+
+**Why It Matters:** INTF §43.6's note is explicit: a caller MUST NOT infer full-pipeline optimization coverage for a platform whose declared tier is `PROTOCOL_TOOL_LEVEL` or `ADVISORY_OBSERVABILITY_ONLY`. Misreporting coverage would overstate the framework's actual effect for that integration.
+
+**Detection:** A reporting-layer contract check cross-references any coverage claim against the platform's declared tier and `reachable_modules`.
+
+**Expected Behavior:**
+1. Coverage/savings reports for a Tier 4/5 platform are explicitly scoped to only the modules within `reachable_modules`.
+2. A report that would otherwise imply broader coverage is corrected or annotated with the tier limitation.
+
+**Fallback/Recovery:** N/A — this is a reporting-accuracy case; correct behavior is accurate, tier-scoped reporting.
+
+**Safety Implications:** None directly — a measurement-integrity case (P-EC-002/P-EC-005 by extension: don't overstate what was actually achieved).
+
+**Failure Classification:** CONFIGURATION
+
+**Observability:**
+- `ftr.coverage_claim_tier_mismatch.count` (should remain 0; a reporting-layer defect indicator)
+
+**Testing Requirements:**
+- Reporting test: Generate a coverage report for a `PROTOCOL_TOOL_LEVEL` platform → assert it is scoped to `reachable_modules` only.
+
+---
+
+### EC-190: DA Module Invoked Outside the Platform's Declared `reachable_modules` Set
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — FTR (ARCH §47.10; INTF-068) |
+| Objective | OBJ-030, AC-046 |
+| Severity | MEDIUM |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A caller attempts to invoke a DA-series module (e.g., DA-003 repository map) for a platform whose declared tier's `reachable_modules` does not include it.
+
+**Trigger:** A caller assuming a module is available without checking the platform's declared tier first.
+
+**Why It Matters:** `reachable_modules` (INTF §43.6) exists precisely to bound which `DeveloperAgentRequest` extension fields are actually populated for a given platform; invoking an unreachable module would either silently no-op or fail unpredictably without this check.
+
+**Detection:** A pre-invocation check against `get_tier(platform_id).reachable_modules`.
+
+**Expected Behavior:**
+1. An attempt to invoke a module outside `reachable_modules` is rejected with a clear, structured error identifying the tier limitation — not a silent no-op or a confusing downstream failure.
+2. The caller is directed to the platform's actual declared tier and reachable set.
+
+**Fallback/Recovery:** Reject cleanly; no partial/undefined behavior.
+
+**Safety Implications:** None — a correctness/clarity case preventing confusing undefined behavior.
+
+**Failure Classification:** CONFIGURATION
+
+**Observability:**
+- `ftr.unreachable_module_invocation.count` (platform_id, module_id)
+
+**Testing Requirements:**
+- Test: Invoke a DA module outside a platform's declared `reachable_modules` → assert a clear, structured rejection rather than silent no-op.
+
+---
+
+**44.11 Cross-Execution Coordinator (XEC)** — INTF-069 · ARCH §47.3.2 · SPEC §42.12 · OBJ-032
+
+---
+
+### EC-191: Two Executions Concurrently Modify the Same Shared Resource — Second Write Silently Overwrites the First's Dependency
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — XEC (ARCH §47.3.2; INTF-069) |
+| Objective | OBJ-032, AC-049 |
+| Severity | HIGH |
+| Likelihood | MEDIUM |
+| Reversible | CONDITIONAL |
+
+**Scenario:** Two agents (or two sub-agents, or two workflow executions) both modify the same file/ticket/memory entry; the second write completes without knowledge that the first write's content was a precondition its own change depended on.
+
+**Trigger:** Concurrent multi-agent or multi-execution work against a shared external resource without coordination.
+
+**Why It Matters:** ARCH §47.3.2 requires that the second write not silently overwrite context the first write depended on — XEC must raise a conflict rather than let one execution's work silently clobber another's.
+
+**Detection:** `check_conflict()` (INTF-069) compares `SharedResourceRef.resource_version` at write time against the version the second execution last observed.
+
+**Expected Behavior:**
+1. A version mismatch returns `VERSION_CONFLICT`, not a silent successful write.
+2. The conflicting write is not applied blindly; it is either blocked pending reconciliation or the two executions' intents are reconciled via `reconcile()` to a single consistent outcome.
+3. `CROSS_EXECUTION_CONFLICT` event (§43.11) is emitted.
+
+**Fallback/Recovery:** Block the conflicting write pending reconciliation; reconcile per `CrossExecutionReconciliationResult`.
+
+**Safety Implications:** Prevents silent data loss / invalidated dependency across concurrent agent work.
+
+**Failure Classification:** CONCURRENCY
+
+**Observability:**
+- `CROSS_EXECUTION_CONFLICT` event — `resource_id`, `conflicting_execution_ids`
+
+**Testing Requirements:**
+- Concurrency test: Two executions write to the same resource where the second depends on stale knowledge of the resource's prior state → assert `VERSION_CONFLICT`, not silent overwrite.
+
+---
+
+### EC-192: Non-Idempotent, Concurrently-Reachable Action Proceeds Without an Acquired Lock
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — XEC (ARCH §47.3.2; INTF-069) |
+| Objective | OBJ-032, AC-049 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** An action that is both non-idempotent and concurrently reachable by multiple executions (e.g., appending a comment to a shared ticket, or applying a patch to a shared file) is dispatched by an execution that did not call `acquire_lock()` first.
+
+**Trigger:** An implementation gap where a genuinely lock-requiring action path omits the locking step.
+
+**Why It Matters:** ARCH §47.3.2 requires locking only where the shared resource/action is non-idempotent and concurrently reachable — but for exactly that subset, omitting it risks a duplicate or conflicting side effect (extends P-EC-012 to cross-execution scope).
+
+**Detection:** A contract/policy check identifies action types marked non-idempotent + concurrently-reachable and verifies `acquire_lock()` precedes their dispatch.
+
+**Expected Behavior:**
+1. For the identified action-type subset, `acquire_lock()` (INTF-069) is required before dispatch; a missing lock acquisition blocks the action.
+2. `LockResult.acquired = false` (lock held by another execution) causes the requesting execution to wait, retry with backoff, or reconcile — not proceed unlocked.
+3. This does not universally require locking for every shared-resource interaction — only the genuinely non-idempotent + concurrently-reachable subset, consistent with ARCH §47.3.2's "not universally" qualifier.
+
+**Fallback/Recovery:** Block dispatch pending lock acquisition; wait/retry/reconcile per policy.
+
+**Safety Implications:** Prevents a duplicate non-idempotent side effect across concurrent executions.
+
+**Failure Classification:** SIDE_EFFECT
+
+**Observability:**
+- `xec.unlocked_nonidempotent_attempt.count` — should remain 0; nonzero indicates a contract gap.
+
+**Testing Requirements:**
+- Contract test: For every action type marked non-idempotent + concurrently-reachable, confirm `acquire_lock()` precedes dispatch.
+
+---
+
+### EC-193: Two Executions' Completed Actions Overlap on the Same Resource
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — XEC (ARCH §47.3.2; INTF-069) |
+| Objective | OBJ-032, AC-049 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** Two executions each independently complete an action against the same resource (e.g., both apply a similar-but-not-identical patch to the same file section) before either was aware of the other.
+
+**Trigger:** Genuinely concurrent independent work where neither execution's write conflicted with a stale-read at write time (so EC-191's version check did not catch it), but the two completed actions are now semantically overlapping/incompatible.
+
+**Why It Matters:** ARCH §47.3.2 requires XEC to reconcile to a single consistent outcome rather than applying both — applying both could produce a corrupted or contradictory final state.
+
+**Detection:** `reconcile()` (INTF-069) is invoked with the competing `execution_id`s when an overlap is detected post-hoc (e.g., by WVM's completed-actions cross-check).
+
+**Expected Behavior:**
+1. `CrossExecutionReconciliationResult.status = RECONCILED` identifies a `winning_execution_id`; the losing execution's overlapping action is not also applied.
+2. The `losing_execution_id`'s action is surfaced (not silently discarded) so its owner can be notified and, if needed, re-derive its intent against the now-current state.
+3. If reconciliation cannot determine a clear winner, `status = BLOCKED` and both actions are held pending manual/policy resolution rather than either being applied unilaterally.
+
+**Fallback/Recovery:** Apply the reconciled winning outcome; surface the losing execution's action for re-derivation, not silent loss.
+
+**Safety Implications:** Prevents corrupted shared state from two independently-valid-but-incompatible completed actions.
+
+**Failure Classification:** CONCURRENCY
+
+**Observability:**
+- `xec.reconciliation.count` (status: RECONCILED | BLOCKED)
+
+**Testing Requirements:**
+- Concurrency test: Two executions each complete an overlapping action against the same resource independently → assert reconciliation to a single consistent outcome, with the losing action surfaced rather than silently dropped or both applied.
+
+---
+
+### EC-194: Cross-Execution Coordination Mechanism Itself Unavailable
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — XEC (ARCH §47.3.2; INTF-069) |
+| Objective | OBJ-032, AC-049 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** XEC's own backing coordination service (lock/version store) is unavailable when a concurrently-reachable non-idempotent action needs to check for conflict or acquire a lock.
+
+**Trigger:** Outage of XEC's backing store.
+
+**Why It Matters:** INTF §43.7's failure behavior is explicit: an unresolvable conflict blocks the losing execution's write/action (`status = BLOCKED`) — never an unreconciled dual-write. Coordination-mechanism unavailability must be treated the same as an unresolvable conflict, not as a green light to proceed unlocked.
+
+**Detection:** `check_conflict()`/`acquire_lock()` fails/times out against its backing store.
+
+**Expected Behavior:**
+1. The action is blocked (treated as `LOCK_REQUIRED`/unresolved) rather than proceeding without coordination.
+2. This applies specifically to the non-idempotent + concurrently-reachable subset (EC-192); purely advisory or idempotent actions may proceed without XEC per the "not universally" qualifier.
+3. The outage is escalated for operational remediation.
+
+**Fallback/Recovery:** Block the affected action subset; idempotent/non-concurrent actions are unaffected.
+
+**Safety Implications:** Prevents an unreconciled dual-write during a coordination-service outage.
+
+**Failure Classification:** AVAILABILITY
+
+**Observability:**
+- `xec.coordination_unavailable.count` +1
+
+**Testing Requirements:**
+- Chaos test: Make XEC's backing store unavailable → assert non-idempotent concurrently-reachable actions block rather than proceeding unlocked.
+
+---
+
+### EC-195: Stale Snapshot Consulted by One Execution After Another Has Already Advanced the Shared Resource's Version
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — XEC (ARCH §47.3.2; INTF-069) |
+| Objective | OBJ-032, AC-049 |
+| Severity | MEDIUM |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** An execution reads a shared resource's state, plans an action based on that snapshot, but by the time it acts, another execution has already advanced the resource's version — a stale-snapshot case distinct from an active concurrent write race (EC-191).
+
+**Trigger:** A gap between an execution's read (planning) and its later write (action) during which another execution completes a change.
+
+**Why It Matters:** ARCH §47.3.2 explicitly classifies this as a stale-result case under SRP (ARCH §46.2.11): a decision made from a shared-state snapshot that has since changed is revalidated before another execution relies on it — the same discipline as any other stale-decision case, applied to cross-execution shared state specifically.
+
+**Detection:** `check_conflict()` compares the plan-time snapshot version against the current resource version before the action executes.
+
+**Expected Behavior:**
+1. `ConcurrencyConflictResult.status = STALE_SNAPSHOT` triggers re-planning against the current state, not blind execution of the stale plan.
+2. This reuses RE's reconcile-not-replay discipline (ARCH §46.2.5), applied at cross-execution scope.
+
+**Fallback/Recovery:** Re-plan against current state; never execute a plan known to be based on a stale cross-execution snapshot.
+
+**Safety Implications:** Extends the single-execution stale-decision protection (P-EC-016) to cross-execution scope.
+
+**Failure Classification:** STALENESS
+
+**Observability:**
+- `xec.stale_snapshot_detected.count`
+
+**Testing Requirements:**
+- Test: Have one execution plan against a snapshot, then have another execution advance the resource's version before the first acts → assert re-planning is triggered, not blind execution of the stale plan.
+
+---
+**44.12 Memory Authority Extension (H09)** — `MemoryAuthorityCheck` (§43.13) · ARCH §47.3.1 · SPEC §42.9 · OBJ-031
+
+---
+
+### EC-196: Agent Memory Claim Conflicts Specifically With Current Policy State
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Memory Authority (ARCH §47.3.1; `MemoryAuthorityCheck`) |
+| Objective | OBJ-031, AC-047 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** An agent's working memory holds a belief derived from a policy state that has since changed (e.g., it believes a certain action class does not require approval, because that was true when it last checked, but policy has since added a designation requiring HAG approval for that class).
+
+**Trigger:** A policy update landing after the agent's last policy read, with the agent continuing to plan based on the stale policy belief.
+
+**Why It Matters:** This is distinct from EC-118–120 (which predate the formal H09 Memory Authority component and concern execution/tool-outcome state specifically): `check_conflict()` (INTF §43.13) explicitly enumerates `AUTHORIZATION` as one of the `authoritative_source` values a memory claim can conflict with, and policy-derived authorization requirements are exactly this category.
+
+**Detection:** `MemoryAuthorityCheck.check_conflict()` compares the agent's `MemoryClaim.claimed_state` (and its `memory_version` provenance) against current policy/authorization state before the memory-derived plan step is trusted.
+
+**Expected Behavior:**
+1. `MemoryConflictResult.status = CONFLICT_DETECTED`, `authoritative_source = AUTHORIZATION`; the current policy state (`authoritative_value`) wins.
+2. The agent's plan step proceeding under the stale policy belief is blocked/redirected — e.g., an action now requiring approval is routed through HAG rather than executed directly.
+3. The conflict is surfaced as a distinct event, not silently resolved in the agent's favor (per the OBJ-031 invariant).
+
+**Fallback/Recovery:** Redirect through the correct current-policy path (e.g., HAG); refresh the agent's memory from the authoritative policy source.
+
+**Safety Implications:** A silent resolution in the agent's favor here would let a stale-permissive belief bypass a newly-added approval/security requirement — directly implicates SEC-015/HAG if unhandled.
+
+**Failure Classification:** POLICY
+
+**Observability:**
+- `memory_authority.conflict.count` (authoritative_source = AUTHORIZATION)
+
+**Testing Requirements:**
+- Test: Change a policy to newly require HAG approval for an action class after an agent's last policy read → assert the agent's stale-permissive plan step is blocked/redirected, not executed directly.
+
+---
+
+### EC-197: Ambiguous-Provenance Memory Claim Defaults to Stale/Untrusted
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Memory Authority (ARCH §47.3.1; `MemoryAuthorityCheck`) |
+| Objective | OBJ-031, AC-047 |
+| Severity | MEDIUM |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A `MemoryClaim`'s `memory_version` provenance tag is missing, corrupted, or otherwise cannot be resolved to a specific point in ESM/CVM/WVM history, making it impossible to determine whether the claim is current or stale.
+
+**Trigger:** A memory-store implementation gap where provenance tagging was not correctly propagated for a particular write path.
+
+**Why It Matters:** INTF §43.13's invariant covers exactly this case: an `UNRESOLVABLE` conflict (ambiguous provenance) defaults to treating the memory claim as stale/untrusted for that decision — not as authoritative merely because no explicit contradiction was found.
+
+**Detection:** `check_conflict()` cannot resolve `memory_version` against known ESM/CVM/WVM history; `MemoryConflictResult.status = UNRESOLVABLE`.
+
+**Expected Behavior:**
+1. The memory claim is treated as stale/untrusted for the decision in question — it does not get the benefit of the doubt.
+2. The decision proceeds using authoritative Control Plane state directly (bypassing the ambiguous memory claim entirely), or, if no authoritative source is available either, the decision is deferred/revalidated rather than trusting the ambiguous claim.
+3. The provenance gap itself is logged for remediation of the underlying tagging defect.
+
+**Fallback/Recovery:** Treat as stale/untrusted; fall back to direct authoritative-state lookup.
+
+**Safety Implications:** Prevents an untaggable memory claim from being given implicit trust by default — the conservative direction is required, not optional.
+
+**Failure Classification:** INTEGRITY
+
+**Observability:**
+- `memory_authority.unresolvable_provenance.count`
+
+**Testing Requirements:**
+- Test: Submit a memory claim with missing/corrupted `memory_version` → assert `UNRESOLVABLE` status and that the claim is treated as untrusted, not authoritative.
+
+---
+
+**44.13 Decision Explainability and Audit (H15)** — ARCH §47.16 · SPEC §42.15 · NFR-010 (strengthened)
+
+---
+
+### EC-198: Required Explanation/Audit Record Fails to Write for a Governed Decision
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Decision Explainability (ARCH §47.16) |
+| Objective | NFR-010 (strengthened), AC-052 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A decision requiring a retrievable explanation — context admission/pruning, model/provider selection, cache reuse/rejection, optimization-stage skip, execution block/recovery/supersession, or fallback — completes, but the audit-record write for its explanation fails (e.g., an audit-store outage).
+
+**Trigger:** Audit-store unavailability or a write failure coinciding with the decision.
+
+**Why It Matters:** ARCH §47.16's failure behavior is explicit and distinctive: this is handled as fail-closed — the optimization stage is blocked and unoptimized content is used — per PRV's fail-closed pattern (ARCH §46.2.8). An unexplainable decision must not silently execute, even though the underlying decision itself might otherwise have been a routine optimization choice.
+
+**Detection:** The audit-write step is a required precondition, not a best-effort side-channel; its failure is detected synchronously with the decision it documents.
+
+**Expected Behavior:**
+1. If the required explanation/audit record cannot be written, the decision itself does not proceed as planned — the optimization stage is blocked and the unoptimized path is used instead.
+2. This is a deliberate exception to the general fail-open-for-optimization rule: here, the audit-writing failure (not the optimization stage itself) is what fails closed, because SEC-008-consistent auditability is itself a mandatory control, not an optional enhancement.
+3. The audit-write failure itself is escalated as an operational incident.
+
+**Fallback/Recovery:** Block the stage; use the unoptimized path; escalate the audit-store failure.
+
+**Safety Implications:** Establishes explainability as a governance-tier requirement, not a best-effort observability nicety — directly implements the strengthened NFR-010.
+
+**Failure Classification:** RELIABILITY
+
+**Observability:**
+- `explainability.audit_write_failure.count` +1 — P1 alert
+- `explainability.stage_blocked_due_to_audit_failure.count`
+
+**Testing Requirements:**
+- Chaos test: Make the audit store unavailable during a governed decision → assert the optimization stage is blocked and the unoptimized path is used, not a silent unexplained decision.
+
+---
+
+### EC-199: Retrievable Explanation Exists but Is Not Surfaced to the End User by Default (Boundary Case)
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Decision Explainability (ARCH §47.16) |
+| Objective | NFR-010 (strengthened), AC-052 |
+| Severity | LOW |
+| Likelihood | HIGH |
+| Reversible | YES |
+
+**Scenario:** A decision's explanation is correctly written to the audit record and is retrievable via the appropriate interface, but it is not automatically displayed to the end user in the application's UI.
+
+**Trigger:** Normal operation — this is the expected default behavior, not a failure.
+
+**Why It Matters:** ARCH §47.16 explicitly distinguishes retrievability (a mandatory requirement) from presentation (a separate interface decision, not mandated by this requirement). This boundary case exists to prevent conflating "not shown in the UI by default" with "not compliant" during audit review.
+
+**Detection:** N/A — positive/boundary case confirming correct scope.
+
+**Expected Behavior:**
+1. The explanation is retrievable on demand (e.g., via an audit/debugging interface) even though it is not proactively surfaced to the end user.
+2. This is not treated as a gap during compliance review, since NFR-010/AC-052 require retrievability, not default UI presentation.
+
+**Fallback/Recovery:** N/A.
+
+**Safety Implications:** None — this case exists to correctly scope the requirement, preventing over-interpretation that could motivate an unnecessary (and potentially confusing or noisy) UI change.
+
+**Failure Classification:** UNKNOWN (N/A — positive case)
+
+**Observability:**
+- N/A.
+
+**Testing Requirements:**
+- Review checklist item: Confirm audit/compliance review of explainability coverage checks retrievability, not UI presentation, against AC-052.
+
+---
+
+**44.14 Execution State Portability (H16)** — ARCH §47.11 · SPEC §42.16 · AC-053
+
+---
+
+### EC-200: Checkpoint Remains Interpretable for Reconciliation Despite a Model/Provider Switch on Resume
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Execution State Portability (ARCH §47.11; CPM/RCO extension) |
+| Objective | AC-053 |
+| Severity | MEDIUM |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** A checkpoint is produced while `model_selected` is Provider A's model. Before resume, CAR-driven failover (EC-109/EC-110-style) selects Provider B's model instead. The checkpoint must still be interpretable for RCO's reconciliation steps.
+
+**Trigger:** A provider/model failover occurring between checkpoint creation and resume.
+
+**Why It Matters:** ARCH §47.11 requires the checkpoint schema to be provider/session-neutral: no field is, or requires, a specific provider's session object or proprietary state format. This is the direct positive-path verification that a provider switch does not break resume correctness — extending EC-139's provider-failure-plus-fallback case specifically to the checkpoint-portability guarantee.
+
+**Detection:** RCO's reconciliation steps operate purely on the schema-defined fields (`execution_id`, `execution_version`, `context_version`, `workflow_version`, `completed_actions`, `unresolved_questions`, `token_ledger_snapshot`, `policy_version`, `model_selected`, `reversibility_records`), never on a provider-proprietary session object.
+
+**Expected Behavior:**
+1. Resume proceeds using the schema-defined fields; `model_selected` is simply updated to the new provider/model as part of normal CAR-driven reconciliation, not treated as breaking the checkpoint's validity.
+2. A provider's native resumability (e.g., a conversation/session ID) may have been used as an optimization to avoid re-transmitting cached context under the original provider, but its absence under the new provider does not block correctness — it only forgoes that specific optimization.
+3. This follows RCO's existing `PRECONDITION_FAILED` path if reconciliation genuinely cannot proceed for other reasons (e.g., incompatible context version), which is unrelated to the provider switch itself.
+
+**Fallback/Recovery:** Proceed with reconciliation under the new provider/model using only the portable schema fields.
+
+**Safety Implications:** None directly — a portability/correctness case supporting reliable recovery across provider changes.
+
+**Failure Classification:** RELIABILITY
+
+**Observability:**
+- `checkpoint.resume_across_provider_switch.count`
+
+**Testing Requirements:**
+- Test: Create a checkpoint under Provider A, force a CAR failover to Provider B, then resume → assert reconciliation succeeds using only the portable schema fields.
+
+---
+
+### EC-201: Checkpoint Schema Field Found to Require a Specific Provider's Proprietary Session Object
+
+| Field | Value |
+|---|---|
+| Domain | Hardening — Execution State Portability (ARCH §47.11) |
+| Objective | AC-053 |
+| Severity | MEDIUM |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A code-review or design-review process discovers that a proposed or implemented checkpoint field's correctness actually depends on a specific provider's proprietary session identifier being present and valid (rather than merely using it as an optional optimization).
+
+**Trigger:** An implementation shortcut that wires checkpoint correctness to a convenient provider-native session mechanism instead of the portable schema.
+
+**Why It Matters:** ARCH §47.11 is explicit that resume correctness never depends on a provider's native session mechanism being present; using it is permitted only as an optimization to avoid re-transmitting cached context, never as a correctness dependency. This is exactly the kind of proposal ARCH §47.13's Anti-Scope Boundary review process (EC-213-adjacent) is meant to catch — flagged at design-review time, not built silently.
+
+**Detection:** A design/code-review checklist item explicitly checks any new checkpoint-related field or reconciliation-path change against the "correctness never depends on provider-native session mechanism" requirement.
+
+**Expected Behavior:**
+1. The proposal/implementation is flagged at review time and corrected to make the provider-native mechanism optional (an optimization only), with the portable schema fields carrying full correctness responsibility.
+2. If already merged, this is treated as a portability defect requiring remediation, not an acceptable trade-off.
+
+**Fallback/Recovery:** Redesign to depend only on the portable schema; treat provider-native session data as opportunistic optimization only.
+
+**Safety Implications:** None directly — a design-integrity case preventing silent erosion of the portability guarantee that AC-053 requires.
+
+**Failure Classification:** CONFIGURATION
+
+**Observability:**
+- Design-review checklist item; no runtime metric (caught pre-merge).
+
+**Testing Requirements:**
+- Review checklist item: Every new/modified checkpoint field or reconciliation path is checked against the provider-independence requirement before merge.
+
+---
+
+**44.15 Compound Hardening Interactions**
+
+The Problem Statement explicitly requires meaningful compound conditions that test interactions between independent safeguards, not merely combined labels. Each case below defines a genuine interaction and its expected resolution.
+
+---
+
+### EC-202: Permission Revoked While a Stale Cache Hit Is Concurrently Served
+
+| Field | Value |
+|---|---|
+| Domain | Compound — PRV × SRP (ARCH §46.2.8, §46.2.11) |
+| Objective | OBJ-015, OBJ-017, SEC-001, SEC-011–016 (governance independence pattern) |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** A permission-revocation event (PRV, ARCH §46.2.8) lands at nearly the same instant a T1.6/T1.7 cache lookup is about to serve a hit that was computed under the now-revoked permission.
+
+**Trigger:** A race between an asynchronous authorization-change event and an in-flight cache-serve decision.
+
+**Why It Matters:** This is one of the Problem Statement's explicitly required compound cases. Individually, EC-034 (cached result after permission change) and EC-108 (cached result under revoked permission) each handle a sequential version of this; the compound case verifies the *race*, not just the sequential ordering, is handled correctly.
+
+**Detection:** The cache-serve path re-checks current authorization state (not a cached authorization snapshot) as the last step before serving, regardless of how recently the cache entry was validated.
+
+**Expected Behavior:**
+1. The cache-serve decision always consults current authorization state immediately before serving, closing the race window as tightly as the architecture allows.
+2. If the revocation event and the cache-serve check land in the same instant such that a genuinely stale serve occurs anyway (an unavoidable narrow race), the response is treated as compromised: the served content's provenance is logged, and any consequence-bearing follow-on action based on it is blocked pending re-authorization.
+3. This is fail-closed, not fail-open — authorization failures never fall back to serving stale-but-convenient cached content.
+
+**Fallback/Recovery:** Re-check authorization immediately before serving; treat any detected post-hoc violation as a security incident requiring review of downstream consequences.
+
+**Safety Implications:** CRITICAL — this is the compound race case for cross-tenant/unauthorized data exposure via cache.
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `compound.permission_revocation_cache_race.count`
+
+**Testing Requirements:**
+- Race test: Fire a permission-revocation event concurrently with an in-flight cache-serve decision at varying timing offsets → assert the serve path always re-checks current authorization and never serves under confirmed-revoked permission.
+
+---
+
+### EC-203: Policy Change Lands Mid-Flight During an Active Optimization Decision
+
+| Field | Value |
+|---|---|
+| Domain | Compound — DPE × Optimization Pipeline (ARCH §46.2.9) |
+| Objective | OBJ-015, OBJ-017 |
+| Severity | HIGH |
+| Likelihood | MEDIUM |
+| Reversible | YES |
+
+**Scenario:** A policy update (e.g., tightening a quality threshold or disabling a technique) is applied by DPE while an optimization decision using the prior policy version is already mid-computation.
+
+**Trigger:** A policy hot-reload racing against an in-flight optimization decision's evaluation.
+
+**Why It Matters:** Extends EC-105 (optimization policy applied mid-execution) with an explicit focus on the "in-flight decision" window specifically, one of the Problem Statement's required compound categories.
+
+**Detection:** The optimization decision records the `policy_version` it began evaluation under; upon completion, this is compared against the current policy version before the decision is applied.
+
+**Expected Behavior:**
+1. If the policy version changed mid-flight, the decision is re-evaluated under the new policy before being applied — the decision started under the old policy is not silently applied as-is.
+2. This is a re-evaluation (fail-open path for optimization decisions), not a rejection, unless the new policy specifically requires stricter handling (e.g., a newly-disabled technique), in which case the decision defaults to `DO_NOT_OPTIMIZE`/`SKIP` for that technique.
+
+**Fallback/Recovery:** Re-evaluate under current policy; apply the more conservative outcome if policy tightened mid-flight.
+
+**Safety Implications:** Prevents a decision computed under a since-superseded (looser) policy from silently taking effect.
+
+**Failure Classification:** POLICY
+
+**Observability:**
+- `compound.policy_change_midflight.count`
+
+**Testing Requirements:**
+- Race test: Change policy while an optimization decision is mid-evaluation → assert re-evaluation under the new policy before application.
+
+---
+
+### EC-204: Context Mutation Combined With a Stale Optimization Result Served Together
+
+| Field | Value |
+|---|---|
+| Domain | Compound — CVM × SRP (ARCH §46.2.2, §46.2.11) |
+| Objective | OBJ-015, OBJ-018 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** Context mutates (CVM version increments) at the same time a cached optimization result computed against the prior context version is about to be served.
+
+**Trigger:** Concurrent context update and cache-serve decision.
+
+**Why It Matters:** This compound case verifies that CVM's version-mismatch detection (EC-084) and SRP's staleness protection (EC-098) compose correctly rather than one masking a gap in the other.
+
+**Detection:** The cache-serve path checks both the cache entry's recorded `context_version` and current CVM state as of the moment of serving, not just at the moment the cache lookup began.
+
+**Expected Behavior:**
+1. A context-version mismatch detected at any point before actual serving invalidates the cache hit, forcing recomputation or fallback to the unoptimized path.
+2. This holds even if the mismatch is detected in the narrow window between cache lookup and serve, not only at lookup time.
+
+**Fallback/Recovery:** Recompute or fall back to unoptimized path; never serve a context-version-mismatched result.
+
+**Safety Implications:** None directly beyond the individual EC-084/EC-098 cases — a composition-correctness case.
+
+**Failure Classification:** STALENESS
+
+**Observability:**
+- `compound.context_mutation_stale_serve_race.count`
+
+**Testing Requirements:**
+- Race test: Mutate context concurrently with an in-flight cache-serve decision → assert the version mismatch is caught even in the narrow lookup-to-serve window.
+
+---
+
+### EC-205: Provider Outage Combined With Checkpoint Recovery
+
+| Field | Value |
+|---|---|
+| Domain | Compound — CAR × CPM/RCO (ARCH §46.2.10, §46.2.4, §46.2.13) |
+| Objective | OBJ-017, AC-053 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A provider outage occurs precisely while a checkpoint is being restored for resume, so CAR-driven failover and RCO's reconciliation protocol must operate together, not sequentially.
+
+**Trigger:** A provider outage window overlapping a resume attempt.
+
+**Why It Matters:** This compound case, explicitly required by the Problem Statement, verifies that Execution State Portability (H16/EC-200) and CAR's failover logic (EC-109/EC-110) compose correctly under simultaneous stress, rather than only being tested independently.
+
+**Detection:** RCO's reconciliation protocol detects the target provider/model is unavailable during resume and invokes CAR for a fallback selection as part of the same resume attempt, not as a separate subsequent step that could itself race against further outage changes.
+
+**Expected Behavior:**
+1. RCO's resume protocol runs to completion using CAR's fallback-selected model/provider, applying the full reconciliation steps (permission, policy, model availability, completed-actions re-validation) against the new selection — not a partial reconciliation against the original, now-unavailable provider.
+2. If no authorized fallback is available either, resume fails closed to a `SUSPENDED`/blocked state with a clear reason, rather than retrying indefinitely against an unavailable provider.
+
+**Fallback/Recovery:** Full reconciliation against the CAR-selected fallback; suspend cleanly if no fallback is available.
+
+**Safety Implications:** None directly — reliability/correctness case for compound-failure recovery.
+
+**Failure Classification:** AVAILABILITY
+
+**Observability:**
+- `compound.provider_outage_during_checkpoint_recovery.count`
+
+**Testing Requirements:**
+- Chaos test: Trigger a provider outage during an active resume attempt → assert CAR failover integrates into the same reconciliation pass, and resume fails closed cleanly if no fallback exists.
+
+---
+
+### EC-206: Budget Exhaustion Combined With a Non-Idempotent Side Effect Already Dispatched
+
+| Field | Value |
+|---|---|
+| Domain | Compound — SGE × RCO (ARCH §47.2.1, §46.2.13) |
+| Objective | OBJ-027, AC-043, AC-049 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** Identical to EC-161, restated here explicitly as one of the Problem Statement's named required compound cases for completeness of the compound-interaction catalog: budget exhaustion racing against an outstanding non-idempotent action.
+
+**Trigger:** See EC-161.
+
+**Why It Matters:** See EC-161 — this entry cross-references rather than duplicates that case to avoid redundant entries in the catalog while still satisfying the explicit compound-case coverage requirement.
+
+**Detection:** See EC-161.
+
+**Expected Behavior:** See EC-161: the in-flight non-idempotent action resolves via RCO's uncertain-outcome path; no new action is dispatched under the halted scope.
+
+**Fallback/Recovery:** See EC-161.
+
+**Safety Implications:** See EC-161.
+
+**Failure Classification:** SIDE_EFFECT
+
+**Observability:** See EC-161.
+
+**Testing Requirements:** See EC-161's compound test; no additional test required beyond ensuring both entries are cross-linked in traceability tooling.
+
+---
+
+### EC-207: Prompt Injection Interacting With the Compression Pipeline
+
+| Field | Value |
+|---|---|
+| Domain | Compound — CIS × Compression (ARCH §47.2.5, §15) |
+| Objective | SEC-016, OBJ-034 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** Cross-reference to EC-186 (malicious content engineered to survive compression), restated here to satisfy the Problem Statement's explicit "prompt injection + compression" required compound listing.
+
+**Trigger:** See EC-186.
+
+**Why It Matters:** See EC-186.
+
+**Detection:** See EC-186.
+
+**Expected Behavior:** See EC-186: rewriting transformations of externally-sourced content trigger re-screening; pure truncation does not.
+
+**Fallback/Recovery:** See EC-186.
+
+**Safety Implications:** See EC-186.
+
+**Failure Classification:** SECURITY
+
+**Observability:** See EC-186.
+
+**Testing Requirements:** See EC-186's compound test.
+
+---
+
+### EC-208: Malicious Tool Result Poisons the Semantic Cache
+
+| Field | Value |
+|---|---|
+| Domain | Compound — CIS × TMG × Semantic Cache (ARCH §47.2.3, §47.2.5, §13.2) |
+| Objective | SEC-014, SEC-016, OBJ-034 |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A tool result containing an injection payload or otherwise malicious content evades both TMG's trust checks (the tool itself is legitimately authorized/trusted) and CIS screening (the payload is subtle enough to pass), and the result is then written into the semantic cache, where it can be served to *other* future requests whose queries happen to match it semantically.
+
+**Trigger:** A sophisticated evasion of both TMG and CIS combined with a semantic-cache write path that does not apply additional scrutiny before persisting externally-sourced content for reuse.
+
+**Why It Matters:** This is materially worse than EC-078 (adversarial similarity manipulation) and EC-185 (injection surviving initial filtering) individually: persisting poisoned content into the semantic cache extends the blast radius from one request to every future request the cache serves, and extends the compromise window indefinitely until the cache entry expires or is invalidated.
+
+**Detection:** A defense-in-depth check: semantic-cache writes from externally-sourced (TOOL_RESULT/MCP_RESULT-origin) content require both a valid CIS `PASS` *and* provenance tagging identifying the cache entry as tool/MCP-derived, so a later-detected compromise (e.g., the originating tool is subsequently `QUARANTINED`) can trigger targeted cache invalidation.
+
+**Expected Behavior:**
+1. Semantic-cache entries derived from tool/MCP results carry provenance metadata linking back to the originating tool call and its `ToolTrustResult`/`ScreeningResult`.
+2. If the originating tool is later quarantined (EC-172) or the content is later flagged (post-hoc detection, EC-185), all semantic-cache entries derived from it are invalidated as part of that response — not left to expire naturally.
+3. This extends DGE's deletion-propagation traversal model (EC-167) to security-driven cache invalidation, not only privacy-driven deletion.
+
+**Fallback/Recovery:** Invalidate affected cache entries on detection; serve from the unoptimized/recompute path until invalidation completes.
+
+**Safety Implications:** CRITICAL — this is the compound case demonstrating why CIS/TMG alone are necessary but not sufficient; persistence-layer provenance and targeted invalidation are required to bound the blast radius of an evasion.
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `compound.poisoned_semantic_cache_entry.count`
+- `compound.provenance_triggered_invalidation.count`
+
+**Testing Requirements:**
+- Security test: Simulate a tool result that passes CIS/TMG but is later found malicious → assert provenance-linked semantic-cache entries are identified and invalidated, not left to expire naturally.
+
+---
+
+### EC-209: Agent Memory Conflict Combined With Concurrent Workflow Mutation
+
+| Field | Value |
+|---|---|
+| Domain | Compound — Memory Authority × WVM (ARCH §47.3.1, §46.2.3) |
+| Objective | OBJ-031, OBJ-015 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** An agent's memory holds a belief about the current workflow plan at the same time WVM's workflow version is independently mutated (e.g., a step reordering) by a concurrent process — a compound of EC-120/EC-196's memory-conflict pattern with an active WVM mutation, rather than a static mismatch.
+
+**Trigger:** A workflow-mutation event landing while the agent's memory-authority check for a related decision is in progress.
+
+**Why It Matters:** This compound case verifies memory-authority conflict detection is correct even when the authoritative source itself (WVM) is changing at the same time, not only when it is static and the memory is simply out of date.
+
+**Detection:** `check_conflict()` re-reads current WVM state at resolution time (not a cached snapshot taken when the check began), so a mutation landing mid-check is still reflected in the result.
+
+**Expected Behavior:**
+1. The memory-authority check resolves against the WVM state current as of resolution, not as of when the check was initiated.
+2. If the workflow mutation itself invalidates the plan step under evaluation independent of the memory conflict, both are surfaced together (memory conflict + workflow mutation), not just one.
+
+**Fallback/Recovery:** Resolve against current WVM state; surface both applicable conflict types if present.
+
+**Safety Implications:** Prevents a narrow timing window from letting a memory-authority check pass against already-stale WVM state it read at check-start.
+
+**Failure Classification:** CONSISTENCY
+
+**Observability:**
+- `compound.memory_conflict_during_workflow_mutation.count`
+
+**Testing Requirements:**
+- Race test: Mutate WVM state while a memory-authority check for a dependent decision is in progress → assert resolution reflects the current (post-mutation) state.
+
+---
+
+### EC-210: Concurrent Agent Mutation Races Against Supersession
+
+| Field | Value |
+|---|---|
+| Domain | Compound — XEC × SPM (ARCH §47.3.2, §46.2.12) |
+| Objective | OBJ-032, OBJ-017, AC-049 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | NO |
+
+**Scenario:** Two agents concurrently mutating a shared resource (EC-191) — but one of the two executions is itself superseded in the middle of that concurrent mutation attempt.
+
+**Trigger:** A supersession event racing against an in-flight cross-execution write.
+
+**Why It Matters:** This compound case verifies XEC's conflict-detection and SPM's supersession-blocking (EC-102) compose correctly: a superseded execution's write must not "win" a cross-execution conflict resolution merely because it arrived first, nor should it be allowed to complete just because XEC's conflict check had already begun before the supersession landed.
+
+**Detection:** `reconcile()`/`check_conflict()` re-checks the execution's own terminal-state status (not only the shared resource's version) as part of resolving the conflict.
+
+**Expected Behavior:**
+1. A superseded execution's write is excluded from consideration as a valid contender in `CrossExecutionReconciliationResult`, regardless of relative arrival timing.
+2. If both contending executions are found superseded by the time reconciliation completes, the resource write is blocked entirely (neither applied) rather than defaulting to either.
+3. This is consistent with P-EC-013: superseded executions must not continue to produce side effects, including winning a cross-execution conflict resolution.
+
+**Fallback/Recovery:** Exclude superseded executions from conflict resolution; block the write if no valid (non-superseded) contender remains.
+
+**Safety Implications:** Prevents a supersession race from allowing a superseded execution's side effect through via the cross-execution conflict-resolution path specifically — a gap neither XEC nor SPM alone would necessarily catch.
+
+**Failure Classification:** SIDE_EFFECT
+
+**Observability:**
+- `compound.superseded_execution_excluded_from_reconciliation.count`
+
+**Testing Requirements:**
+- Race test: Supersede one of two executions mid-conflict-resolution over a shared resource → assert the superseded execution is excluded from winning, regardless of arrival order.
+
+---
+
+### EC-211: Verifier Uncertainty Combined With a Model-Downgrade Decision
+
+| Field | Value |
+|---|---|
+| Domain | Compound — VCL × Model Cascade (ARCH §47.4.3, §19) |
+| Objective | OBJ-028, AC-044 |
+| Severity | MEDIUM |
+| Likelihood | LOW |
+| Reversible | YES |
+
+**Scenario:** A cost-driven cascade decision proposes downgrading to a cheaper model for the next step, at the same time VCL reports low confidence on the *current* step's verification result — so it is unclear whether quality is already degrading before the downgrade is even applied.
+
+**Trigger:** A cost-optimization downgrade recommendation coinciding with an already-uncertain verification outcome.
+
+**Why It Matters:** Applying a downgrade on top of an already-uncertain quality signal compounds risk in a way that evaluating either signal alone would miss — a model already possibly underperforming should not simultaneously be downgraded further based on cost alone.
+
+**Detection:** The cascade/downgrade decision consults VCL's current confidence/calibration state for the step's own verification before proceeding, not only its own cost-benefit signal.
+
+**Expected Behavior:**
+1. A pending low-confidence verification result on the current step blocks a same-direction (further cost-driven downgrade) cascade decision until the verification uncertainty is resolved (e.g., via QO-002's fallback: escalate, restore, or disable).
+2. The two signals (verifier uncertainty, cascade downgrade proposal) are evaluated jointly, not independently in parallel pipelines that could each individually look acceptable.
+
+**Fallback/Recovery:** Resolve verifier uncertainty (escalate/restore/disable) before applying a further downgrade; do not compound an uncertain result with an additional cost-driven quality risk.
+
+**Safety Implications:** None directly — a quality-risk compounding case, not a security case.
+
+**Failure Classification:** QUALITY
+
+**Observability:**
+- `compound.downgrade_blocked_by_verifier_uncertainty.count`
+
+**Testing Requirements:**
+- Test: Produce a low-confidence VCL result on the current step while a cost-driven downgrade is proposed for the next step → assert the downgrade is blocked pending resolution of the verification uncertainty.
+
+---
+
+### EC-212: Residency Change Combined With Already-Cached Sensitive Data
+
+| Field | Value |
+|---|---|
+| Domain | Compound — DGE × Cache (ARCH §47.2.2, §13) |
+| Objective | OBJ-029, SEC-012, AC-045 |
+| Severity | HIGH |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A tenant's residency policy changes (e.g., a new requirement that sensitive data must not leave a specific region), but sensitive data classified and cached before the policy change is already stored on infrastructure that no longer satisfies the new constraint.
+
+**Trigger:** A residency policy update landing after data was already cached under the prior, looser constraint.
+
+**Why It Matters:** This compound case verifies DGE's residency-honoring requirement (EC-168) applies retroactively to already-cached data, not only to new routing decisions going forward — otherwise a policy tightening would leave a silent compliance gap for pre-existing cache entries.
+
+**Detection:** A residency-policy-change event triggers a sweep of cached entries whose `residency_constraint` no longer matches their actual storage location.
+
+**Expected Behavior:**
+1. Cached entries found non-compliant with the new residency constraint are treated the same as a deletion/migration requirement: invalidated from the non-compliant storage location and, where the deployment supports it, re-cached in a compliant location; if migration is not supported, simply evicted.
+2. This sweep follows the same DGE propagation-and-reporting model as EC-167/EC-170, producing a report of what was found non-compliant and how it was resolved.
+3. New routing/caching decisions honor the new constraint immediately (per EC-168); this case specifically addresses the backward-looking cleanup of prior data.
+
+**Fallback/Recovery:** Invalidate/migrate non-compliant cached entries; report resolution status.
+
+**Safety Implications:** Directly extends SEC-012/DGE's classification-and-residency requirements to retroactive policy-change handling — a gap here is a data-governance/compliance violation.
+
+**Failure Classification:** DATA_GOVERNANCE
+
+**Observability:**
+- `compound.residency_change_cache_sweep.count`
+- `compound.residency_noncompliant_entries_found.count`
+
+**Testing Requirements:**
+- Test: Cache sensitive data under one residency policy, tighten the policy, then verify a sweep identifies and resolves the now-non-compliant cached entries.
+
+---
+
+### EC-213: Security Event During a Long-Running Execution
+
+| Field | Value |
+|---|---|
+| Domain | Compound — Interruption Cause #6 × Governance Stack (ARCH §46.3, §47.2) |
+| Objective | OBJ-015, OBJ-017, SEC-001–016 |
+| Severity | CRITICAL |
+| Likelihood | LOW |
+| Reversible | CONDITIONAL |
+
+**Scenario:** A security event (e.g., a detected credential compromise, a CIS-flagged injection, or a TMG-quarantined tool) occurs partway through a long-running, multi-step agent execution that has already completed several steps and holds an active checkpoint.
+
+**Trigger:** Any of the security-relevant hardening components (SGE independence aside — this concerns SEC-triggering events specifically: DGE/TMG/HAG/CIS, or a pre-existing SEC-001–010 mechanism) detecting a violation mid-execution.
+
+**Why It Matters:** This is explicitly one of the six interruption causes the Problem Statement requires full coverage for (cancellation, timeout, outage, policy change, budget exhaustion, **security event**), and combining it with a long-running execution specifically tests whether the checkpoint/interruption machinery (ARCH §46) correctly integrates with the newer governance components rather than only having been validated against the original pre-hardening security model.
+
+**Detection:** The triggering governance component's failure/violation signal (e.g., CIS `REJECT`, TMG `QUARANTINED`) is routed through the same interruption-handling path as any other security event (ARCH §46.3's `SUSPENDED_SECURITY_EVENT`-equivalent state).
+
+**Expected Behavior:**
+1. The execution transitions to a suspended/blocked state immediately upon the security event, per the existing interruption-cause-6 handling (ARCH §46, extended here to originate from any of the new governance components, not only the original SEC-001–010 mechanisms).
+2. Already-completed steps' side effects are not automatically rolled back (they already happened) but are flagged for review given the security event's severity; no *further* step is dispatched.
+3. A checkpoint is created reflecting the suspended state; resume requires the security event to be resolved (e.g., the flagged content removed, the quarantined tool cleared) and full reconciliation (RCO) before any further step executes — resume never bypasses this re-validation regardless of how much of the workflow had already completed.
+4. The user/operator is notified per policy, consistent with existing interruption-cause notification requirements.
+
+**Fallback/Recovery:** Suspend and checkpoint; require security-event resolution and full RCO reconciliation before resume; no blind continuation.
+
+**Safety Implications:** CRITICAL — verifies the new governance components (SGE/DGE/TMG/HAG/CIS) correctly plug into the pre-existing interruption/recovery machinery (ARCH §46) as first-class security-event sources, not as a parallel, potentially-inconsistent mechanism.
+
+**Failure Classification:** SECURITY
+
+**Observability:**
+- `compound.security_event_during_long_running_execution.count`
+- `compound.security_suspend_source` (which governance component triggered it)
+
+**Testing Requirements:**
+- Integration test: Trigger a CIS rejection and, separately, a TMG quarantine, each mid-way through a multi-step long-running execution → assert both route through the same interruption-cause-6 suspend/checkpoint/reconcile-before-resume path as a pre-existing SEC-001–010 security event.
+
+---
+
 ## Recovery Priority Matrix
 
 When multiple edge cases occur simultaneously, apply this priority order:
@@ -5216,6 +7990,19 @@ When multiple edge cases occur simultaneously, apply this priority order:
 | **7 — HIGH** | Optimization overhead inversion | Stop optimization pipeline; proceed with current best |
 | **8 — MEDIUM** | Classification failure | Apply conservative policy; continue |
 | **9 — LOW** | Measurement unverified | Mark as UNVERIFIED; continue; do not count in savings |
+
+**Hardening amendment additions (§44, 2026-09-15):**
+
+| Priority | Category | Action |
+|---|---|---|
+| **1 — CRITICAL** | Overload would skip a governance/security check (SGE/DGE/TMG/HAG/CIS) | Fail-closed for the affected request; self-protection never sheds governance/security stages (NFR-014, EC-148) |
+| **2 — CRITICAL** | Content-integrity screening unavailable or bypassed in ordering | Fail-closed; reject/quarantine; never admit before `PASS` (SEC-016, EC-183–184) |
+| **2 — CRITICAL** | Tool/MCP identity or approval-gate bypass | Fail-closed; refuse/block (SEC-014, SEC-015, EC-172, EC-177) |
+| **3 — HIGH** | Cross-execution conflict (concurrent mutation, overlapping completed actions) | Block the losing execution's write/action; reconcile to one consistent outcome, never an unreconciled dual-write (XEC, EC-191–195) |
+| **4 — HIGH** | Data-governance failure (classification unavailable, deletion propagation incomplete, residency violation) | Fail-closed to SENSITIVE default; propagate/report; never route to a non-compliant provider (DGE, EC-166–171) |
+| **5 — HIGH** | Budget/spend governance event | Throttle/halt the affected scope only; never inferred as, or substituted for, a security decision (SGE, EC-156–161) |
+| **6 — MEDIUM** | Verifier below calibrated confidence threshold | Apply configured fallback (restore/escalate/disable); never silent acceptance (VCL, EC-162–165) |
+| **7 — MEDIUM** | Feasibility-tier overclaim or degradation | Redeclare the actual (lower) tier; never silently continue claiming stale coverage (FTR, EC-188) |
 
 ---
 
@@ -5264,6 +8051,21 @@ When multiple edge cases occur simultaneously, apply this priority order:
 | Inference serving | EC-076 | 1 HIGH |
 | Adversarial scenarios | EC-077 – EC-079 | 1 CRITICAL, 2 HIGH |
 | Dynamic execution & control-plane hardening (§43) | EC-080 – EC-140 | 22 CRITICAL, 29 HIGH, 9 MEDIUM, 1 LOW |
+| Operating model & ownership boundary (§44.1) | EC-141 – EC-146 | 3 HIGH, 2 MEDIUM, 1 LOW |
+| Self-protection (SPC, §44.2) | EC-147 – EC-151 | 1 CRITICAL, 2 HIGH, 2 MEDIUM |
+| Verified net optimization economics (§44.3) | EC-152 – EC-155 | 2 HIGH, 2 MEDIUM |
+| Spend governance (SGE, §44.4) | EC-156 – EC-161 | 1 CRITICAL, 4 HIGH, 1 MEDIUM |
+| Verifier calibration (VCL, §44.5) | EC-162 – EC-165 | 1 HIGH, 2 MEDIUM, 1 LOW |
+| Data governance (DGE, §44.6) | EC-166 – EC-171 | 2 CRITICAL, 4 HIGH |
+| Tool/MCP trust (TMG, §44.7) | EC-172 – EC-176 | 1 CRITICAL, 3 HIGH, 1 MEDIUM |
+| Human approval (HAG, §44.8) | EC-177 – EC-182 | 1 CRITICAL, 5 HIGH |
+| Content integrity / prompt injection (CIS, §44.9) | EC-183 – EC-187 | 3 CRITICAL, 2 HIGH |
+| Coding-agent feasibility tiers (FTR, §44.10) | EC-188 – EC-190 | 3 MEDIUM |
+| Cross-execution coordination (XEC, §44.11) | EC-191 – EC-195 | 4 HIGH, 1 MEDIUM |
+| Memory authority extension (§44.12) | EC-196 – EC-197 | 1 HIGH, 1 MEDIUM |
+| Decision explainability and audit (§44.13) | EC-198 – EC-199 | 1 HIGH, 1 LOW |
+| Execution state portability (§44.14) | EC-200 – EC-201 | 2 MEDIUM |
+| Compound hardening interactions (§44.15) | EC-202 – EC-213 | 3 CRITICAL, 8 HIGH, 1 MEDIUM |
 
 ---
 
@@ -5411,9 +8213,82 @@ When multiple edge cases occur simultaneously, apply this priority order:
 | EC-138 | Permission Revocation + Stale Cache Hit at Resume | Compound | CRITICAL |
 | EC-139 | Provider Failure + Partial Optimization + Fallback Model | Compound | HIGH |
 | EC-140 | Workflow Reorder + Checkpoint + Per-Step Authorization | Compound | HIGH |
+| EC-141 | HYBRID Validation Exceeds SPC Latency Budget | Operating Model | HIGH |
+| EC-142 | Decision Type Misdeclared ASYNC | Operating Model | MEDIUM |
+| EC-143 | Ownership Category Undeclared at Configuration | Ownership Boundary | HIGH |
+| EC-144 | Request Crosses All Three Ownership Categories | Ownership Boundary | MEDIUM |
+| EC-145 | EXECUTION-OWNERSHIP Action Lacks Reversibility Record | Ownership Boundary | HIGH |
+| EC-146 | SYNC Assigned Where HYBRID Would Suffice | Operating Model | LOW |
+| EC-147 | Latency Budget Exhausted Forces Fail-Open | SPC | MEDIUM |
+| EC-148 | Overload Would Skip a Governance/Security Check | SPC | CRITICAL |
+| EC-149 | Sustained Overload Forces Depth Tier to LOW | SPC | MEDIUM |
+| EC-150 | Storm Consumes SPC's Own Compute Budget | SPC | HIGH |
+| EC-151 | SPC Itself Fails — Deterministic Fallback Required | SPC | HIGH |
+| EC-152 | Positive Token Reduction, Net-Negative Value | Net Economics | HIGH |
+| EC-153 | Unmeasurable Term Forces UNVERIFIED | Net Economics | MEDIUM |
+| EC-154 | DO_NOT_OPTIMIZE Selected Proactively | Net Economics | MEDIUM |
+| EC-155 | REQUIRE_REVALIDATION Bypassed by Caller Defect | Net Economics | HIGH |
+| EC-156 | Request-Level Budget Exhausted Mid-Execution | SGE | HIGH |
+| EC-157 | Runaway-Cost Acceleration Detected Pre-Limit | SGE | HIGH |
+| EC-158 | Budget Race Between Concurrent Executions | SGE, XEC | MEDIUM |
+| EC-159 | evaluate_budget() Cannot Determine Remaining Budget | SGE | HIGH |
+| EC-160 | WITHIN_BUDGET Mistaken for Authorization | SGE | CRITICAL |
+| EC-161 | Budget Threshold Crossed During In-Flight Side Effect | SGE, RCO | HIGH |
+| EC-162 | Uncalibrated Verifier Treated as Ground Truth | VCL | HIGH |
+| EC-163 | Verifier Acceptance-Rate Drift | VCL | MEDIUM |
+| EC-164 | Verifier Confidence Below Threshold on Cascade | VCL | MEDIUM |
+| EC-165 | Deterministic/Probabilistic Confidence Conflated | VCL | LOW |
+| EC-166 | classify() Fails — Must Default to SENSITIVE | DGE | CRITICAL |
+| EC-167 | Deletion Request Across All Data Surfaces | DGE | CRITICAL |
+| EC-168 | Residency Constraint Conflicts With Routing | DGE | HIGH |
+| EC-169 | Retention Period Unconfigured Defaults Unbounded | DGE | HIGH |
+| EC-170 | Sensitivity Classification Changes Mid-Execution | DGE | HIGH |
+| EC-171 | Deletion Request After Checkpoint Persistence | DGE, CPM | HIGH |
+| EC-172 | Tool/MCP Identity Authentication Fails | TMG | CRITICAL |
+| EC-173 | Tool Schema Changes Without Version Bump | TMG | HIGH |
+| EC-174 | Favorable ROI but TMG Trust Check Fails | TMG | HIGH |
+| EC-175 | Discovered Tool Availability Assumed Past Revalidation | TMG | MEDIUM |
+| EC-176 | Cached Tool Result Not Invalidated on Version Change | TMG | HIGH |
+| EC-177 | Action Executes Before Required Approval Resolves | HAG | CRITICAL |
+| EC-178 | Approval Mechanism Itself Unavailable | HAG | HIGH |
+| EC-179 | Approval Request Times Out | HAG | HIGH |
+| EC-180 | Approval Resolves After Supersession | HAG, SPM | HIGH |
+| EC-181 | Approved Action's Version Changes Before Execution | HAG | HIGH |
+| EC-182 | Approval Revoked Before Action Executes | HAG | HIGH |
+| EC-183 | Screening Unavailable — Must Reject/Quarantine | CIS | CRITICAL |
+| EC-184 | Content Processed Before Screening Completes | CIS | CRITICAL |
+| EC-185 | Indirect Injection Survives Initial Filtering | CIS | CRITICAL |
+| EC-186 | Malicious Content Engineered to Survive Compression | CIS | HIGH |
+| EC-187 | CIS Screening Skipped Because TMG Already Authorized | CIS, TMG | HIGH |
+| EC-188 | Platform Access Degrades Below Declared Tier | FTR | MEDIUM |
+| EC-189 | Full Coverage Incorrectly Inferred for Tier 4/5 | FTR | MEDIUM |
+| EC-190 | DA Module Invoked Outside Declared reachable_modules | FTR | MEDIUM |
+| EC-191 | Concurrent Writes to Same Shared Resource | XEC | HIGH |
+| EC-192 | Non-Idempotent Action Proceeds Without Lock | XEC | HIGH |
+| EC-193 | Two Executions' Completed Actions Overlap | XEC | HIGH |
+| EC-194 | Cross-Execution Coordination Itself Unavailable | XEC | HIGH |
+| EC-195 | Stale Snapshot Consulted Across Executions | XEC | MEDIUM |
+| EC-196 | Agent Memory Conflicts With Current Policy State | Memory Authority | HIGH |
+| EC-197 | Ambiguous-Provenance Memory Claim Defaults Untrusted | Memory Authority | MEDIUM |
+| EC-198 | Required Audit Record Fails to Write | Explainability | HIGH |
+| EC-199 | Explanation Retrievable but Not Surfaced to User | Explainability | LOW |
+| EC-200 | Checkpoint Interpretable Despite Provider Switch | Portability | MEDIUM |
+| EC-201 | Checkpoint Field Requires Provider-Proprietary Session | Portability | MEDIUM |
+| EC-202 | Permission Revoked + Stale Cache Race | Compound | CRITICAL |
+| EC-203 | Policy Change Mid-Flight During Decision | Compound | HIGH |
+| EC-204 | Context Mutation + Stale Result Served | Compound | HIGH |
+| EC-205 | Provider Outage + Checkpoint Recovery | Compound | HIGH |
+| EC-206 | Budget Exhaustion + In-Flight Side Effect | Compound | HIGH |
+| EC-207 | Prompt Injection + Compression Pipeline | Compound | HIGH |
+| EC-208 | Malicious Tool Result Poisons Semantic Cache | Compound | CRITICAL |
+| EC-209 | Memory Conflict + Concurrent Workflow Mutation | Compound | HIGH |
+| EC-210 | Concurrent Mutation Races Supersession | Compound | HIGH |
+| EC-211 | Verifier Uncertainty + Model Downgrade | Compound | MEDIUM |
+| EC-212 | Residency Change + Already-Cached Sensitive Data | Compound | HIGH |
+| EC-213 | Security Event During Long-Running Execution | Compound | CRITICAL |
 
-**Total: 140 edge cases**
-**CRITICAL: 36 | HIGH: 85 | MEDIUM: 17 | LOW: 2**
+**Total: 213 edge cases**
+**CRITICAL: 48 | HIGH: 125 | MEDIUM: 35 | LOW: 5**
 
 ---
 
@@ -5424,7 +8299,7 @@ An implementation is considered complete for edge case coverage when:
 - [ ] Every CRITICAL edge case has a corresponding unit test and integration test.
 - [ ] Every HIGH edge case has a corresponding unit test.
 - [ ] Every MEDIUM edge case has a corresponding unit test or benchmark test.
-- [ ] All security edge cases (SEC-001–010 domains) have dedicated security tests and penetration tests.
+- [ ] All security edge cases (SEC-001–010 and SEC-011–016 domains) have dedicated security tests and penetration tests.
 - [ ] All quality gate edge cases have benchmark validation against the organizational corpus.
 - [ ] All observability edge cases have metric and alert validation in the monitoring test suite.
 - [ ] All fallback paths are covered by chaos testing (inject failures → verify fallback activates).
@@ -5440,15 +8315,23 @@ An implementation is considered complete for edge case coverage when:
 |---|---|
 | All 14 Enterprise Objectives (OBJ-001–014) | Covered across sections 1–42 |
 | New Objectives OBJ-015–022 (SPEC §41.11, Rev 1.2 hardening pass) | Covered: EC-080–EC-140 (§43) |
+| New Objectives OBJ-023–035 (SPEC §42, Rev 1.3/1.4 hardening pass, PS §52 H01–H20) | Covered: EC-141–EC-213 (§44) — see §44 subsection traceability lines and the per-component groupings below |
 | All 10 Security Requirements (SEC-001–010) | Covered: EC-015, EC-027–031, EC-034, EC-057–060, EC-078, EC-094, EC-104, EC-106, EC-110, EC-115, EC-133 |
+| New Security Requirements SEC-011–016 | Covered: EC-148, EC-156–161 (SEC-011); EC-166–171 (SEC-012, SEC-013); EC-172–176, EC-187 (SEC-014); EC-177–182 (SEC-015); EC-183–187 (SEC-016) |
 | All 13 NFRs (NFR-001–013) | Covered across sections 1–42 |
+| New NFR-014 (Control-Plane Self-Protection) | Covered: EC-147–151, EC-148 (precedence exception) |
 | All 38 Acceptance Criteria (AC-001–038) | Referenced in individual EC entries |
+| New Acceptance Criteria AC-039–053 | Referenced in individual EC-141–213 entries per §44 subsection traceability lines |
 | All 19 Optimization Domains (A–S) | All domains represented in the risk coverage matrix |
 | All 25 Developer-Agent Modules (DA-001–025) | DA-003, DA-009, DA-014, DA-022, DA-024 explicitly covered |
 | All 28 Anti-Patterns (ARCH §41) | Each anti-pattern has at least one corresponding EC |
 | All 10 Security Requirements | Covered with CRITICAL severity |
 | 13 Dynamic Execution Components (ESM, CVM, WVM, CPM, RE, CIG, CEC, PRV, DPE, CAR, SRP, SPM, RCO — ARCH §46) | Each has ≥ 2 dedicated edge cases in §43 |
 | 13 Dynamic Execution Interfaces (INTF-050–062, INTF §42) | Covered via §43 component groupings (43.1–43.12) |
+| 9 Hardening Components (SGE, DGE, TMG, HAG, CIS, FTR, XEC, SPC, VCL — ARCH §47) | Each has ≥ 3 dedicated edge cases in §44 (SGE: EC-156–161; DGE: EC-166–171; TMG: EC-172–176; HAG: EC-177–182; CIS: EC-183–187; FTR: EC-188–190; XEC: EC-191–195; SPC: EC-147–151; VCL: EC-162–165) |
+| 9 New Hardening Interfaces (INTF-063–071, INTF §43) | Covered via §44 component groupings (44.2–44.11) |
+| H01–H20 (PS §52) | H01: EC-141–142; H02: EC-143–145; H03: EC-147–151; H04: EC-152–155; H05: EC-156–161; H06: EC-162–165; H07: EC-166–171; H08: EC-188–190; H09: EC-118–120, EC-196–197; H10: covered by existing AL-002 loop-classification cases (EC-045–046); H11: EC-172–176; H12: EC-191–195; H13: EC-177–182; H14: EC-183–187; H15: EC-198–199; H16: EC-200–201; H17: covered by existing R-domain inference-serving-boundary case (EC-076); H18: covered by existing ownership-boundary/measurement-attribution cases (EC-061, EC-076); H19: reaffirmation only, covered by P-EC-005; H20 (OBJ-035): no dedicated edge case is defined — consistent with ARCH §47.13 and INTF §43.15, the Anti-Scope Boundary is an explicit design/process discipline ("no component, no interface, no failure behavior, no observability"), not a runtime condition, so fabricating a runtime EC for it would misrepresent its nature; it is instead enforced as a design-review gate (see EC-201's review-checklist pattern for the same style of non-runtime, pre-merge check) |
+| Four Execution Environments (Generic LLM; Autonomous/tool-using agents; Developer/coding agents; Multi-agent/sub-agent systems) | Generic LLM: EC-001–079 baseline; Autonomous/tool-using agents: EC-044–049, EC-172–187, EC-202–213; Developer/coding agents: EC-073–075, EC-136–137, EC-188–190; Multi-agent/sub-agent systems: EC-047–049, EC-103, EC-191–195, EC-209–210 |
 
 ---
 

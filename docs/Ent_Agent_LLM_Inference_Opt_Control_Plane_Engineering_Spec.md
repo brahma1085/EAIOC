@@ -4,18 +4,22 @@
 ---
 
 **Document ID:** EAIOC-SPEC-001  
-**Revision:** 1.1 — Amended: Architectural Principle Added (Sec 1.3)  
+**Revision:** 1.4 — Final Foundational Document Reconciliation  
 **Status:** PRE-APPROVAL — Do Not Implement  
-**Source:** `Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt`  
+**Source:** `Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt` (as hardened 2026-09-15, PS §52, reconciled 2026-09-16, PS §51.13)  
 **Date:** 2026-09-08  
-**Amendment:** 2026-09-08 — Section 1.3 updated with Central design & final architectural principle.  
+**Amendment history:**
+- 2026-09-08 — Section 1.3 updated with Central design & final architectural principle (Rev 1.1).
+- 2026-09-10 — Section 41 added: Dynamic Execution State & Context Lifecycle Management hardening pass, OBJ-015–022 (Rev 1.2).
+- 2026-09-15 — Section 42 added: Operating Model, Governance, and Trust Boundaries hardening pass, propagating PS §52 (H01–H20), OBJ-023–035, SEC-011–016, NFR-014, AC-039–053 (Rev 1.3).
+- 2026-09-16 — Final Foundational Document Reconciliation: corrected stale "Section 42.26" references (now Section 42.22/42.23) and a stale "Section 42.25/25" reference (Section 21); resolved SOURCE-GAP-ES-03 (OBJ-015–022 now canonically labeled at PS §51.13; see Section 41.11 and the registry at EAIOC-ARCH-001 §44.12) (Rev 1.4).
 
 ---
 
 > [!IMPORTANT]
 > This specification is a faithful, complete engineering translation of the problem statement.
 > No requirement has been silently removed, simplified, reinterpreted, or replaced.
-> An **Internal Consistency Check** is included in Section 40.
+> An **Internal Consistency Check** is included in Section 40, updated for the Rev 1.3 hardening pass in Section 42.23, and re-verified for the Rev 1.4 reconciliation pass in Section 42.24.
 > Implementation may not begin until the consistency check passes and this document is explicitly approved.
 
 ---
@@ -62,6 +66,8 @@
 38. [Performance Model](#38-performance-model)
 39. [Final Product Requirements Checklist](#39-final-product-requirements-checklist)
 40. [Internal Consistency Check](#40-internal-consistency-check)
+41. [Dynamic Execution State & Context Lifecycle Management](#41-dynamic-execution-state--context-lifecycle-management)
+42. [Architecture Hardening Amendment — Operating Model, Governance, and Trust Boundaries](#42-architecture-hardening-amendment--operating-model-governance-and-trust-boundaries)
 
 ---
 
@@ -117,6 +123,10 @@ The framework shall optimize both:
 
 > [!CAUTION]
 > No optimization shall be considered successful solely because it reduces token count. It must demonstrate acceptable quality and measurable net value.
+
+**Hardening Pass amendment (2026-09-15, PS §52.18, H18):** the engineering system must treat prompt/input token optimization, output/reasoning token optimization, context optimization, cache optimization, model/provider routing, and inference-runtime optimization as six separately measured categories with separate ownership boundaries. The Control Plane implements the first five directly; for inference-runtime optimization (Layer 3, Section 17) it owns awareness, integration, routing, and policy only — implementation is infrastructure/provider-owned. See Section 42.17/42.18.
+
+**Hardening Pass amendment (2026-09-15, PS §52.2/§52.20, H02/H20):** the Control Plane's relationship to any decision or side effect is exactly one of ADVISORY, ENFORCEMENT, or EXECUTION-OWNERSHIP (Section 42.2), and it does not assume ownership of agent planning, IDE behavior, or external side effects absent an explicit integration surface. It is not a replacement agent orchestrator, model-training system, model-runtime infrastructure platform, provider, general-purpose IDE, or coding-agent UX (Section 42.20).
 
 ### 1.4 Scope Statement
 
@@ -199,6 +209,27 @@ The framework shall achieve the following strategic objectives (all are mandator
 | **OBJ-013** | Support multiple LLM providers and model families through a provider-neutral abstraction layer |
 | **OBJ-014** | Preserve security, privacy, authorization, and tenant boundaries while optimizing |
 
+> [!NOTE]
+> OBJ-015 through OBJ-022 (versioned execution state, checkpointing, mutation reconciliation, Logical/Model-Admitted Context separation, tiered eviction, interruption handling, stale-result rejection, scenario-completeness gating) are specified in Section 41.11, tied to the 2026-09-10 hardening pass (PS §51). They are listed there rather than merged into this table to preserve that amendment's original traceability structure. **They are unambiguously mandatory**, on equal footing with every other objective in this document: as of the 2026-09-16 reconciliation pass they are canonically labeled at their source in PS §51.13, and the full OBJ-001–035 cross-document registry (ID, statement, Problem Statement section, this document's section, Architecture section, status) is maintained at EAIOC-ARCH-001 §44.12. Former `SOURCE-GAP-ES-03` is RESOLVED — see Section 42.22.
+
+**Added by the 2026-09-15 Architecture Hardening Pass (PS §52, traced individually in Section 42):**
+
+| ID | Objective |
+|---|---|
+| **OBJ-023** | Support synchronous, asynchronous/precomputed, and hybrid Control Plane operating modes, and treat Control Plane decision latency/overhead as part of the optimization problem |
+| **OBJ-024** | Distinguish advisory, enforcement, and execution/side-effect-owning decisions; never assume ownership of agent planning or side effects without explicit integration |
+| **OBJ-025** | Bound the Control Plane's own latency, cost, and resource consumption with backpressure, overload protection, and a deterministic safe fallback |
+| **OBJ-026** | Compute optimization value as verified net benefit across tokens, inference cost, optimization overhead, retrieval/routing/cache overhead, latency, retries, quality degradation, and downstream/tool cost — never tokens alone |
+| **OBJ-027** | Enforce tenant/org/user/application spend budgets and runaway-cost protection without budget logic bypassing security, authorization, or policy |
+| **OBJ-028** | Treat verifier output as calibrated evidence with a confidence score and acceptance threshold, never unconditional ground truth |
+| **OBJ-029** | Classify, protect, and propagate deletion/retention decisions for sensitive data across every cache, memory, log, and trace surface |
+| **OBJ-030** | Declare an explicit integration feasibility tier for every coding-agent integration rather than assuming complete interception |
+| **OBJ-031** | Preserve Control Plane execution truth, authorization state, policy state, and context/workflow version as authoritative over agent-owned working memory, with explicit conflict resolution |
+| **OBJ-032** | Account for concurrent mutation, staleness, and version conflict across multiple agents/sub-agents/workflows sharing resources, with reconciliation, coordination, and idempotency |
+| **OBJ-033** | Require explicit human approval for designated consequential/irreversible actions, selected by policy/risk rather than applied universally |
+| **OBJ-034** | Treat prompt injection and malicious/mutated retrieved/tool/context content as a security concern screened before any optimization stage may admit or act on it |
+| **OBJ-035** | Maintain anti-scope boundaries distinguishing what the Control Plane builds from what it integrates with |
+
 ---
 
 ## 4. Product Scope and Execution Environments
@@ -228,6 +259,9 @@ The product shall use a **common optimization core** with integration adapters, 
 | 3 | MCP-based optimization services |
 | 4 | Agent-harness integration for controllable/open implementations |
 | 5 | Provider/platform enterprise integrations where supported |
+
+> [!IMPORTANT]
+> **2026-09-15 Hardening Pass (H08, PS §52.8):** these integration modes do not imply uniform depth of access. Every coding-agent integration must declare an **integration feasibility tier** — see Section 42.8 for the tier definitions, the required capability-declaration mechanism, and the constraint that DA-001 through DA-025 module applicability is bounded by the declared tier for that platform.
 
 ### 4.3 Common Representation Layer
 
@@ -548,6 +582,9 @@ Parallel components:
 | Cache | Routing | Tools | Errors |
 +--------------------------------+
 ```
+
+> [!NOTE]
+> **2026-09-15 Hardening Pass (H01, PS §52.1):** this diagram is the logical decision sequence for a request requiring the full pipeline. It is not a requirement that every stage execute synchronously in the critical request path for every request. Section 42.1 specifies which stages support synchronous, asynchronous/precomputed, or hybrid evaluation.
 
 ### 6.3 Control Plane Lifecycle
 
@@ -1639,6 +1676,9 @@ Large filtered results shall remain recoverable where policy permits.
 - No-progress iterations
 - Dead-end loops
 
+> [!IMPORTANT]
+> **2026-09-15 Hardening Pass (H10, PS §52.10):** repeated iteration is not inherently waste. The same surface pattern may be productive progress, legitimate reflection/self-correction, a justified retry, or genuine waste/oscillation/failure. The detector must classify against the AL-001 signals (state change, objective progress, information gain, errors introduced/resolved) and expected task value, not against iteration count or pattern-match alone. The same expected-value framework governs both the CONTINUE decision (AL-001/AL-002) and the STOP decision (Section 7.20, AL-006) — see Section 42.10.
+
 ---
 
 ### 12.3 AL-003 - Sub-Agent Value Predictor
@@ -1895,7 +1935,10 @@ Every optimization should be independently testable against a control group.
 > [!IMPORTANT]
 > This layer is **OPTIONAL and infrastructure-dependent**. It must remain separate from prompt/context optimization and must be enabled only after workload-specific validation.
 
-**Capabilities to evaluate:**
+> [!CAUTION]
+> **2026-09-15 Hardening Pass (H17, PS §52.17):** the Control Plane's role at this layer is **awareness, integration, routing, policy, and capability negotiation** with infrastructure/providers. It must **NOT** implement its own KV-cache engine, continuous-batching scheduler, speculative-decoding mechanism, quantization pipeline, or prefill/decode disaggregation. These remain infrastructure/provider-owned mechanisms the Control Plane integrates with — see Section 42.17.
+
+**Capabilities the Control Plane is AWARE OF and may ROUTE/NEGOTIATE against (implemented by infrastructure/providers, not by the Control Plane):**
 - Prefix/KV-cache reuse
 - KV-cache compression
 - Continuous batching
@@ -1907,6 +1950,8 @@ Every optimization should be independently testable against a control group.
 - Model replica selection
 - GPU utilization optimization
 - Inference queue management
+
+For each capability, the Control Plane's own responsibility is limited to: detecting whether the provider/infrastructure exposes it, routing to take advantage of it when net-beneficial and policy-compliant, negotiating capability parameters through the provider adapter, and measuring the effect separately from Layer 1/2 measurement.
 
 ---
 
@@ -2020,6 +2065,17 @@ All security requirements are mandatory and non-negotiable:
 | **SEC-009** | The framework shall support configurable data-retention policies |
 | **SEC-010** | Provider-specific caching must not silently weaken organizational security requirements |
 
+**Added by the 2026-09-15 Architecture Hardening Pass (PS §52, traced individually in Section 42):**
+
+| ID | Requirement |
+|---|---|
+| **SEC-011** | Spend limits, circuit breakers, and budget-aware routing/execution must never bypass or substitute for authorization, policy, or security enforcement; a budget check and a security check are evaluated independently |
+| **SEC-012** | Sensitive data (including PII/PHI/PCI/secrets where applicable) must be classified before admission to any optimization stage, and classification must determine encryption, retention, and caching eligibility; no specific regulatory regime is assumed unless the deployment's own scope establishes it |
+| **SEC-013** | Deletion/erasure must propagate to every surface the Control Plane persisted data to — exact and semantic caches, agent/session memory, cost/token ledgers that retain content, and logs/traces — not only the primary store |
+| **SEC-014** | Tool and MCP metadata (identity, capability declarations, schemas, versions) are part of the security/control boundary and must be authenticated, authorization-checked, and validated for staleness/integrity before being trusted; a tool result is not safe merely because the call was authorized |
+| **SEC-015** | Consequential or irreversible actions designated by policy/risk classification must receive explicit human approval before execution; this applies only to the designated subset, not every action |
+| **SEC-016** | Retrieved content, tool output, and other externally-sourced context are untrusted by default and must pass prompt-injection/content-integrity screening before any optimization stage acts on them |
+
 ---
 
 ## 21. Failure and Fallback Model
@@ -2123,10 +2179,11 @@ Each technique must be **validated independently** before permanent pipeline act
 | **NFR-007** | **Reliability** -- Optimization failures must have safe fallbacks |
 | **NFR-008** | **Scalability** -- The framework must support high-volume enterprise traffic |
 | **NFR-009** | **Low Overhead** -- Optimization must not consume more cost than it saves |
-| **NFR-010** | **Explainability** -- The system should explain why a context item was removed, compressed, cached, routed, or retained where practical |
+| **NFR-010** | **Explainability** -- The system should explain why a context item was removed, compressed, cached, routed, or retained where practical. **Strengthened 2026-09-15 (H15, PS §52.15):** for context admission/pruning, model/provider selection, cache reuse/rejection, optimization skip, execution block/recovery/supersession, and fallback decisions, an explanation must be retrievable for audit, not merely offered where convenient — see Section 42.15 |
 | **NFR-011** | **Determinism** -- Policy-based optimization should be deterministic where feasible |
 | **NFR-012** | **Configurability** -- Organizations must be able to tune policies per workflow |
 | **NFR-013** | **Testability** -- Every optimization stage must be independently testable |
+| **NFR-014** | **Control-Plane Self-Protection** (added 2026-09-15, H03, PS §52.3) -- The Control Plane must enforce its own latency and processing/cost budgets, with backpressure, and must degrade gracefully to a deterministic safe fallback under overload rather than degrading the application it serves. Distinct from NFR-009: NFR-009 governs whether an optimization is worth doing; NFR-014 governs what the Control Plane does to itself when it cannot keep up — see Section 42.3 |
 
 ---
 
@@ -2246,6 +2303,26 @@ All 38 acceptance criteria are mandatory:
 | **AC-037** | The framework must expose optimization decisions and their rationale for audit/debugging |
 | **AC-038** | The framework must support a safe fallback for every adaptive decision |
 
+**Added by the 2026-09-15 Architecture Hardening Pass (PS §52.21, traced individually in Section 42):**
+
+| ID | Criterion |
+|---|---|
+| **AC-039** | The framework must declare, per decision type, which operating mode (synchronous, asynchronous/precomputed, or hybrid) it uses, and account for its own decision latency/overhead in net-value accounting |
+| **AC-040** | The framework must record, for every advisory, enforcement, or execution-ownership decision, which category applied |
+| **AC-041** | The framework must enforce its own latency and cost budgets and degrade to a deterministic safe fallback under overload rather than degrading application correctness or security |
+| **AC-042** | The framework's net-optimization-value accounting must include optimization overhead, retrieval/routing/cache overhead, added latency, retries, quality degradation, and task failure/regression, not tokens alone |
+| **AC-043** | The framework must support spend limits and circuit breakers at tenant, organization, user, and application scope, and must never allow a budget decision to substitute for a security/authorization/policy decision |
+| **AC-044** | The framework must expose a calibrated confidence score for probabilistic verifiers and a configurable acceptance threshold before that verifier's output gates an optimization decision |
+| **AC-045** | The framework must support sensitivity classification prior to optimization admission and must be able to report which surfaces still hold data derived from a given source after a deletion request |
+| **AC-046** | Every coding-agent integration must declare its integration feasibility tier |
+| **AC-047** | The framework must detect and surface, not silently resolve, a conflict between agent-owned working memory and Control-Plane-owned execution/authorization/policy state |
+| **AC-048** | The framework must authenticate tool/MCP identity and validate schema/capability metadata integrity and staleness before trusting a tool result |
+| **AC-049** | The framework must detect concurrent mutation, stale decisions, and version conflicts across multiple agents/sub-agents/executions sharing a resource, and must not blindly replay non-idempotent operations across executions |
+| **AC-050** | The framework must support a policy-configurable human-approval gate for designated consequential/irreversible actions, without requiring approval for every action |
+| **AC-051** | The framework must run prompt-injection/content-integrity screening on externally-sourced content before any optimization stage admits, ranks, compresses, caches, or acts on it, and must fail closed if the screening itself cannot complete |
+| **AC-052** | The framework must retain a retrievable explanation for context admission/pruning, model/provider selection, cache reuse/rejection, optimization skip, execution block/recovery/supersession, and fallback decisions |
+| **AC-053** | Checkpoint/resume state must remain interpretable for reconciliation across a change in selected model/provider and must not require a specific provider's native session mechanism to be correct |
+
 ---
 
 ## 32. Success Metrics
@@ -2302,6 +2379,14 @@ The implementation must avoid **all** of the following:
 - Removing context without provenance or recovery information where recovery is required
 - Using provider-specific behavior as a universal architectural assumption
 
+**Added by the 2026-09-15 Architecture Hardening Pass (PS §52.20/§25/§48):**
+- Building the Control Plane as a replacement agent orchestrator, model-training system, model-runtime infrastructure, provider infrastructure, general-purpose developer IDE, or coding-agent UX replacement instead of integrating with those systems
+- Assuming a coding-agent integration provides complete request interception when only a partial or observability-only feasibility tier is actually available
+- Treating a verifier's pass/fail output as ground truth without a calibrated confidence score and acceptance threshold
+- Allowing agent-owned working memory to override Control Plane execution state, authorization state, policy state, or context/workflow version
+- Admitting retrieved, tool, or other externally-sourced content into an optimization stage before it has passed prompt-injection/content-integrity screening
+- Allowing the Control Plane's own latency, compute, or cost overhead to exceed the value of the optimization it enables
+
 ---
 
 ## 34. Optimization Objective Function
@@ -2324,6 +2409,9 @@ SUBJECT TO:
 ```
 
 The system should expose the resulting operating point as a **cost/quality/latency frontier**.
+
+> [!NOTE]
+> **2026-09-15 Hardening Pass (H04, PS §52.4):** this objective/constraint formulation is a **conceptual and heuristic decision framework** that guides policy design, cost accounting, and evaluation — it is not a specification for a literal real-time mathematical optimizer or constraint solver executed synchronously on every request. Individual decisions are made by policy rules, heuristics, or learned models operating within this framework, at whichever operating mode (Section 42.1) is appropriate. See Section 42.4 for the full net-optimization-value accounting this framework requires.
 
 ### 34.2 Final Design Principle
 
@@ -2929,4 +3017,515 @@ The following check rows are added to the Section 40 consistency table:
 
 ---
 
-*End of Engineering Specification -- EAIOC-SPEC-001 Rev 1.2*
+### 41.14 Relationship to Agent-Owned Memory and Cross-Execution Shared State
+
+**Added by the 2026-09-15 Architecture Hardening Pass (PS §51.12).**
+
+Sections 41.1–41.13 define execution truth for a single execution. Two extensions are required and are specified normatively in Section 42:
+
+- An agent may maintain its own working memory (short-term task state, scratch reasoning, local caches). That memory is never authoritative over the ESM/CVM/WVM-owned execution state, authorization state, policy state, or context/workflow version defined in Section 41.2. See Section 42.9.
+- Multiple agents, sub-agents, or workflow executions may read or mutate shared resources (files, tickets, shared memory, external systems) concurrently. The single-execution reconciliation model in Sections 41.1 and 41.7–41.9 extends to cross-execution concurrency, staleness, and idempotency. See Section 42.12.
+
+---
+
+*Section 41 continues into Section 42, which propagates the 2026-09-15 Architecture Hardening Pass. Section 41 itself remains unmodified except for this cross-reference addendum.*
+
+---
+
+## 42. Architecture Hardening Amendment — Operating Model, Governance, and Trust Boundaries
+
+**Amendment:** EAIOC-SPEC-001 Rev 1.3 — Hardening Pass, 2026-09-15
+**Traceability:** PS §52 (H01–H20), OBJ-023–035, SEC-011–016, NFR-014, AC-039–053
+
+> [!IMPORTANT]
+> This section is additive. It introduces no conflicts with Sections 1–41.
+> All existing requirements remain valid and unchanged except where a direct amendment is
+> called out inline in Sections 1.3, 3, 4.2, 6.2, 12.2, 17, 20, 25, 31, 33, 34.1, and 41.14 above.
+> This section translates the twenty hardening requirements of PS §52 (H01–H20) from
+> product-level requirements into engineering behavior: state, contracts, decision logic,
+> failure behavior, and measurement.
+
+Every subsection below follows the same structure: **Requirement**, **Engineering Behavior**,
+**Failure Behavior**, **Observability**, **Traceability**.
+
+---
+
+### 42.1 Control Plane Operating Model (H01)
+
+**Requirement:** Every optimization/decision class must declare which of three operating modes it supports — SYNCHRONOUS (request-path), ASYNCHRONOUS/PRECOMPUTED, or HYBRID (precomputed lookup + synchronous revalidation) — and Control Plane decision latency/compute overhead is itself an input to net-value accounting (Section 42.4), not an externality.
+
+**Engineering Behavior:**
+- Each pipeline component specification (Sections 7, 8, 9, 10, 11, 12, 13, 16) must carry a declared `operating_mode ∈ {SYNC, ASYNC, HYBRID}` attribute.
+- For `ASYNC` and `HYBRID` components, the artifact they consult (provider profile, repository map, cache pre-warm state, routing policy compilation, pricing table, cache-fragmentation diagnosis, regression-detection state) carries its own freshness/version metadata per Section 42.16's stale-state discipline.
+- For `HYBRID` components, a synchronous freshness/confidence check (per Section 41.9 Stale Result Protection and Section 42.6's calibration requirement) determines whether the precomputed artifact is used as-is or triggers synchronous recomputation.
+- The mode assignment for a given component is itself a policy-driven decision subject to the same net-value accounting as any other optimization choice (Section 42.4) — choosing SYNC where HYBRID would achieve equivalent safety/quality at lower latency/cost is an instance of the "expensive optimizer" anti-pattern (Section 33).
+
+| Mode | Applies when | Example components |
+|---|---|---|
+| SYNC | Decision depends on request-time-only information (actual prompt, actual retrieved context, actual permission state) | T1.1 Sanitizer, T1.9/T1.10 Pruner/Deduplicator (assembly-time), T3.1 Agent Stop Controller |
+| ASYNC | Underlying information changes slowly relative to request volume | Section 16 Provider/Model Profiles, DA-003 Repository Map, CE-004 Cache Pre-Warming, EL-005 Regression Detector |
+| HYBRID | A cached/precomputed artifact is consulted synchronously with a freshness/confidence gate | T1.6/T1.7 Prompt/Semantic Cache, CE-003 Cache Fragmentation Detector, AR-004 Verifier-Guided Escalation |
+
+**Failure Behavior:** if a HYBRID component's synchronous validation step cannot complete within its latency budget (Section 42.3), the component fails open per Section 21 (falls back to SYNC recomputation or the unoptimized path), not to an unvalidated precomputed result.
+
+**Observability:** the ledger (Section 18, extended in Section 42.21) records, per decision, which operating mode was used and whether a HYBRID decision triggered synchronous revalidation.
+
+**Traceability:** PS §52.1; OBJ-023; AC-039.
+
+---
+
+### 42.2 Advisor, Enforcer, and Execution-Owner Boundary (H02)
+
+**Requirement:** Every Control-Plane decision or side effect must be classified as exactly one of ADVISORY, ENFORCEMENT, or EXECUTION-OWNERSHIP, and the classification must be recorded independently per decision.
+
+**Engineering Behavior:**
+
+| Category | Definition | Who performs the resulting action |
+|---|---|---|
+| ADVISORY | Control Plane recommends (model choice, context reduction, cache reuse, stop/continue signal) | Calling agent/application/workflow decides and acts |
+| ENFORCEMENT | Control Plane blocks, requires, rewrites, or gates within policy authority (security rejection, output-budget cap, unauthorized-context refusal) | Calling agent/application still performs the (now-constrained) action |
+| EXECUTION-OWNERSHIP | Control Plane itself performs an action with an external side effect (cache write, TE-004 programmatic tool execution, checkpoint commit) | Control Plane is directly responsible for correctness/reversibility |
+
+- A component crossing from ADVISORY/ENFORCEMENT into EXECUTION-OWNERSHIP (a programmatic tool-execution aggregator, an automatic cache write, an automatic checkpoint commit) inherits the reversibility (CL-004), audit (Section 42.15), and fail-safe classification (Section 41.10) requirements applicable to that action.
+- Task planning, business logic, and the decision to perform an irreversible external action belong to the Agent/Workflow/External System by default; the Control Plane advises or enforces around that planning and does not silently assume ownership of it.
+- A single request may pass through all three categories at different pipeline stages (enforcement at the security gate, advisory at model routing, execution-ownership at a tool-result cache write); each is recorded independently.
+
+**Failure Behavior:** if a component's ownership category cannot be determined at configuration time, it defaults to ADVISORY (the least-authority category) until explicitly declared otherwise — the system must never default to EXECUTION-OWNERSHIP by omission.
+
+**Observability:** the decision-explanation record (Section 42.15) includes the ownership category for every logged decision.
+
+**Traceability:** PS §52.2; OBJ-024; AC-040.
+
+---
+
+### 42.3 Control Plane Self-Protection (H03)
+
+**Requirement:** The Control Plane enforces its own latency and processing/cost budgets, detects its own overload, sheds optimization depth before correctness or security, and degrades to a deterministic safe fallback.
+
+**Engineering Behavior:**
+- **Latency budget:** every SYNC/HYBRID decision (Section 42.1) has a configurable maximum added latency; on budget exhaustion the stage fails open per Section 21 rather than blocking the request.
+- **Processing/cost budget:** Control Plane compute and provider-API usage (e.g., an LLM-based compressor/classifier) is metered and bounded per request and per tenant; this consumption is the `Optimization Compute Cost` term in Section 42.4's net-benefit accounting.
+- **Backpressure / optimization-depth shedding:** OI-003 (Adaptive Optimization Depth Controller, Section 8.3) is the primary shedding mechanism; under sustained overload it must be able to step the policy tier down to LOW even for requests that would otherwise warrant MEDIUM/HIGH depth.
+- **Overload detection:** queue depth, latency percentile, and error rate are monitored; detected overload triggers load-shedding of optional stages, never silent degradation of quality or security checks.
+- **Deterministic safe fallback:** when the Control Plane itself cannot complete processing, the fallback is the same deterministic, previously-defined safe path as Section 21's failure/fallback model, extended to cover Control-Plane self-failure (not only individual optimization-stage failure).
+
+**Failure Behavior:** self-protection failures are optimization failures (fail-open, Section 41.10) unless the overload condition would otherwise cause a security/authorization/PII check to be skipped — in that specific case the affected request fails closed (security and policy enforcement are never sacrificed to relieve Control-Plane load; see `conventions.md` §16.2 for the general fail-open/fail-closed rule this restates for self-protection specifically) rather than proceeding unchecked under load.
+
+**Observability:** queue depth, per-stage latency percentiles, overload events, and depth-shedding events are logged dimensions in Section 22.
+
+**Traceability:** PS §52.3; OBJ-025; NFR-014; AC-041.
+
+---
+
+### 42.4 Verified Net Optimization Economics (H04)
+
+**Requirement:** Net Optimization Value accounting must include all listed cost/benefit terms; a technique is counted as a saving only when the full accounting is net-positive and quality gates (Section 19) pass; unmeasurable terms are marked `UNVERIFIED` and excluded from reported savings.
+
+**Engineering Behavior — required terms:**
+
+| Category | Terms |
+|---|---|
+| Benefit | Tokens saved, model/inference cost saved |
+| Overhead | Optimization compute overhead (Section 42.3), retrieval cost, routing cost, cache overhead (write/storage/invalidation, CE-001) |
+| Cost | Additional latency introduced by the optimization itself, retries/escalation cost, downstream/tool cost where the optimization changes tool usage |
+| Risk | Quality degradation weighted by the applicable quality gate, task failure/regression attributable to the optimization |
+
+- Derived metrics: gross savings, optimization overhead, net savings, net optimization value, cost per successful outcome, tokens per successful outcome, break-even reuse/cache-hit count (extends Section 18.2/18.3 and Section 8.2 OI-002).
+- Where any term cannot be measured, the result state is `UNVERIFIED` per AC-002/Section 18.1 and is excluded from reported savings — never assumed favorable.
+- This accounting is a conceptual/heuristic decision framework (Section 34.1 amendment): it specifies what must be measured and how a technique is judged, not a literal per-request constraint-solver computation. Individual net-value estimates may be produced synchronously, asynchronously, or via precomputed heuristics per Section 42.1.
+
+**Failure Behavior:** an accounting-pipeline failure (unable to compute one or more terms) marks the affected request's savings `UNVERIFIED`; it does not block the request itself (this is an optimization-measurement failure, not a security/authorization failure).
+
+**Observability:** Section 18.2's extended ledger is the record of truth; every reported saving must be traceable to a fully-measured or explicitly `UNVERIFIED` accounting row.
+
+**Traceability:** PS §52.4; OBJ-026; AC-042.
+
+---
+
+### 42.5 Enterprise Spend Governance (H05)
+
+**Requirement:** Independently configurable spend controls at tenant, organization, user, and application scope, with runaway-cost detection, circuit breakers, budget-aware routing, and safe exhaustion behavior — never substituting for security/authorization/policy enforcement.
+
+**Engineering Behavior:**
+- **Scope model:** each of {tenant, organization, user, application} may define an absolute and/or rate-based spend limit, independently.
+- **Runaway-cost detection:** cost-acceleration anomaly detection (e.g., an agent loop or sub-agent fan-out driving spend far above historical baseline) must act *before* the configured limit is exhausted, not only after.
+- **Circuit breakers:** on limit breach or detected runaway pattern, spend for the affected scope is halted/throttled while other scopes remain unaffected (tenant isolation boundary, `conventions.md` §13.2).
+- **Budget-aware routing/execution:** T0.1 Model Router, T0.3 Reasoning Budget Controller, and T3.1 Agent Stop Controller may consume remaining-budget as an input signal.
+- **Exhaustion behavior:** identical to Section 41.5's BUDGET EXHAUSTION handling — return PARTIAL, `remaining_budget = 0`, never silently overspend, per-section consumption breakdown.
+- **Independence from security:** per SEC-011, a budget check and a security/authorization/policy check are evaluated independently; a within-budget-but-unauthorized request is still rejected, and an authorized-but-over-budget request is still halted.
+
+**Failure Behavior:** a failure in the budget-evaluation path itself (unable to determine remaining budget) is treated conservatively — the system must not assume budget is available; it falls back to a configured safe default (deny or degrade, per policy), never to unconstrained spend.
+
+**Observability:** budget-consumption events, circuit-breaker activations, and runaway-detection triggers are audit records (Section 42.15) at every affected scope.
+
+**Traceability:** PS §52.5; OBJ-027; SEC-011; AC-043.
+
+---
+
+### 42.6 Verifier Confidence and Calibration (H06)
+
+**Requirement:** Every verifier exposes a confidence signal (not only binary pass/fail) wherever the verifier type supports one; a verifier's output is never automatically ground truth; calibration is validated against ground-truth outcomes before production use; below-threshold results follow policy-defined safe behavior.
+
+**Engineering Behavior:**
+- Deterministic verifiers (unit tests, schema/type checks, static analysis) are treated as higher-confidence than probabilistic verifiers (LLM-judge semantic-equivalence checks); acceptance thresholds must reflect that difference (extends AR-004, QO-002).
+- Calibration is validated against a benchmark set before a probabilistic verifier is trusted to gate an optimization decision (e.g., accepting compressed context as semantically equivalent, or accepting a cascade's low-cost-model output); Section 35's maturity model (LEVEL 0–5) applies to verifiers themselves, not only to the techniques they gate.
+- Verifier acceptance behavior is monitored over time; a verifier that starts accepting results it previously rejected (or vice versa) without a corresponding technique change is a drift signal requiring investigation — extends EL-005 (Optimization Regression Detector) to verifier drift specifically.
+- Acceptance thresholds are configurable per task/intent/tenant (Section 26).
+
+**Failure Behavior:** below the configured confidence/acceptance threshold, the system applies QO-002's Quality-Aware Fallback (restore previous representation, increase context/reasoning budget, escalate model, or disable the offending optimization) — never silent acceptance.
+
+**Observability:** verifier confidence scores, calibration drift events, and threshold-breach fallbacks are logged per Section 19 (Quality Gates) and Section 22.
+
+**Traceability:** PS §52.6; OBJ-028; AC-044.
+
+---
+
+### 42.7 Data Governance (H07)
+
+**Requirement:** Sensitivity-aware classification, retention, deletion/erasure propagation, and residency handling across every Control Plane surface (request context, optimization artifacts, cache, semantic cache, memory, checkpoint, ledger, logs, traces, audit records, derived artifacts).
+
+**Engineering Behavior:**
+- **Classification:** content is classified sensitive (which may include PII/PHI/PCI/secrets where applicable to the deployment) versus non-sensitive before it is admitted to any optimization stage; classification is a Tier 0 (SEC-protected, Section 41.4) concern and is never pruned/compressed/deduplicated out on relevance score or budget pressure alone.
+- **Encryption:** sensitive data at rest and in transit follows the organization's configured policy (no encryption algorithm/standard is mandated here beyond what the deployment's policy specifies).
+- **Retention:** every cache, memory layer (CL-006), ledger, and log/trace has a configurable retention period; default is the organization's policy, never unbounded retention.
+- **Deletion/erasure propagation (SEC-013):** a deletion/erasure request propagates to every surface listed above; the system must be able to report which surfaces still hold data derived from a given source after a deletion request, so propagation can be verified rather than merely asserted.
+- **Residency:** where a provider/model profile (Section 16) declares a compliance/data-residency constraint, routing and caching honor it; no specific residency requirement is assumed absent deployment configuration.
+- **Subprocessors/external systems:** the same classification/retention/deletion obligations apply to data the Control Plane sends to an external system (provider, tool, MCP server) to the extent the Control Plane controls that data's lifecycle.
+
+> [!CAUTION]
+> No specific regulation (e.g., GDPR, HIPAA, PCI-DSS) is asserted to apply by this document. Applicability is established by the deployment's own scope and jurisdiction. This is intentional — see `SOURCE-GAP-ES-01` in Section 42.22.
+
+**Failure Behavior:** a classification failure (unable to determine sensitivity) is treated as a security/integrity failure and fails closed (content is treated as sensitive by default until classified) — this is distinct from an optimization-stage failure and does not fall back to unoptimized processing of unclassified content.
+
+**Observability:** classification decisions, retention-expiry events, and deletion-propagation verification results are auditable (SEC-013, Section 42.15).
+
+**Traceability:** PS §52.7; OBJ-029; SEC-012; SEC-013; AC-045.
+
+---
+
+### 42.8 Coding-Agent Integration Feasibility Tiers (H08)
+
+**Requirement:** Every coding-agent integration declares one of five feasibility tiers; DA-001–DA-025 module applicability is bounded by the declared tier; the exact per-platform mechanism is an architecture decision.
+
+**Engineering Behavior — Tier Model:**
+
+| Tier | Name | Access Characteristics |
+|---|---|---|
+| 1 | Deep/Native | Embedded/tightly coupled; full model-bound context observable/transformable pre-inference |
+| 2 | Gateway/Interception | API/LLM gateway proxy boundary (Integration Mode 1); request/response observable/transformable at that boundary |
+| 3 | Plugin/Extension | Runs inside the platform's own extensibility surface; access bounded by that surface |
+| 4 | Protocol/Tool-Level | Participates as an MCP server/tool; optimizes only what passes through that protocol surface |
+| 5 | Advisory/Observability-Only | Observes only exposed telemetry (logs, usage metrics); can advise, cannot transform/block |
+
+- A **capability-declaration mechanism** (a per-integration manifest/config declaring the tier and, within it, which specific DA-001–DA-025 modules and which pipeline stages are actually reachable) is required at the adapter boundary (Section 4.3 Common Representation Layer).
+- The framework must not report or imply full-pipeline optimization coverage for a platform where only Tier 3–5 access exists.
+
+**Failure Behavior:** if a platform's actual access degrades below its declared tier at runtime (e.g., an extensibility API is deprecated), the integration must re-declare a lower tier rather than silently continuing to claim the higher one.
+
+**Observability:** the declared tier and reachable-module set are part of the integration's configuration record and are reportable per integration.
+
+**Traceability:** PS §52.8; OBJ-030; AC-046.
+
+---
+
+### 42.9 Memory Authority (H09)
+
+**Requirement:** Agent-owned working memory is advisory; Control-Plane-owned execution truth (ESM/CVM/WVM, Section 41.2) is authoritative; conflicts are detected and surfaced, never silently resolved in memory's favor.
+
+**Engineering Behavior:**
+- Agent memory may hold scratch state, temporary reasoning, working plans, transient observations, and local caches — this is expected and unrestricted.
+- Agent memory is never authoritative over: Control Plane execution state (Section 41.2 Domain 1), authorization state, policy state (the pinned `policy_version` of Section 41.8), authoritative external state, or context/workflow version (Section 41.2 Domains 2–3).
+- **Conflict detection:** every agent-memory read that could inform a decision affecting execution state carries a `memory_version`/provenance tag; the engine compares it against current ESM-owned state before trusting the memory-derived value.
+- **Conflict resolution:** on disagreement (e.g., agent memory says a step is complete but `completed_actions` says otherwise; agent memory holds a permission grant since revoked in current authorization state), the ESM/CVM/WVM-owned state wins, and the disagreement is surfaced (not silently dropped), following the same reconciliation model as resume (Section 41.6): re-validate against current authorization, policy, model availability, and completed-actions state before trusting agent-reported memory.
+
+**Failure Behavior:** an unresolvable conflict (e.g., ambiguous provenance) defaults to treating agent memory as stale/untrusted for that decision, never as authoritative by default.
+
+**Observability:** memory/execution-truth conflicts are logged as a distinct event type in Section 22, separate from ordinary stale-cache events.
+
+**Traceability:** PS §52.9; OBJ-031; AC-047.
+
+---
+
+### 42.10 Reflection and Loop Awareness (H10)
+
+**Requirement:** Loop-waste classification (AL-002) uses expected task value and progress evidence, not iteration count; the same expected-value framework governs both CONTINUE and STOP decisions.
+
+**Engineering Behavior:** see the direct amendment to Section 12.2 (AL-002). AL-001's per-iteration signals (state change, objective progress, information gain, errors introduced/resolved, input/output tokens, tool cost) feed a classifier that distinguishes: productive progress, reflection/self-correction, justified retry, redundant work, oscillation, and failure loop. The Agent Stop Controller (Section 7.20, T3.1) and AL-006 (Early Exit) consult the same classifier output for the STOP decision that AL-002 consults for the CONTINUE/flag decision — there is one expected-value model, not two independent ones.
+
+**Failure Behavior:** if the classifier cannot produce a confident category (insufficient signal), the system defaults to treating the iteration as unclassified/continuing under existing budget constraints (Sections 42.3/42.5) rather than either force-stopping or force-continuing based on an unsupported classification.
+
+**Observability:** iteration classification (progress / reflection / retry / redundant / oscillation / failure-loop) is a ledger field per agent iteration (Section 18.2 extension).
+
+**Traceability:** PS §52.10; AL-001; AL-002 (Section 12.2 amendment).
+
+---
+
+### 42.11 Tool / MCP Trust Boundary (H11)
+
+**Requirement:** Tool/MCP identity, capability metadata, schema integrity, versioning, authorization, availability, and result provenance are security/control-boundary concerns, not merely functional integration concerns.
+
+**Engineering Behavior:**
+- **Identity:** a tool/MCP server's identity is authenticated before its capability metadata is trusted.
+- **Capability metadata/schema integrity:** schemas consumed by DA-008 (Tool Schema Optimizer) and TE-002 (Tool Argument Optimizer) are validated for integrity; an unexpected schema change between calls is a staleness/trust event, not silently accepted.
+- **Authorization:** a tool call's authorization is evaluated independently of TE-001's ROI predictor — cost/token efficiency never substitutes for an authorization check.
+- **Versioning:** tool/MCP versions are tracked so that a cached tool result (T3.3) or cached schema is invalidated when the underlying version changes — extends CL-003 (Dependency-Aware Cache Invalidation) to tool/MCP version changes specifically.
+- **Availability/staleness:** a tool index used for DA-007/TE-003 dynamic discovery is revalidated on a policy-defined interval; discovered availability is not assumed to persist indefinitely.
+- **Malicious/mutated results:** a tool result is untrusted content by default and is subject to the Section 42.14 (prompt-injection/content-integrity) screening in addition to T3.2 (Tool Output Filter) and TE-006 (Tool Result Value Filter).
+
+**Failure Behavior:** an identity/authorization/schema-integrity check failure is a security failure and fails closed (the tool call is refused or the result is quarantined), not an optimization failure that falls back to using the untrusted tool/result anyway.
+
+**Observability:** tool/MCP identity verification, schema-integrity checks, and staleness detections are logged per call.
+
+**Traceability:** PS §52.11; SEC-014; AC-048.
+
+---
+
+### 42.12 Shared State and Cross-Execution Concurrency (H12)
+
+**Requirement:** Concurrent mutation, stale decisions, race conditions, and version conflicts across multiple agents/sub-agents/executions sharing a resource are detected, reconciled, and coordinated; non-idempotent operations are never blindly replayed across executions.
+
+**Engineering Behavior:**
+- Shared resources (files, tickets, shared memory per CL-006, external systems) participating in cross-execution coordination carry a version or equivalent conflict-detection token.
+- **Concurrent mutation detection:** when two executions mutate the same resource, the second write is not allowed to silently overwrite context the first write depended on — a conflict is raised.
+- **Stale decisions:** a decision made from a shared-state snapshot that has since changed is treated as a stale-result case under Section 41.9 and revalidated before another execution relies on it.
+- **Version conflicts/reconciliation:** an execution acting on an outdated shared-resource version reconciles before proceeding, using the same reconcile-not-replay discipline as Section 41.6; where two executions' completed actions overlap, the framework reconciles to a single consistent outcome rather than applying both.
+- **Locking/coordination:** required only where the shared resource/action is non-idempotent and concurrently reachable — not universally.
+- **Idempotency:** non-idempotent operations are not blindly replayed across executions any more than within a single execution's resume path (Section 41.6).
+
+**Failure Behavior:** an unresolvable concurrency conflict (coordination unavailable) blocks the conflicting write/action for the losing execution and surfaces a conflict result — it does not proceed with an unreconciled dual-write.
+
+**Observability:** concurrency conflicts, reconciliation outcomes, and coordination-lock acquisitions/timeouts are logged events distinct from single-execution stale-result events (Section 41.9).
+
+**Traceability:** PS §52.12; OBJ-032; AC-049.
+
+---
+
+### 42.13 Human Approval for Consequential Actions (H13)
+
+**Requirement:** A policy/risk-designated subset of actions requires explicit human approval before execution; not every action is human-approved.
+
+**Engineering Behavior:**
+- The designation of which actions require approval is a policy decision, configurable per tenant/workflow (Section 26) — not a fixed universal list.
+- An action pending approval follows the same interruption/partial-execution handling as any other suspension cause (Section 41.5): checkpoint, return PARTIAL or an explicit `AWAITING_APPROVAL` status, and resume (Section 41.6) once approval is granted or denied.
+- Approval/denial is recorded in the audit record alongside the decision it gates (Section 42.15).
+- Approval requests support a configurable timeout; a timed-out approval request follows the policy-defined default (deny, or escalate to a different approver), never silently proceeding as approved.
+
+**Failure Behavior:** if the approval mechanism itself is unavailable, the gated action is blocked (fails closed) rather than proceeding without approval — approval-gating is a security/policy concern, not an optimization stage.
+
+**Observability:** approval requests, grants, denials, and timeouts are first-class audit-record entries (Section 42.15).
+
+**Traceability:** PS §52.13; OBJ-033; SEC-015; AC-050.
+
+---
+
+### 42.14 Prompt Injection and Malicious Content (H14)
+
+**Requirement:** Externally-sourced content (RAG results, search results, tool/MCP results, sub-agent results, retrieved documents/code) is untrusted by default; content-integrity/prompt-injection screening runs before any optimization stage may admit, rank, compress, cache, or use the content to authorize an action; screening failure fails closed.
+
+**Engineering Behavior:**
+- Screening precedes admission for every content source listed above, uniformly — not only the end-user's direct input (already covered by T1.1 Sanitizer).
+- This ordering resolves any apparent tension with Section 42.1's operating-mode preference for hybrid/precomputed evaluation: precomputation may speed up the screening mechanism itself (e.g., a precomputed classifier), but the screening step itself may not be skipped or deferred until after admission in the interest of latency.
+- Scope explicitly includes sub-agent handoffs (AL-005) and MCP tool results (Section 42.11), not only RAG/search content.
+
+**Failure Behavior:** a screening failure (the check itself cannot complete) is a security/integrity failure per Section 41.10 and the fail-open/fail-closed distinction in `conventions.md` — the content is rejected or quarantined, never silently admitted because the check failed.
+
+**Observability:** screening outcomes (pass/reject/quarantine) and screening-unavailable events are logged per content item admitted.
+
+**Traceability:** PS §52.14; OBJ-034; SEC-016; AC-051.
+
+---
+
+### 42.15 Decision Explainability and Audit (H15)
+
+**Requirement:** Context admission/pruning, model/provider selection, cache reuse/rejection, optimization-stage skip, execution block/recovery/supersession, fallback, budget, and human-approval decisions must produce a retrievable explanation, not merely a best-effort one.
+
+**Engineering Behavior:**
+- Each of the decision categories above must log, at minimum: the inputs considered, the rule/model/threshold applied, and the resulting action — sufficient to reconstruct the reasoning during audit/debugging, consistent with SEC-008 (all optimization transformations auditable).
+- This is a retrievability requirement, not a UI/presentation requirement — surfacing the explanation to an end user by default is an interface/architecture decision, out of scope here.
+- The explanation record includes the Section 42.2 ownership category (ADVISORY/ENFORCEMENT/EXECUTION-OWNERSHIP) for the decision it documents.
+
+**Failure Behavior:** a failure to write the explanation/audit record for a decision that requires one is itself a mandatory-audit-record-write failure and is handled per Section 41.10 (fail-closed: the optimization stage is blocked and unoptimized content is used) — an unexplainable decision must not silently execute.
+
+**Observability:** the explanation record is queried by audit/debugging tooling (Section 22); coverage of the required decision categories is a measurable completeness metric.
+
+**Traceability:** PS §52.15; NFR-010 (strengthened); AC-052.
+
+---
+
+### 42.16 Execution State Portability (H16)
+
+**Requirement:** Checkpoint/resume state (Section 41.6) remains interpretable for reconciliation independent of a specific model/provider/session mechanism; resume reconciles across model, provider, permission, policy, context, workflow, external-state, and tool-state changes; RESUME ≠ REPLAY.
+
+**Engineering Behavior:**
+- The checkpoint schema of Section 41.6 (`execution_id`, `execution_version`, `context_version`, `workflow_version`, `completed_actions`, `unresolved_questions`, `token_ledger_snapshot`, `policy_version`, `model_selected`, `reversibility_records`, `checkpoint_timestamp`) is defined in provider/session-neutral terms — none of these fields is, or requires, a specific provider's session object or proprietary state format.
+- A checkpoint produced under one model/provider selection remains interpretable for reconciliation (Section 41.6 steps 1–8) even if `model_selected` changes on resume (e.g., failover per Section 41.5).
+- Where a provider exposes native resumability (e.g., a provider-side conversation/session ID), the Control Plane may use it as an optimization (avoiding re-transmission of cached context) but correctness of resume/reconciliation must not depend on that mechanism being present.
+- The exact serialization/storage format is an architecture/interface decision, not specified here.
+
+**Failure Behavior:** identical to Section 41.6's `RESUME_PRECONDITION_FAILED` path — if re-validation (permissions, policy, model availability, completed-actions, freshness) fails, resume is refused with the specific failed precondition rather than proceeding on stale/incompatible state.
+
+**Observability:** checkpoint schema-version compatibility and cross-provider resume success/failure are logged distinctly from same-provider resume events.
+
+**Traceability:** PS §52.16; extends Section 41.6; AC-053.
+
+---
+
+### 42.17 Layer 3 Boundary: Integration, Not Implementation (H17)
+
+**Requirement:** see the direct amendment to Section 17. The Control Plane's role at the inference/serving layer is awareness, integration, routing, policy, and capability negotiation; it does not implement KV-cache engines, continuous batching, speculative decoding, quantization, or prefill/decode disaggregation.
+
+**Engineering Behavior:** for each Layer 3 capability, the Control Plane's own responsibility is limited to: (a) detecting whether the provider/infrastructure exposes the capability (via the provider/model profile, Section 16), (b) routing/selecting to take advantage of it when net-beneficial and policy-compliant (Section 42.4 accounting applies), (c) negotiating capability parameters through the provider adapter (e.g., batching eligibility hints, cache-affinity hints), and (d) measuring the resulting effect kept separate from Layer 1/2 measurement (AC-036).
+
+**Failure Behavior:** if a Layer 3 capability is unavailable or negotiation fails, the request proceeds without that capability (fail-open, optimization-only) — Layer 3 unavailability never blocks a request.
+
+**Observability:** Layer 3 capability detection, negotiation outcomes, and isolated Layer 3 measurement are reported separately from Layer 1/2 metrics per AC-036.
+
+**Traceability:** PS §52.17; Section 17 amendment.
+
+---
+
+### 42.18 Token, Context, Cache, and Inference Optimization Ownership Boundaries (H18)
+
+**Requirement:** six optimization categories are separately owned and separately measured.
+
+| Category | Sections | Ownership |
+|---|---|---|
+| Prompt/input token optimization | 7.4 (Sanitizer), 7.16 (Query Compressor), 7.6 (Entity Extraction) | Owned and implemented directly |
+| Output/reasoning token optimization | 7.3 (Reasoning Budget), 7.19 (Output Length Controller), 7.18 (Output Schema Selector) | Owned and implemented directly |
+| Context optimization | Sections 7.9–7.15, 9 (Layer 2) | Owned and implemented directly |
+| Cache optimization | 7.7, 7.8, 7.22, Section 10 | Owned and implemented directly, built on provider-exposed cache primitives where available |
+| Model/provider routing | 7.1, 7.23, 13.1 | Owned and implemented directly; execution occurs on provider infrastructure |
+| Inference-runtime optimization | Section 17 (Layer 3) | Awareness, integration, routing, policy only (Section 42.17) |
+
+**Engineering Behavior:** measurement pipelines (Section 18) must attribute a saving or regression to exactly one of these six categories; a measurement that conflates categories (e.g., reporting a KV-cache provider improvement as a context-optimization saving) is invalid per AC-036.
+
+**Failure Behavior:** N/A (this is a measurement-attribution requirement, not a runtime decision path).
+
+**Observability:** per-category savings/overhead are separately reportable dimensions in Section 18.2/22.
+
+**Traceability:** PS §52.18; Section 1.3 amendment.
+
+---
+
+### 42.19 Research Claims as Evidence, Not Guarantees (H19)
+
+**Requirement:** reaffirmation only — no new engineering obligation is introduced.
+
+This principle is already fully specified in Sections 1.3, 23–24, 35, and 36 (Reference Research and Validation Notes, including the corrected arXiv identifiers) and in AC-018. The 2026-09-15 hardening pass adds no new mechanism: no benchmark percentage from any cited source (LLMLingua, LongLLMLingua, LLMLingua-2, RouteLLM, FrugalGPT, or any future citation) may be hard-coded as an expected production result, and Section 35's maturity model (LEVEL 0 RESEARCH → LEVEL 5 AUTO-TUNED) remains the required path from citation to production claim.
+
+**Traceability:** PS §52.19; no new ID (reaffirmation).
+
+---
+
+### 42.20 Anti-Scope: What the Control Plane Is Not (H20)
+
+**Requirement:** see the direct amendments to Sections 1.3 and 33. The Control Plane is not a replacement agent orchestrator, model-training system, model-runtime infrastructure platform, provider infrastructure, general-purpose developer IDE, or coding-agent UX replacement; it integrates with these systems through the adapter/integration-mode layer (Section 4).
+
+**Engineering Behavior:** any engineering proposal that would require the Control Plane to reimplement one of these adjacent systems, rather than integrate with it through Section 4's adapter layer or Section 42.8's feasibility-tier model, is out of scope for this specification and must be flagged at design-review time, not built silently.
+
+**Failure Behavior:** N/A (this is a scope boundary, not a runtime behavior).
+
+**Observability:** N/A.
+
+**Traceability:** PS §52.20; OBJ-035.
+
+---
+
+### 42.21 Hardening Traceability Matrix
+
+| Hardening | Engineering Spec Coverage | Source Anchor |
+|---|---|---|
+| H01 | Section 42.1 — Control Plane Operating Model | PS §52.1 / OBJ-023 / AC-039 |
+| H02 | Section 42.2 — Advisor/Enforcer/Execution-Owner Boundary | PS §52.2 / OBJ-024 / AC-040 |
+| H03 | Section 42.3 — Control Plane Self-Protection | PS §52.3 / OBJ-025 / NFR-014 / AC-041 |
+| H04 | Section 42.4 — Verified Net Optimization Economics | PS §52.4 / OBJ-026 / AC-042 |
+| H05 | Section 42.5 — Enterprise Spend Governance | PS §52.5 / OBJ-027 / SEC-011 / AC-043 |
+| H06 | Section 42.6 — Verifier Confidence and Calibration | PS §52.6 / OBJ-028 / AC-044 |
+| H07 | Section 42.7 — Data Governance | PS §52.7 / OBJ-029 / SEC-012 / SEC-013 / AC-045 |
+| H08 | Section 42.8 — Coding-Agent Integration Feasibility Tiers | PS §52.8 / OBJ-030 / AC-046 |
+| H09 | Section 42.9 — Memory Authority | PS §52.9 / OBJ-031 / AC-047 |
+| H10 | Section 42.10 — Reflection and Loop Awareness (+ Sec 12.2 amendment) | PS §52.10 / AL-002 |
+| H11 | Section 42.11 — Tool / MCP Trust Boundary | PS §52.11 / SEC-014 / AC-048 |
+| H12 | Section 42.12 — Shared State and Cross-Execution Concurrency | PS §52.12 / OBJ-032 / AC-049 |
+| H13 | Section 42.13 — Human Approval for Consequential Actions | PS §52.13 / OBJ-033 / SEC-015 / AC-050 |
+| H14 | Section 42.14 — Prompt Injection and Malicious Content | PS §52.14 / OBJ-034 / SEC-016 / AC-051 |
+| H15 | Section 42.15 — Decision Explainability and Audit (+ NFR-010 amendment) | PS §52.15 / NFR-010 / AC-052 |
+| H16 | Section 42.16 — Execution State Portability | PS §52.16 / AC-053 |
+| H17 | Section 42.17 — Layer 3 Boundary (+ Sec 17 amendment) | PS §52.17 |
+| H18 | Section 42.18 — Ownership Boundaries (+ Sec 1.3 amendment) | PS §52.18 |
+| H19 | Section 42.19 — Research Claims Reaffirmation | PS §52.19 |
+| H20 | Section 42.20 — Anti-Scope (+ Sec 1.3, 33 amendments) | PS §52.20 / OBJ-035 |
+
+**Result:** 20/20 hardening requirements (H01–H20) traced. 13/13 new objectives (OBJ-023–035) traced. 6/6 new security requirements (SEC-011–016) traced. 1/1 new NFR (NFR-014) traced. 15/15 new acceptance criteria (AC-039–053) traced.
+
+---
+
+### 42.22 Known Source Gaps (Hardening Pass, 2026-09-15; reclassified 2026-09-16)
+
+| ID | Gap | Classification | Disposition |
+|---|---|---|---|
+| `SOURCE-GAP-ES-01` | PS §52.7 (H07) deliberately does not assert any specific regulatory regime (GDPR/HIPAA/PCI-DSS) applies. This specification does not invent one. | DEPLOYMENT-SPECIFIC / CONFIGURATION-SPECIFIC | Preserved as an open scope question for the deployment's own configuration; not resolved here. Mirrored in `architecture.md` `SOURCE-GAP-ARCH-01`. |
+| `SOURCE-GAP-ES-02` | PS §52.5 (H05), §52.13 (H13) leave exact budget thresholds and the "consequential action" designation list as configuration/policy decisions rather than fixed values. | DEPLOYMENT-SPECIFIC / CONFIGURATION-SPECIFIC | Consistent with PS's own instruction that these are policy-configurable; not a specification defect and requires no further resolution. |
+| `SOURCE-GAP-ES-03` | The pre-existing OBJ-015–022 (Section 41.11, tied to PS §51 / the 2026-09-10 amendment) were confirmed present only in this Engineering Specification and not as literally labeled IDs in the Problem Statement text of Section 51. | **RESOLVED (2026-09-16)** | OBJ-015 through OBJ-022 are now canonically labeled at the source in PS §51.13 (Final Foundational Document Reconciliation), and cross-document traceability is maintained in the consolidated registry at `architecture.md` §44.12. See the updated note preceding the Section 3 objectives table. |
+| `SOURCE-GAP-ES-04` | PS §52.11/§52.14 do not specify a concrete prompt-injection/content-integrity screening mechanism (e.g., classifier type, rule engine). This specification defines only the ordering/fail-closed requirement (Sections 42.11, 42.14), consistent with the instruction to remain implementation-neutral where the source does not prescribe a mechanism. | DEFERRED TO DOWNSTREAM DOCUMENT | Deferred to `architecture.md` (which defers the concrete mechanism further, to `security.md` and `provider-matrix.md` once generated); not a gap in this document. |
+
+No `SOURCE-CONTRADICTION` was found between PS §52 (H01–H20) and the pre-existing Sections 1–41 of this specification; every apparent tension (Section 17 vs. H17, Section 34.1 vs. H04, Section 6.2 vs. H01, Section 4.2 vs. H08) was resolved by direct amendment at the point of tension, listed in the Section 42 header.
+
+---
+
+### 42.23 Internal Consistency Check Update (Rev 1.3)
+
+The following check rows are added to the Section 40 consistency table:
+
+| Check | Status |
+|---|---|
+| H01–H20 each traced to a Section 42 subsection | PASS (Section 42.21) |
+| OBJ-023–035 traceable to PS §52 and merged into Section 3 | PASS |
+| SEC-011–016 traceable to PS §52 and merged into Section 20 | PASS |
+| NFR-014 traceable to PS §52.3 and merged into Section 25 | PASS |
+| AC-039–053 traceable to PS §52.21 and merged into Section 31 | PASS |
+| Section 17 (Layer 3) reframed consistent with H17; no implementation-ownership claim remains | PASS |
+| Section 34.1 (Objective Function) reframed as conceptual/heuristic consistent with H04 | PASS |
+| Section 6.2 pipeline diagram annotated consistent with H01 (no synchronous-everywhere mandate) | PASS |
+| Section 4.2 (Integration Modes) annotated consistent with H08 feasibility tiers | PASS |
+| Section 12.2 (AL-002) amended consistent with H10 | PASS |
+| Section 1.3, 33 amended consistent with H02/H18/H20 | PASS |
+| Section 41.14 cross-references H09/H12 extensions without modifying Section 41.1–41.13 | PASS |
+| No existing requirement (OBJ-001–022, AC-001–038, SEC-001–010, NFR-001–013) modified in meaning, only annotated/strengthened where explicitly cited | PASS |
+| No SOURCE-CONTRADICTION between PS §52 and Sections 1–41 left unresolved | PASS |
+
+> [!IMPORTANT]
+> **INTERNAL CONSISTENCY CHECK (REV 1.3): PASSED (14/14 new checks; 14/14 prior checks from Rev 1.1/1.2 remain valid)**
+>
+> All twenty hardening requirements (H01–H20) from the 2026-09-15 Architecture Hardening Pass are represented in this specification, traced to the hardened Problem Statement (PS §52), and introduce no unresolved contradiction with Sections 1–41. As of this Rev 1.3 check, four `SOURCE-GAP` items were recorded (Section 42.22); see Section 42.24 for their Rev 1.4 disposition.
+>
+> This document is ready for stakeholder review and approval.
+> **Implementation must not begin until this document has been explicitly approved.**
+
+---
+
+### 42.24 Rev 1.4 Consistency Check Update (Final Foundational Document Reconciliation, 2026-09-16)
+
+This subsection records the Final Foundational Document Reconciliation pass across the Problem Statement, this Engineering Specification, and `architecture.md`. It corrects stale internal references and resolves one traceability gap; it introduces no new normative requirement and removes none.
+
+| Check | Status |
+|---|---|
+| Stale "Section 42.26" references corrected to their actual targets (Section 21 header note -> 42.23; Section 42.7 callout -> 42.22) | PASS |
+| Stale "Section 42.25/25" reference in Section 42.3 corrected to a direct statement (no such subsections exist) | PASS |
+| `SOURCE-GAP-ES-03` (OBJ-015–022 traceability) resolved via PS §51.13 and the registry at `architecture.md` §44.12 | PASS |
+| `SOURCE-GAP-ES-01`, `SOURCE-GAP-ES-02`, `SOURCE-GAP-ES-04` re-classified (DEPLOYMENT-SPECIFIC / CONFIGURATION-SPECIFIC / DEFERRED TO DOWNSTREAM DOCUMENT) without being silently closed | PASS |
+| OBJ-001 through OBJ-035 form one continuous, unambiguous objective sequence across PS, this document, and `architecture.md` | PASS |
+| No normative requirement (OBJ, SEC, NFR, AC) added, removed, or reinterpreted by this pass | PASS |
+| No downstream document (`interfaces.md`, `conventions.md`, `edge-cases.md`, `scenario-matrix.md`, or later) modified by this pass | PASS |
+
+> [!IMPORTANT]
+> **INTERNAL CONSISTENCY CHECK (REV 1.4): PASSED (7/7 new checks; 14/14 Rev 1.1 checks, OBJ-015–022 traceability check, and 14/14 Rev 1.3 checks all remain valid)**
+>
+> This reconciliation pass is editorial/traceability-only: it corrects stale cross-references and resolves `SOURCE-GAP-ES-03`. No requirement was added, removed, weakened, or reinterpreted.
+>
+> This document is ready for stakeholder review and approval.
+> **Implementation must not begin until this document has been explicitly approved.**
+
+---
+
+*End of Engineering Specification -- EAIOC-SPEC-001 Rev 1.4*

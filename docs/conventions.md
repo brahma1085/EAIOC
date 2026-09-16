@@ -2,17 +2,23 @@
 ## Enterprise Agent & LLM Inference Optimization Control Plane
 
 **Document ID:** EAIOC-CONV-001  
-**Revision:** 1.0.0  
-**Status:** Authoritative  
-**Authoritative Sources:**
-- `Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt` (EAIOC-SPEC-001)
-- `architecture.md` (EAIOC-ARCH-001)
-- `interfaces.md` (EAIOC-INTF-001)
+**Revision:** 1.1.0 — Hardening Conventions Propagated (2026-09-15 amendment)  
+**Status:** Authoritative — PRE-IMPLEMENTATION (foundational documents remain PRE-APPROVAL; see below)  
+**Authoritative Sources (in order of authority):**
+- `Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt` (as hardened 2026-09-15, PS §52; reconciled 2026-09-16, PS §51.13) — highest authority
+- `Ent_Agent_LLM_Inference_Opt_Control_Plane_Engineering_Spec.md` (EAIOC-SPEC-001 Rev 1.4)
+- `architecture.md` (EAIOC-ARCH-001 Rev 1.3)
+- `interfaces.md` (EAIOC-INTF-001 v1.2.0)
+
+**Amendment history:**
+- 1.0.0 (2026-09-08 baseline, extended 2026-09-10) — Baseline conventions across §1–27, including the Dynamic Execution package structure (`execution/`: ESM, CVM, WVM, CPM, RE, CIG, CEC, PRV, DPE, CAR, SRP, SPM, RCO — ARCH §46; INTF §42).
+- 1.1.0 (2026-09-16) — Hardening conventions propagated for ARCH §47 / INTF §43 / PS §52 (H01–H20): new `governance/` package (SGE, DGE, TMG, HAG, CIS), `execution/cross_execution/` (XEC), `intelligence/self_protection/` (SPC), `intelligence/verifier_calibration/` (VCL), `providers/feasibility_tier/` (FTR); operating-mode, decision-ownership, net-economics, spend-governance, data-governance, tool/MCP-trust, human-approval, content-integrity, memory-authority, and cross-execution-concurrency conventions added to the relevant topical sections (§7, §12, §13, §16, §22, §23, §24, §27). Corrected: the Engineering Specification (EAIOC-SPEC-001) was previously absent from the Authoritative Sources list and the Problem Statement was mislabeled with the Engineering Specification's document ID; both are corrected above.
 
 > [!IMPORTANT]
 > This document defines the engineering conventions that ALL future implementation must follow.
 > It does not redesign the architecture, introduce new implementation choices that contradict the authoritative documents, or silence, simplify, or reinterpret any requirement.
-> When in doubt, the authoritative source documents take precedence over any convention stated here.
+> When in doubt, the authoritative source documents take precedence over any convention stated here, in the order listed above: Problem Statement > Engineering Specification > Architecture > Interfaces > this document.
+> This document's own "Authoritative" status governs implementation conventions only; it does not imply the foundational documents (PS, Engineering Spec, Architecture) have exited PRE-APPROVAL status — implementation may not begin until they are explicitly approved.
 
 ---
 
@@ -122,8 +128,8 @@ All optimization decisions must be:
 ```
 control_plane/
 ├── core/
-│   ├── interfaces/          # All 62 interface definitions, INTF-001–INTF-062 (INTF §36)
-│   ├── schemas/             # All 230+ schema types (INTF §1–42)
+│   ├── interfaces/          # All 71 interface definitions, INTF-001–INTF-071 (INTF §36)
+│   ├── schemas/             # All 260+ schema types (INTF §1–43)
 │   └── errors/              # ControlPlaneError taxonomy (INTF §25)
 │
 ├── execution/               # Dynamic Execution Layer — ESM, CVM, WVM, CPM, RE, CIG, CEC, PRV, DPE, CAR, SRP, SPM, RCO (ARCH §46; INTF §42, INTF-050–062)
@@ -139,14 +145,24 @@ control_plane/
 │   ├── capability_resolver/ # CAR — Capability/Availability Resolver (INTF-059)
 │   ├── stale_result/        # SRP — Stale Result Protection (INTF-060)
 │   ├── supersession/        # SPM — Supersession Manager (INTF-061)
-│   └── recovery/            # RCO — Recovery Coordinator (INTF-062)
+│   ├── recovery/            # RCO — Recovery Coordinator (INTF-062)
+│   └── cross_execution/     # XEC — Cross-Execution Coordinator (ARCH §47.3.2; INTF-069)
 │
-├── intelligence/            # OI-001 to OI-005 (ARCH §14)
+├── governance/               # Governance/Safety Plane — SGE, DGE, TMG, HAG, CIS (ARCH §47.1–47.2; INTF §43.1–43.5, INTF-063–067)
+│   ├── spend/                # SGE — Spend Governance Engine (INTF-063)
+│   ├── data/                 # DGE — Data Governance Engine (INTF-064)
+│   ├── tool_trust/            # TMG — Tool/MCP Trust Gate (INTF-065)
+│   ├── human_approval/        # HAG — Human Approval Gate (INTF-066)
+│   └── content_integrity/     # CIS — Content Integrity Screen (INTF-067)
+│
+├── intelligence/            # OI-001 to OI-005 (ARCH §14); self-protection and verifier calibration (ARCH §47.4)
 │   ├── decision_engine/     # OI-001: Optimization Decision Engine
 │   ├── cost_controller/     # OI-002: Cost-of-Optimization Controller
 │   ├── depth_controller/    # OI-003: Adaptive Optimization Depth
 │   ├── utility_scorer/      # OI-004: Context Utility / ROI Scorer
-│   └── outcome_engine/      # OI-005: Outcome-Based Optimization
+│   ├── outcome_engine/      # OI-005: Outcome-Based Optimization
+│   ├── self_protection/     # SPC — Self-Protection Controller (ARCH §47.4.1; INTF-070)
+│   └── verifier_calibration/ # VCL — Verifier Calibration Layer (ARCH §47.4.3; INTF-071)
 │
 ├── pipeline/                # T0.x → T3.x stages (ARCH §11–13)
 │   ├── t0_normalization/    # T0.x: Request Normalization & Gateway
@@ -221,7 +237,8 @@ control_plane/
 │
 ├── providers/               # ARCH §25; INTF §7, §8
 │   ├── adapters/            # One adapter per provider; never imported by core
-│   └── profiles/            # Versioned provider/model profiles
+│   ├── profiles/            # Versioned provider/model profiles
+│   └── feasibility_tier/    # FTR — Feasibility Tier Registry (ARCH §47.10; INTF-068); coding-agent integration tiers
 │
 ├── policy/                  # INTF §20
 ├── security/                # INTF §21; ARCH §29
@@ -245,6 +262,13 @@ control_plane/
 - `execution/permission_revalidation/` (PRV) and `execution/dynamic_policy/` (DPE) revalidate in-flight executions against existing `security/` (SEC-001–010) and `policy/` rules; they never redefine or relax them — authorization and policy are not subordinate to optimization.
 - Executions marked `SUPERSEDED` (`execution/supersession/`) or results marked `STALE_REJECTED` (`execution/stale_result/`) must not be permitted to continue producing side effects or be served as authoritative.
 - Resume and recovery of any execution (`execution/recovery/`, RCO) is exclusively a Control Plane responsibility; no external caller or agent may resume an execution directly.
+- `governance/spend/` (SGE) evaluates budget independently of `security/` and `policy/`; no module may treat a `governance/spend/` result as a substitute for an authorization or policy check, and vice versa (SEC-011; ARCH §47.2.1).
+- `governance/data/` (DGE) classification runs before any module in `pipeline/`, `context_engine/`, or `cache_economics/` admits, caches, or compresses content; an unclassified item is treated as sensitive by default (SEC-012; ARCH §47.2.2).
+- `governance/content_integrity/` (CIS) screening is invoked by every module that admits externally-sourced content (`context_engine/`, `tool_execution/`, `agent_loop/` sub-agent handoff, `developer_agent/` MCP results) before that content reaches `intelligence/decision_engine/` (SEC-016; ARCH §47.2.5).
+- `governance/tool_trust/` (TMG) is consulted by `tool_execution/` before a tool/MCP result is admitted, independently of `tool_execution/roi_predictor/` (TE-001)'s cost signal (SEC-014; ARCH §47.2.3).
+- `governance/human_approval/` (HAG) is consulted only for actions a policy has designated as consequential/irreversible; no module may route every action through it by default (SEC-015; ARCH §47.2.4).
+- `intelligence/self_protection/` (SPC) may shed optimization depth in `pipeline/`, `context_engine/`, `cache_economics/`, or `tool_execution/` under backpressure, but must never cause `governance/` modules to be skipped (NFR-014; ARCH §47.4.1).
+- `execution/cross_execution/` (XEC) extends `execution/reconciliation/` (RE) and `execution/supersession/` (SPM) to resources shared across multiple `execution_id`s; single-execution modules never implement their own cross-execution locking (ARCH §47.3.2).
 
 ---
 
@@ -275,6 +299,7 @@ Every component has a canonical ID that appears in logs, spans, metrics, and err
 | EL — Experimentation/Learning | `EL.{N}-{NAME}` | `EL.1-SHADOW` |
 | AR — Adaptive Model/Reasoning | `AR.{N}-{NAME}` | `AR.1-MARGINAL-ROUTING` |
 | Dynamic Execution | Bare acronym, no `<LAYER>.{N}-` prefix (ARCH §46.1) | `ESM`, `CVM`, `WVM`, `CPM`, `RE`, `CIG`, `CEC`, `PRV`, `DPE`, `CAR`, `SRP`, `SPM`, `RCO` |
+| Hardening (2026-09-15) | Bare acronym, no `<LAYER>.{N}-` prefix, same convention as Dynamic Execution (ARCH §47.1) | `SGE`, `DGE`, `TMG`, `HAG`, `CIS`, `FTR`, `XEC`, `SPC`, `VCL` |
 
 ### 3.2 Request and Correlation IDs
 
@@ -289,6 +314,15 @@ Every component has a canonical ID that appears in logs, spans, metrics, and err
 | `session_id` | UUID v4 | Identifies a multi-turn session |
 | `task_id` | UUID v4 | Identifies a single logical task within a session |
 | `plan_id` | UUID v4 | Identifies the `OptimizationPlan` for a request |
+| `execution_id` | UUID v4 | Immutable, issued once by ESM at admission (INTF-050); never reused, including on resume or supersession |
+| `checkpoint_id` | UUID v4 | Issued by CPM (INTF-053) per checkpoint write; scoped to one `execution_id` |
+| `decision_id` | UUID v4 | Issued per `OptimizationPlan`/`OptimizationDecisionOutcome` (INTF-002, §43.14 of INTF); immutable once issued |
+| `deletion_id` | UUID v4 | Issued by DGE (INTF-064) per erasure request; used to query `DeletionPropagationReport` |
+| `approval_id` | UUID v4 | Issued by HAG (INTF-066) per approval request; immutable once issued |
+| `context_version`, `workflow_version`, `execution_version` | monotonically increasing integer | Owned by CVM, WVM, ESM respectively; never decremented; never reused after supersession |
+| `policy_version` | string (semver or content hash) | Snapshotted at execution admission; pinned for the lifetime of that `execution_id` (ARCH §46.2.9 policy-pinning rule) |
+
+None of the identifiers above may encode tenant identity, user identity, or content directly (no sensitive information in identifiers, per §13).
 
 ### 3.3 Metric Naming
 
@@ -577,6 +611,78 @@ The primary cost metric is **cost per successful outcome**, not cost per token o
 
 Required outcome metrics: cost per successful answer, cost per completed workflow, cost per resolved task, cost per completed coding task, tokens per successful outcome.
 
+### 7.6 Operating Mode Declaration (H01)
+
+*Traceability: ARCH §47.5; INTF §43.10; PS §52.1; OBJ-023*
+
+Every decision-producing component declares exactly one of `SYNC`, `ASYNC`, or `HYBRID` (INTF `OperatingMode`, §43.10) as its operating mode. This is a per-component-type declaration, not a global setting:
+
+- Use `SYNC` only when the decision depends on request-time-only information (the actual prompt, the actual retrieved context, the actual permission state) that cannot be safely precomputed.
+- Use `ASYNC` for information that changes slowly relative to request volume (provider/model profiles, repository maps, cache pre-warming, routing-policy compilation, pricing tables).
+- Use `HYBRID` for a precomputed artifact consulted synchronously with a freshness/confidence gate (SRP, VCL). Most production decisions are expected to be `HYBRID`.
+
+> [!CAUTION]
+> Choosing `SYNC` where `HYBRID` would achieve equivalent safety/quality at lower latency/cost is the "expensive optimizer" anti-pattern (§24.2). Control Plane decision latency and compute overhead are themselves part of the optimization problem (§7.8), not externalities.
+
+### 7.7 Advisory / Enforcement / Execution-Ownership Declaration (H02)
+
+*Traceability: ARCH §47.6; INTF §43.10; PS §52.2; OBJ-024*
+
+Every decision or side effect a component produces is classified as exactly one of `ADVISORY`, `ENFORCEMENT`, or `EXECUTION_OWNERSHIP` (INTF `DecisionOwnership`, §43.10), recorded independently per decision in the `ExplanationRecord` (§36).
+
+- **ADVISORY**: the component recommends; the calling agent/application decides and acts. No side effect is owned here.
+- **ENFORCEMENT**: the component blocks/requires/rewrites within its policy authority; the calling agent/application still performs the (now-constrained) action.
+- **EXECUTION_OWNERSHIP**: the component itself performs an action with an external side effect (a cache write, a programmatic tool execution, a checkpoint commit). Only this category makes the component directly responsible for the side effect's correctness and reversibility, and it inherits CL-004's reversibility requirements.
+
+> [!IMPORTANT]
+> A component whose ownership category is not explicitly configured defaults to `ADVISORY` (least authority). Implementations must never default to `EXECUTION_OWNERSHIP` by omission. No implementation may use a `governance/` module (§7.9, §13.5–13.9) to silently assume ownership of agent planning, IDE behavior, or an external side effect the Control Plane has not been explicitly integrated to own (§50 anti-pattern equivalent — see §24.4).
+
+### 7.8 Verified Net Optimization Economics (H04)
+
+*Traceability: ARCH §47.4.2; INTF §43.14; PS §52.4; OBJ-026; AC-042*
+
+§7.2's `Expected Net Value` formula is extended with the full accounting required by the hardening pass. Every reported saving must be computed from `NetOptimizationValue` (INTF §43.14):
+
+```
+Net Optimization Value =
+    Tokens Saved + Inference Cost Saved
+  - Optimization Compute Cost      (metered by SPC, §7.9)
+  - Retrieval Overhead
+  - Routing Overhead
+  - Cache Overhead (write + storage + invalidation, CE-001)
+  - Added Latency Cost
+  - Retry / Escalation Cost
+  - Quality Degradation Cost (weighted by applicable quality gate, §15)
+  - Downstream / Tool Cost
+```
+
+A technique is counted as a saving only when `Net Optimization Value > 0` **and** applicable quality gates pass. Where any term cannot be measured, the result's `verification_status` is `UNVERIFIED` (AC-002) and it is excluded from reported savings — never assumed favorable. `TOKEN REDUCTION != VERIFIED NET SAVINGS`.
+
+Every optimization decision uses one of the six `OptimizationDecisionOutcome` values (INTF §43.14): `APPLY`, `SKIP`, `DO_NOT_OPTIMIZE`, `FALLBACK`, `REJECT`, `REQUIRE_REVALIDATION`. `DO_NOT_OPTIMIZE` is used when expected net value is negative or the quality/security risk exceeds expected benefit — this is a first-class, expected outcome, not an error.
+
+### 7.9 Control Plane Self-Protection (SPC) (H03)
+
+*Traceability: ARCH §47.4.1; INTF §43.8; PS §52.3; OBJ-025; NFR-014; AC-041*
+
+`intelligence/self_protection/` (SPC) enforces, for every `SYNC`/`HYBRID` component (§7.6):
+
+- A configurable maximum added latency per decision (Appendix A budgets apply); on exhaustion the component fails open to the unoptimized path.
+- A metered, bounded compute/provider-API budget per request and per tenant, counted as `Optimization Compute Cost` in §7.8's accounting.
+- Backpressure: under sustained overload, OI-003 (§7.3) steps the depth tier down to `LOW` even for requests that would otherwise warrant `MEDIUM`/`HIGH`.
+- Overload detection (queue depth, latency p99, error rate) that sheds optional stages — never silently degrades a quality or security check.
+
+> [!CAUTION]
+> **Non-negotiable precedence:** SPC may shed any `pipeline/`, `context_engine/`, or `cache_economics/` stage under backpressure, but it must never cause a `governance/` module (SGE, DGE, TMG, HAG, CIS) to be skipped. If shedding would otherwise skip a mandatory security/authorization/PII check, the affected request fails **closed**, not open (§16.2 precedence).
+
+### 7.10 Verifier Calibration (VCL) (H06)
+
+*Traceability: ARCH §47.4.3; INTF §43.9; PS §52.6; OBJ-028; AC-044*
+
+`intelligence/verifier_calibration/` (VCL) governs every verifier consumed by AR-004 (§10) and QO-002 (§15): deterministic verifiers (unit tests, schema/type checks, static analysis) are treated as higher-confidence than probabilistic verifiers (LLM-judge semantic-equivalence checks). A probabilistic verifier's confidence score must be calibrated against a benchmark set (§20.3 maturity model applies to verifiers themselves) before it is trusted to gate an optimization decision. A verifier's acceptance behavior is monitored over time; drift (accepting results it previously rejected, or vice versa, without a corresponding technique change) is surfaced as a `VERIFIER_DRIFT_DETECTED` event.
+
+> [!CAUTION]
+> A verifier's `passed = true` output is never treated as unconditional ground truth. Below the configured acceptance threshold, apply the existing Quality-Aware Fallback (§15.2) — restore, escalate, or disable. Silent acceptance is prohibited.
+
 ---
 
 ## 8. Context Management Conventions
@@ -809,6 +915,22 @@ A sub-agent handoff must preserve: objective, findings, evidence, files/symbols,
 
 Stop an agent when: objective is satisfied, required validation passes, additional information has low expected value, or additional model/tool calls are unlikely to change the outcome. Record avoided work in `agent.tokens_saved_by_exit` and `agent.steps_skipped`.
 
+### 12.6 Agent Memory Authority (H09)
+
+*Traceability: ARCH §47.3.1; INTF §43.13; PS §52.9; OBJ-031; AC-047*
+
+Agent-owned working memory (`MemoryStore`, INTF §16) — scratch state, transient observations, local plans, temporary working information — is expected and unrestricted, but is **never authoritative** over:
+
+- `execution/state/` (ESM) execution state
+- Current authorization state
+- Current policy state (the `policy_version` pinned at admission, §18.2)
+- `execution/context_version/` (CVM) / `execution/workflow_version/` (WVM) versions
+
+Every read from `MemoryStore` that could inform a decision affecting execution truth must carry a `memory_version`/provenance tag, compared against current ESM/CVM/WVM state before being trusted (`MemoryAuthorityCheck`, INTF §43.13). On disagreement — e.g., agent memory says a step is complete but WVM's `completed_actions` says otherwise, or agent memory holds a permission grant PRV has since revoked — the ESM/CVM/WVM-owned value wins and the disagreement is surfaced as an event, never silently resolved in the agent memory's favor. An unresolvable conflict (ambiguous provenance) defaults to treating the memory claim as stale/untrusted for that decision.
+
+> [!CAUTION]
+> No module — including `developer_agent/` and `agent_loop/` — may treat agent-owned memory as a substitute for a `reconcile()` call against ESM (§2.2). This restates, for agent memory specifically, the general principle that no optimization decision may proceed on a stale snapshot of context, policy, permissions, or resource state.
+
 ---
 
 ## 13. Security and Tenant Isolation Conventions
@@ -847,6 +969,52 @@ Before any content is logged, cached, emitted to the event bus, or included in a
 
 > [!CAUTION]
 > Audit records are immutable and may not be deleted (INTF §19.5). Minimum retention: 7 years (INTF §31.4). Any code that attempts to delete or overwrite an audit record is a security violation.
+
+### 13.5 Security Requirements (SEC-011 to SEC-016) — Added 2026-09-15, All Mandatory
+
+*Traceability: ARCH §47.2; INTF §43.1–43.5; PS §52*
+
+| ID | Requirement | Convention |
+|---|---|---|
+| SEC-011 | Budget controls must never bypass or substitute for authorization/policy/security | `governance/spend/` (SGE, §7.8) is evaluated independently; `WITHIN_BUDGET` never implies authorized, `HALTED` is never inferred from a failed authorization check |
+| SEC-012 | Sensitive data must be classified before optimization admission | `governance/data/` (DGE) classification runs before every `pipeline/`, `context_engine/`, or `cache_economics/` admission; `UNKNOWN` defaults to `SENSITIVE` |
+| SEC-013 | Deletion/erasure must propagate to every persisted surface | DGE's `DeletionPropagationReport` (INTF §43.2) covers cache (exact/semantic), memory, cost ledger, logs, traces, checkpoints |
+| SEC-014 | Tool/MCP metadata is part of the security boundary | `governance/tool_trust/` (TMG) authenticates identity and validates schema/staleness/integrity before a tool result is trusted, independent of TE-001's ROI signal |
+| SEC-015 | Consequential/irreversible actions require human approval | `governance/human_approval/` (HAG) gates only the policy/risk-designated subset; never every action |
+| SEC-016 | Externally-sourced content is untrusted by default | `governance/content_integrity/` (CIS) screens content before any optimization stage admits, ranks, compresses, caches, or acts on it |
+
+### 13.6 Spend Governance (SGE) (H05)
+
+*Traceability: ARCH §47.2.1; INTF §43.1; PS §52.5; OBJ-027; SEC-011; AC-043*
+
+`governance/spend/` supports independently configurable spend limits (absolute and/or rate-based) at tenant, organization, user, and application scope. Runaway-cost detection acts before a configured limit is exhausted, not only after. On breach, spend for the affected scope is halted/throttled while other scopes remain unaffected (§13.2 tenant isolation applies to budget scoping too). `T0.1`/`AR-002`/`T3.1` may consume remaining-budget as an input signal. On exhaustion mid-execution, follow the existing `SUSPENDED_BUDGET_EXCEEDED` handling (§16.1): return `PARTIAL`, remaining budget = 0, never silently overspend.
+
+### 13.7 Data Governance (DGE) (H07)
+
+*Traceability: ARCH §47.2.2; INTF §43.2; PS §52.7; OBJ-029; SEC-012, SEC-013; AC-045*
+
+`governance/data/` classification determines encryption, retention, and caching eligibility, and runs before the `PIIClassifier` check already required at every cache write (§9.3, §13.3) — DGE's `SensitivityClassificationResult` wraps and extends `PIIClassificationResult`, it does not replace it. Every cache, memory layer, ledger, and log/trace has a configurable retention period (Appendix C). A deletion/erasure request must be verifiable — DGE must be able to report which surfaces still hold data derived from a given source after a deletion request, not merely assert propagation. No specific regulatory regime (GDPR, HIPAA, PCI-DSS) is hard-coded; applicability is deployment configuration (`SOURCE-GAP`, consistent with the foundational documents — see §53-equivalent gap discipline in the authoritative chain).
+
+### 13.8 Tool / MCP Trust (TMG) (H11)
+
+*Traceability: ARCH §47.2.3; INTF §43.3; PS §52.11; SEC-014; AC-048*
+
+Before a tool/MCP result is admitted (in addition to §11's TE-006 result filtering), `governance/tool_trust/` must: authenticate the tool/MCP server's identity; validate the tool schema for integrity (a schema change between calls is a staleness/trust event, never silently accepted); validate authorization independently of `TE-001`'s ROI signal (cost efficiency never substitutes for a trust decision); and revalidate discovered availability on a policy-defined interval rather than assuming it persists indefinitely. An identity or schema-integrity failure is fail-closed (`QUARANTINED`), never an optimization fallback that uses the untrusted tool anyway.
+
+### 13.9 Human Approval (HAG) (H13)
+
+*Traceability: ARCH §47.2.4; INTF §43.4; PS §52.13; SEC-015; OBJ-033; AC-050*
+
+The designated-action list requiring human approval is a policy decision, configurable per tenant/workflow — never a fixed list in code, and never applied to every action (routine, reversible, low-risk actions proceed under the §7.7 ownership model without a gate). A pending approval follows the same suspension handling as any other interruption cause (§16.1): checkpoint, return `PARTIAL`/`AWAITING_APPROVAL`, resume once approval is granted or denied. Approval requests carry a configurable timeout; on timeout, apply the policy-defined default (deny, or escalate) — never silently `APPROVED`. If the approval mechanism itself is unavailable, the gated action is blocked (fail-closed).
+
+### 13.10 Content Integrity / Prompt-Injection Screening (CIS) (H14)
+
+*Traceability: ARCH §47.2.5; INTF §43.5; PS §52.14; SEC-016; OBJ-034; AC-051*
+
+`governance/content_integrity/` screens RAG chunks, search results, tool outputs, sub-agent handoffs (§12.4), and MCP tool results (§13.8) before any optimization stage admits, ranks, compresses, caches, or authorizes an action based on that content — not only end-user input (already covered by the Sanitizer, §6). This ordering requirement takes precedence over §7.6's `HYBRID` preference: precomputation may speed up the screening mechanism, but the screening step itself may never be skipped or deferred until after admission.
+
+> [!CAUTION]
+> A screening failure (the check cannot complete) is fail-closed — reject or quarantine the content. It is never treated as an optimization failure that falls back to admitting the unscreened content.
 
 ---
 
@@ -991,10 +1159,26 @@ Candidate verifiers: unit tests, schema validation, type checking, static analys
 | CEC — Context Expansion Controller | Fail-open: `SUSPENDED_BUDGET_EXCEEDED`, never a silent truncation |
 | SRP — Stale Result Protection | Fail-open: re-fetch or re-execute; never serve a stale result silently |
 | SPM — Supersession Manager | Lifecycle control, not a request-path stage: old execution is marked `SUPERSEDED`, finalized, and never resumed |
+| SGE — Spend Governance Engine | Conservative, not fail-open: budget-unavailable defaults to policy-configured `THROTTLED`/`HALTED`, never `WITHIN_BUDGET` |
+| DGE — Data Governance Engine | Fail-closed: classification-unavailable defaults to `SENSITIVE`, never `NON_SENSITIVE` |
+| TMG — Tool/MCP Trust Gate | Fail-closed: identity/schema-integrity failure returns `QUARANTINED` |
+| HAG — Human Approval Gate | Fail-closed: approval-mechanism-unavailable blocks the gated action; timeout applies the policy default, never silent `APPROVED` |
+| CIS — Content Integrity Screen | Fail-closed: `SCREENING_UNAVAILABLE` rejects or quarantines the content |
+| FTR — Feasibility Tier Registry | Fail-open to reduced capability: actual access degrading below the declared tier requires redeclaring a lower tier, never silently overclaiming |
+| XEC — Cross-Execution Coordinator | Fail-closed for the losing side of a conflict: an unresolvable conflict blocks the losing execution's write/action; never an unreconciled dual-write |
+| SPC — Self-Protection Controller | Fail-open to the unoptimized path on latency/compute budget exhaustion — **unless** doing so would skip a `governance/` check, in which case fail closed (§7.9) |
+| VCL — Verifier Calibration Layer | Fail-open, conservative: below-threshold result applies the existing Quality-Aware Fallback (§15.2) — escalate, restore, or disable |
 
 > [!IMPORTANT]
 > Optimization failure must **not** become application failure unless the optimization itself is explicitly required by policy.
 > This extends to the Dynamic Execution components: a stale, superseded, or unreconciled result must never silently become the authoritative result of a request (ARCH §46.2.5, §46.2.11, §46.2.12).
+> It extends further to the Governance/Safety Plane (SGE, DGE, TMG, HAG, CIS): these are security/policy-adjacent controls, and their unresolved failure defaults are conservative (deny/quarantine/classify-as-sensitive), never permissive — a `governance/` failure must never be treated as an ordinary optimization failure that falls back to the unoptimized-but-otherwise-unchecked path.
+
+### 16.3 Cross-Execution Concurrency (XEC) (H12)
+
+*Traceability: ARCH §47.3.2; INTF §43.7; PS §52.12; OBJ-032; AC-049*
+
+`execution/cross_execution/` (XEC) extends `execution/reconciliation/` (RE) and `execution/supersession/` (SPM) from single-execution to multi-execution scope for shared resources (files, tickets, shared memory per CL-006, external systems). Shared resources participating in cross-execution coordination carry a version or equivalent conflict-detection token. When two executions mutate the same resource, the second write must not silently overwrite context the first write depended on — XEC raises a conflict. A decision made from a shared-state snapshot that has since changed is a stale-result case under SRP (§16.2) and must be revalidated before another execution relies on it. Locking is required only where the shared resource/action is non-idempotent and concurrently reachable — not universally. Non-idempotent operations are never blindly replayed across executions, extending RCO's resume-time invariant (§14 equivalent, INTF §42.13) to cross-execution scope.
 
 ---
 
@@ -1172,6 +1356,15 @@ PATCH: Non-functional (description, documentation only)
 
 Clients send `Accept-Version: "1.*"`. The control plane responds with `Schema-Version: "1.3.0"`. If the version is unsupported: HTTP 406 + `{"min_version": "1.0.0", "max_version": "2.1.0"}`.
 
+### 22.4 Checkpoint Conventions and Execution State Portability (H16)
+
+*Traceability: ARCH §47.11; INTF §42.4, §42.13; PS §52.16; AC-053*
+
+> [!IMPORTANT]
+> **RESUME != REPLAY.** Resuming an execution from a checkpoint (`execution/checkpoint/`, CPM) always re-validates current state via `execution/permission_revalidation/` (PRV), `execution/dynamic_policy/` (DPE), and `execution/capability_resolver/` (CAR) before continuing — it never simply replays the original sequence of actions from the beginning.
+
+Checkpoint records (`CheckpointRecord`, INTF §42.4) are durable where required, versioned (`execution_version`, `context_version`, `workflow_version`), provenance-aware, authorization-aware, and policy-aware. They must be defined in **provider/session-neutral terms**: no checkpoint field may be, or require, a specific provider's session object, conversation-thread ID, or proprietary state format. A checkpoint produced under one model/provider selection must remain interpretable for RCO's reconciliation steps even if `model_selected` changes on resume (e.g., CAR-driven failover). A provider's native resumability (e.g., a conversation/session ID) may be used as an optimization to avoid re-transmitting cached context, but correctness of resume/reconciliation must never depend on that provider-specific mechanism being present. Non-idempotent side effects recorded in `completed_actions` are never blindly replayed — RCO consults `WVM.completed_actions` and skips every completed step before resuming from the first unresolved one (§16.2).
+
 ---
 
 ## 23. Developer-Agent Module Conventions
@@ -1207,6 +1400,22 @@ All 25 DA modules are **mandatory first-class requirements**. Each module must b
 | Context Provenance Tracker | DA-023 | Record origin of every retained context item: file/path/line, tool, search, sub-agent, conversation turn, or memory |
 | Context Invalidation Engine | DA-024 | Invalidate caches on file, branch, dependency, permission, or external state change |
 | Patch / Change Impact Analyzer | DA-025 | Estimate affected files, symbols, tests, and dependencies; prioritize relevant context |
+
+### 23.1 Coding-Agent Integration Feasibility Tiers (H08)
+
+*Traceability: ARCH §47.10; INTF §43.6; PS §52.8; OBJ-030; AC-046*
+
+Developer/coding-agent optimization remains a **first-class product requirement** (§5.1 of the authoritative Architecture) — this convention bounds *how deep* a given integration can reach, never *whether* coding-agent support is a priority. `providers/feasibility_tier/` (FTR) requires every coding-agent integration (Cursor, Claude Code, GitHub Copilot, Antigravity, Codex, and comparable platforms) to declare exactly one of five tiers before any DA-001–DA-025 module is wired to it:
+
+| Tier | Access |
+|---|---|
+| Deep/Native | Full model-bound context observable/transformable pre-inference |
+| Gateway/Interception | Request/response observable/transformable at the API/LLM gateway boundary |
+| Plugin/Extension | Bounded by the platform's own extensibility surface |
+| Protocol/Tool-Level | Optimizes only what passes through an MCP/tool protocol surface |
+| Advisory/Observability-Only | Observes exposed telemetry only; can advise, cannot transform/block |
+
+The declared tier bounds which DA-001–DA-025 modules can actually be applied for that platform (`TierDeclaration.reachable_modules`, INTF §43.6). Implementations must not report or imply full-pipeline optimization coverage for a platform whose declared tier is Protocol/Tool-Level or Advisory/Observability-Only. If a platform's actual access degrades below its declared tier at runtime (e.g., an extensibility API is deprecated), the integration must redeclare a lower tier — silently continuing to claim the stale, higher tier is prohibited (§24.4).
 
 ---
 
@@ -1269,6 +1478,21 @@ All 25 DA modules are **mandatory first-class requirements**. Each module must b
 | Raw credentials in interface fields | PROHIBITED | Reference by secret handle only |
 | Caching mutable data without TTL | PROHIBITED | TTL required for all cache entries |
 | Full conversation replay to sub-agent | PROHIBITED | Use `SubAgentContextHandoff` |
+
+### 24.4 Hardening Anti-Patterns (2026-09-15) (H20, Anti-Scope Boundary)
+
+*Traceability: ARCH §47.13, §41; INTF §43.15; PS §52.20, §25, §48; OBJ-035*
+
+- Building the Control Plane as a replacement agent orchestrator, model-training system, model-runtime infrastructure, provider infrastructure, general-purpose developer IDE, or coding-agent UX replacement instead of integrating with those systems through the adapter layer (§2.1) and feasibility-tier model (§23.1)
+- Assuming a coding-agent integration provides complete request interception when only a Plugin/Extension, Protocol/Tool-Level, or Advisory/Observability-Only tier is actually declared (§23.1)
+- Treating a verifier's `passed = true` output as ground truth without a calibrated confidence score and acceptance threshold (§7.10)
+- Allowing agent-owned working memory to override Control Plane execution state, authorization state, policy state, or context/workflow version (§12.6)
+- Admitting retrieved, tool, or other externally-sourced content into an optimization stage before it has passed content-integrity/prompt-injection screening (§13.10)
+- Allowing the Control Plane's own latency, compute, or cost overhead to exceed the value of the optimization it enables (§7.9)
+- Routing every action through the Human Approval Gate rather than only the policy/risk-designated subset (§13.9) — this defeats the Control Plane's own value proposition
+- Treating a `governance/` module's (SGE, DGE, TMG, HAG, CIS) fail-safe default as an ordinary fail-open optimization fallback (§16.2)
+- Defaulting a component's `decision_ownership` (§7.7) to `EXECUTION_OWNERSHIP` by omission instead of `ADVISORY`
+- Choosing `SYNC` operating mode (§7.6) where `HYBRID` would achieve equivalent safety/quality at lower latency/cost
 
 ---
 
@@ -1333,14 +1557,48 @@ Every implementation artifact must be traceable to at least one authoritative re
 | Requirement Area | Count | Status |
 |---|---|---|
 | Objectives (OBJ-001–014) | 14 | All covered — ARCH §44.1 |
+| Objectives (OBJ-015–022, Dynamic Execution) | 8 | All covered — canonically labeled PS §51.13; ARCH §44.12 registry |
+| Objectives (OBJ-023–035, Hardening) | 13 | All covered — ARCH §3, §44.7; conventions §7.6–7.10, §12.6, §13.5–13.10, §23.1 |
 | Acceptance Criteria (AC-001–038) | 38 | All covered — ARCH §44.6 |
+| Acceptance Criteria (AC-039–053, Hardening) | 15 | All covered — ARCH §44.10; INTF §43 |
 | Security Requirements (SEC-001–010) | 10 | All covered — ARCH §44.2 |
+| Security Requirements (SEC-011–016, Hardening) | 6 | All covered — §13.5 |
 | Non-Functional Requirements (NFR-001–013) | 13 | All covered — ARCH §44.3 |
+| Non-Functional Requirements (NFR-014, Self-Protection) | 1 | Covered — §7.9 |
+| Hardening Requirements (H01–H20) | 20 | All covered — see §27.1 below |
 | Optimization Domains (A–S) | 19 | All covered — ARCH §44.4 |
 | Developer-Agent Modules (DA-001–025) | 25 | All present — ARCH §44.5 |
-| Dynamic Execution Components (ESM, CVM, WVM, CPM, RE, CIG, CEC, PRV, DPE, CAR, SRP, SPM, RCO) | 13 | All covered — ARCH §46 |
-| Interface Definitions | 62 (INTF-001–INTF-062) | Fully specified in EAIOC-INTF-001, incl. §42 Dynamic Execution Interfaces (INTF-050–062) |
-| Schema Types | 230+ | Fully specified in EAIOC-INTF-001 |
+| Dynamic Execution Components (ESM, CVM, WVM, CPM, RE, CIG, CEC, PRV, DPE, CAR, SRP, SPM, RCO) | 13 | All covered — ARCH §46; §2.1 package layout |
+| Hardening Components (SGE, DGE, TMG, HAG, CIS, FTR, XEC, SPC, VCL) | 9 | All covered — ARCH §47; §2.1 package layout |
+| Interface Definitions | 71 (INTF-001–INTF-071) | Fully specified in EAIOC-INTF-001, incl. §42 Dynamic Execution Interfaces (INTF-050–062) and §43 Hardening Interfaces (INTF-063–071) |
+| Schema Types | 260+ | Fully specified in EAIOC-INTF-001 |
+
+### 27.1 Hardening Requirements (H01–H20) Convention Coverage
+
+| H# | Requirement | Convention Section |
+|---|---|---|
+| H01 | Control Plane Operating Model | §7.6 |
+| H02 | Advisor/Enforcer/Execution-Owner Boundary | §7.7 |
+| H03 | Control Plane Self-Protection | §7.9 |
+| H04 | Verified Net Optimization Economics | §7.8 |
+| H05 | Enterprise Spend Governance | §13.6 |
+| H06 | Verifier Confidence and Calibration | §7.10 |
+| H07 | Data Governance | §13.7 |
+| H08 | Coding-Agent Integration Feasibility Tiers | §23.1 |
+| H09 | Memory Authority | §12.6 |
+| H10 | Reflection and Loop Awareness | §12.2 (AL-002, unchanged) — no new convention required; existing waste-detection convention already applies expected-value classification, not iteration-count matching |
+| H11 | Tool / MCP Trust Boundary | §13.8 |
+| H12 | Shared State and Cross-Execution Concurrency | §16.3 |
+| H13 | Human Approval for Consequential Actions | §13.9 |
+| H14 | Prompt Injection and Malicious Content | §13.10 |
+| H15 | Decision Explainability and Audit | §1.6, §17.1 (unchanged) — explanation retrievability already required for every decision category by the existing `ExplanationRecord` convention |
+| H16 | Execution State Portability | §22.4 |
+| H17 | Layer 3 Boundary: Integration, Not Implementation | §1.3 (unchanged) — Layer 3 separation already mandatory; no core-optimizer implementation of KV-cache/batching/speculative-decoding/quantization is permitted under §1.4 provider neutrality |
+| H18 | Ownership Boundaries (token/context/cache/inference) | §1.3, §6 (unchanged) — three-layer separation already enforces this; Layer 3 remains awareness/integration/routing/policy only |
+| H19 | Research Claims as Evidence, Not Guarantees | §20.2, §26 (unchanged) — reaffirmation only, no new convention |
+| H20 | Anti-Scope: What the Control Plane Is Not | §24.4 |
+
+**20/20 hardening requirements have an identifiable convention. PASS.**
 
 ---
 
@@ -1360,7 +1618,15 @@ Every implementation artifact must be traceable to at least one authoritative re
 | TE.x — Tool Selection | < 50 ms | 0 |
 | QV.x — Validation | < 200 ms | < 1000 |
 | AL.x — Loop Control | < 10 ms | 0 |
+| SGE — Spend Governance (budget check) | < 10 ms | 0 |
+| DGE — Data Governance (classification) | < 30 ms | 0 |
+| TMG — Tool/MCP Trust (identity/schema check) | < 20 ms | 0 |
+| CIS — Content Integrity Screen | < 100 ms | 0 |
+| VCL — Verifier Calibration | < 50 ms | 0 |
 | **Total (end-to-end optimizer)** | **< 500 ms** | **< 2000** |
+
+> [!NOTE]
+> The above per-stage budgets are enforced by `intelligence/self_protection/` (SPC, §7.9). HAG's approval wait time is explicitly excluded from this budget — it is a suspension, not an optimization-stage latency, and is tracked separately per §13.9/§16.1's `AWAITING_APPROVAL` handling. FTR tier declaration/redeclaration is an `ASYNC` operation (§7.6) and is not counted against the synchronous request-path budget.
 
 ---
 
@@ -1390,6 +1656,9 @@ Every implementation artifact must be traceable to at least one authoritative re
 | Memory (TURN layer) | Session lifetime | Configurable |
 | Reversibility records | 24 hours | Configurable |
 | Policy version history | 5 years | Unlimited |
+| Deletion propagation reports (DGE) | 3 years | Unlimited (needed to prove erasure was honored) |
+| Approval records (HAG) | 7 years | Unlimited (audit-equivalent; §13.4 immutability applies) |
+| Checkpoint records (CPM) | 24 hours (default TTL) | Configurable per workflow criticality |
 
 ---
 

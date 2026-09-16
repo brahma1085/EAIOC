@@ -5,10 +5,15 @@
 
 **Document ID:** EAIOC-INTF-001
 **Status:** PRE-IMPLEMENTATION — Pending stakeholder approval
-**Source (authoritative):** `Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt`
-**Architecture cross-reference:** `architecture.md` (EAIOC-ARCH-001)
+**Source (authoritative):** `Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt` (as hardened 2026-09-15, PS §52; reconciled 2026-09-16, PS §51.13)
+**Engineering Spec cross-reference:** `Ent_Agent_LLM_Inference_Opt_Control_Plane_Engineering_Spec.md` (EAIOC-SPEC-001 Rev 1.4)
+**Architecture cross-reference:** `architecture.md` (EAIOC-ARCH-001 Rev 1.3)
 **Date:** 2026-09-08
-**Version:** 1.0.0
+**Version:** 1.2.0
+**Amendment history:**
+- 1.0.0 (2026-09-08) — Baseline: INTF-001–049 across §1–41, drawn directly from the Problem Statement and an early draft of `architecture.md`.
+- 1.1.0 (2026-09-10) — §42 added: Dynamic Execution Interfaces (INTF-050–062), propagating ARCH §46 / SPEC §41 / PS §51.
+- 1.2.0 (2026-09-16) — §43 added: Hardening Interfaces (INTF-063–071), propagating ARCH §47 / SPEC §42 / PS §52 (H01–H20, OBJ-023–035, SEC-011–016, NFR-014, AC-039–053). TOC corrected (§42 was missing from the Table of Contents; §43 added). §41's "Recommended Next Documentation Artifact" corrected — it previously recommended generating the Engineering Specification, which already exists as EAIOC-SPEC-001 and precedes this document in the authoritative chain (PS → Engineering Spec → Architecture → Interfaces); it now correctly points to `conventions.md`.
 
 ---
 
@@ -61,6 +66,8 @@
 39. Assumptions
 40. Dependencies
 41. Recommended Next Documentation Artifact
+42. Dynamic Execution Interfaces
+43. Hardening Interfaces — Operating Model, Governance, and Trust Boundaries (2026-09-15)
 
 
 ---
@@ -429,6 +436,20 @@ DecisionRationale {
 | `reasoning_budget` | Controls depth of model reasoning |
 | `output_token_budget` | Caps generated output |
 | `tool_selection_mode` | SELECTIVE = dynamic tool loading; NONE = no tools |
+
+### 3.4 Hardening Extension (2026-09-15): Operating Mode and Decision Ownership
+
+*Traceability: ARCH §47.5, §47.6; SPEC §42.1, §42.2; PS §52.1, §52.2; OBJ-023, OBJ-024; AC-039, AC-040*
+
+`OptimizationPlan` (§3.2) and every per-stage decision it carries are extended with two additional fields, defined once here and reused by every interface in §43:
+
+```
+// Added to OptimizationPlan (§3.2), and to OptimizationStage / SkippedStage:
+operating_mode:      OperatingMode          // See §43.10 for the shared enum definition
+decision_ownership:  DecisionOwnership      // See §43.10 for the shared enum definition
+```
+
+A caller reading `OptimizationPlan.operating_mode` and `.decision_ownership` (or the per-stage equivalents on `OptimizationStage`) can always determine, for any decision, whether it was computed synchronously/asynchronously/hybrid and whether the Control Plane is advising, enforcing, or directly owning the resulting action — without inferring it from stage identity. `SkippedStage.reason` additionally accepts `DO_NOT_OPTIMIZE` (net-negative expected value; see §43's Verified Net Optimization Economics types) alongside the existing enum values — no existing value is removed or renumbered.
 
 ---
 
@@ -2976,6 +2997,23 @@ The following patterns are **explicitly prohibited** in any interface implementa
 | PS §33 — OI requirements | §3, §29 |
 | PS §34 — CL requirements | §5, §16 |
 | PS §51 — Dynamic execution state | §42 |
+| PS §52 — Operating model, governance, and trust boundaries (H01–H20) | §43 |
+
+### 34.2 Engineering Specification and Architecture Traceability (Hardening Pass)
+
+*Added 2026-09-16. §1–§42 were drawn directly from the Problem Statement and an early draft of `architecture.md`, predating the three-tier PS → Engineering Spec → Architecture → Interfaces authority chain now established (see the foundational documents' Final Foundational Document Reconciliation, 2026-09-16); their PS-only traceability format in §34.1 is preserved as-is rather than retrofitted, since every PS section they cite is itself faithfully carried into EAIOC-SPEC-001 and `architecture.md` without renumbering. §43 (this amendment) is traced directly to all three:*
+
+| Component | PS | EAIOC-SPEC-001 | architecture.md |
+|---|---|---|---|
+| SGE | §52.5 | §42.5 | §47.2.1 |
+| DGE | §52.7 | §42.7 | §47.2.2 |
+| TMG | §52.11 | §42.11 | §47.2.3 |
+| HAG | §52.13 | §42.13 | §47.2.4 |
+| CIS | §52.14 | §42.14 | §47.2.5 |
+| FTR | §52.8 | §42.8 | §47.10 |
+| XEC | §52.12 | §42.12 | §47.3.2 |
+| SPC | §52.3 | §42.3 | §47.4.1 |
+| VCL | §52.6 | §42.6 | §47.4.3 |
 
 ---
 
@@ -2990,7 +3028,7 @@ This document defines **what** each component exposes and **what contracts** it 
 - Deployment topology (containers, serverless, etc.)
 - CI/CD pipelines or release processes
 
-These concerns belong in the **Engineering Specification** (EAIOC-ENGR-001).
+These concerns belong in downstream documents — primarily `conventions.md` (naming, module layout, package structure) and `implementation-plan.md` (deployment topology, CI/CD, sequencing) — not in this document or in the already-existing, deliberately implementation-neutral Engineering Specification (EAIOC-SPEC-001). *(Corrected 2026-09-16: this line previously cited a document ID, "EAIOC-ENGR-001," that does not exist; see §41 for the full correction.)*
 
 ---
 
@@ -3060,8 +3098,17 @@ These concerns belong in the **Engineering Specification** (EAIOC-ENGR-001).
 | INTF-060 | StaleResultProtection (SRP) | §42.11 | 3 schemas |
 | INTF-061 | SupersessionManager (SPM) | §42.12 | 2 schemas |
 | INTF-062 | RecoveryCoordinator (RCO) | §42.13 | 3 schemas |
+| INTF-063 | SpendGovernanceEngine (SGE) | §43.1 | 4 schemas |
+| INTF-064 | DataGovernanceEngine (DGE) | §43.2 | 6 schemas |
+| INTF-065 | ToolMCPTrustGate (TMG) | §43.3 | 4 schemas |
+| INTF-066 | HumanApprovalGate (HAG) | §43.4 | 6 schemas |
+| INTF-067 | ContentIntegrityScreen (CIS) | §43.5 | 3 schemas |
+| INTF-068 | FeasibilityTierRegistry (FTR) | §43.6 | 2 schemas |
+| INTF-069 | CrossExecutionCoordinator (XEC) | §43.7 | 4 schemas |
+| INTF-070 | SelfProtectionController (SPC) | §43.8 | 5 schemas |
+| INTF-071 | VerifierCalibrationLayer (VCL) | §43.9 | 5 schemas |
 
-**Total: 62 interface definitions, 230+ schema types**
+**Total: 71 interface definitions, 260+ schema types** (INTF-001–062 unchanged; INTF-063–071 added 2026-09-16. §43.10's `OperatingMode`/`DecisionOwnership` shared enums and §3.4's `OptimizationPlan` extension fields are counted within the above interfaces' schema counts, not as a separate INTF ID, since they are cross-cutting type extensions rather than a component-owned interface.)
 
 
 ---
@@ -3110,6 +3157,15 @@ These concerns belong in the **Engineering Specification** (EAIOC-ENGR-001).
 | SRP — Stale Result Protection | INTF-012, INTF-053 | INTF-060 |
 | SPM — Supersession Manager | INTF-050, INTF-052 | INTF-061 |
 | RCO — Recovery Coordinator | INTF-053–060 | INTF-062 |
+| SGE — Spend Governance Engine | INTF-047 (Cost Ledger) | INTF-063 |
+| DGE — Data Governance Engine | INTF-040 (PIIClassifier) | INTF-064 |
+| TMG — Tool/MCP Trust Gate | INTF-017–018, INTF-038 | INTF-065 |
+| HAG — Human Approval Gate | INTF-052 (WVM), INTF-050 (ESM) | INTF-066 |
+| CIS — Content Integrity Screen | INTF-004, INTF-023, INTF-026 | INTF-067 |
+| FTR — Feasibility Tier Registry | INTF-024 (DeveloperAgentRequest) | INTF-068 |
+| XEC — Cross-Execution Coordinator | INTF-054 (RE), INTF-061 (SPM) | INTF-069 |
+| SPC — Self-Protection Controller | INTF-002 (OptimizationPlan) | INTF-070, `DepthSheddingDecision` |
+| VCL — Verifier Calibration Layer | INTF-029 (QualityValidator) | INTF-071 |
 
 ### 37.2 Data Flow Dependencies
 
@@ -3198,23 +3254,24 @@ ALL requires: PolicyEnforcer (INTF-036), Observability (INTF-031–034)
 
 ## 41. Recommended Next Documentation Artifact
 
-**Document:** Engineering Specification — EAIOC-ENGR-001
+> [!NOTE]
+> **Corrected 2026-09-16 (Final Foundational Document Reconciliation follow-through).** This section previously recommended generating "Engineering Specification — EAIOC-ENGR-001" as the next artifact. That recommendation predates the now-established authoritative document chain: the Engineering Specification (EAIOC-SPEC-001) and the Architecture document (EAIOC-ARCH-001) already exist and precede this document — **Problem Statement → Engineering Specification → Architecture → Interfaces** (see this document's own header, and CLAUDE.md's documented chain). The concrete technology choices, module layout, and conventions this section originally deferred to a not-yet-existing Engineering Specification are the responsibility of `conventions.md`, the next document in the chain, per the Engineering Specification's own scope statement (it is intentionally implementation-neutral) and `architecture.md` §1.6's build-vs-integrate boundary.
 
-**Contents:**
-- Concrete technology choices for each interface (storage engine, transport, embedding model)
-- Language-specific type bindings for all 190+ schema types
-- Module directory structure and package organization
-- API endpoint definitions (REST / gRPC / SDK) for external integrations
-- Database schema and migration plan
-- Deployment topology and scaling strategy
-- Monitoring and alerting runbook
-- Security implementation guide (key rotation, secret handling)
-- Performance benchmarking plan against §31 budgets
+**Document:** `conventions.md`
 
-**Prerequisite for Engineering Spec:**
+**Contents (per `architecture.md` §1.6's downstream-ownership table):**
+- Naming conventions, module/package layout mirroring the `<LAYER>.<SEQUENCE>-<NAME>` component ID scheme (`architecture.md` §1's conventions cross-reference)
+- Language-neutral pseudo-structure for the interfaces defined here (§1–§43), not a specific language binding
+- Fail-open/fail-closed enforcement mechanics implementing the precedence established in §25 and reaffirmed by §43.12
+- Anti-pattern checklist (extending `architecture.md` §41)
+- The dependency rules and package-layout constraints referenced by `architecture.md`'s component ID scheme
+
+**Prerequisite for `conventions.md`:**
 - Resolve Open Questions Q1–Q10 (§38)
 - Confirm Assumptions A1–A10 (§39)
-- Stakeholder review and sign-off on this interfaces document (EAIOC-INTF-001)
+- Stakeholder review and sign-off on this interfaces document (EAIOC-INTF-001), including the §43 hardening amendment
+
+Note: this document deliberately does **not** prescribe storage engines, transport protocols, database schemas, deployment topology, or a specific embedding model (§35, §37); those remain downstream, implementation-level decisions for `conventions.md` and later documents to make, consistent with §41's original intent even though its target document name was stale.
 
 ---
 
@@ -3887,7 +3944,614 @@ The following rows extend the Per-Stage Fallback Requirements table in §22.2:
 
 ---
 
-*Total interface definitions: 62 | Total schema types: 230+ | Total sections: 42*
-*Authoritative source: `Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt`*
-*Architecture cross-reference: `architecture.md` (EAIOC-ARCH-001 Rev 1.1)*
-*Engineering specification cross-reference: EAIOC-SPEC-001 Rev 1.2*
+## 43. Hardening Interfaces — Operating Model, Governance, and Trust Boundaries (2026-09-15)
+
+**Amendment:** EAIOC-INTF-001 v1.2.0 — Hardening Pass, 2026-09-15 (propagated 2026-09-16)
+**Traceability:** PS §52 (H01–H20); ARCH §47; SPEC §42; OBJ-023–035; SEC-011–016; NFR-014; AC-039–053
+
+> [!IMPORTANT]
+> This section is additive. All interfaces in §1–42 remain unchanged. These interfaces give concrete contract shape to the 9 new/extended components introduced in ARCH §47 (SGE, DGE, TMG, HAG, CIS, FTR, XEC, SPC, VCL). All new interfaces follow the same schema conventions as §1–42: provider-neutral, tenant-scoped, fail-open for optimization, fail-closed for security. Where a new interface's responsibility overlaps an existing one (e.g., DGE and `PIIClassifier`, TMG and `AuthorizationService`), the new interface **extends and references** the existing one rather than duplicating its contract.
+
+---
+
+### 43.1 Spend Governance Engine (SGE)
+
+*Traceability: ARCH §47.2.1; SPEC §42.5; PS §52.5; OBJ-027; SEC-011; AC-043*
+
+```
+interface SpendGovernanceEngine {
+  evaluate_budget(execution_id: string, scope: BudgetScope,
+                  projected_cost: float)                 -> BudgetEvaluationResult
+  record_spend(execution_id: string, actual_cost: float)  -> SpendLedgerUpdate
+  detect_runaway(scope: BudgetScope)                      -> RunawayDetectionResult
+  activate_circuit_breaker(scope: BudgetScope)             -> void
+  reset_circuit_breaker(scope: BudgetScope)                -> void
+}
+
+BudgetScope {
+  scope_type: enum { TENANT, ORGANIZATION, USER, APPLICATION }
+  scope_id:   string
+}
+
+BudgetEvaluationResult {
+  status:                  enum { WITHIN_BUDGET, THROTTLED, HALTED }
+  scope:                   BudgetScope
+  remaining_budget:        float
+  projected_cost:          float
+  circuit_breaker_active:  boolean
+  evaluated_at:            ISO8601 string
+}
+
+RunawayDetectionResult {
+  detected:            boolean
+  scope:               BudgetScope
+  acceleration_factor: float    // vs. historical baseline
+  action_recommended:  enum { NONE, THROTTLE, HALT }
+}
+
+SpendLedgerUpdate {
+  scope:           BudgetScope
+  cost_recorded:   float
+  cumulative_spend: float
+  recorded_at:     ISO8601 string
+}
+```
+
+> **Invariant (SEC-011):** `BudgetEvaluationResult` is never consulted in place of `AuthorizationDecision` (INTF-038, §21.2) or `EnforcementResult` (INTF-036, §20.2). `WITHIN_BUDGET` never implies authorized; `HALTED` is never inferred from a failed authorization check. A caller that receives both must apply both independently.
+>
+> **Failure Behavior:** if `evaluate_budget()` cannot determine remaining budget, `status` defaults to the tenant's policy-configured safe default (`THROTTLED` or `HALTED`) — never `WITHIN_BUDGET` by default.
+
+---
+
+### 43.2 Data Governance Engine (DGE)
+
+*Traceability: ARCH §47.2.2; SPEC §42.7; PS §52.7; OBJ-029; SEC-012, SEC-013; AC-045*
+
+```
+interface DataGovernanceEngine {
+  classify(content_ref: string, context: ClassificationContext)  -> SensitivityClassificationResult
+  get_retention_policy(surface: DataSurface, tenant_id: string)  -> RetentionPolicy
+  request_deletion(subject_ref: string, tenant_id: string)       -> DeletionRequestRecord
+  get_deletion_propagation_status(deletion_id: string)           -> DeletionPropagationReport
+}
+
+SensitivityClassificationResult {
+  classification:        enum { SENSITIVE, NON_SENSITIVE, UNKNOWN }
+  pii_result:             PIIClassificationResult | null    // INTF-040 (§21.4); reused, not duplicated
+  encryption_required:    boolean
+  caching_eligible:       boolean
+  residency_constraint:   string | null
+  classified_at:          ISO8601 string
+}
+
+DataSurface: enum { CACHE_EXACT, CACHE_SEMANTIC, MEMORY, LEDGER, LOG, TRACE, CHECKPOINT }
+
+RetentionPolicy {
+  surface:         DataSurface
+  tenant_id:       string
+  retention_days:  integer
+}
+
+DeletionRequestRecord {
+  deletion_id:   string
+  subject_ref:   string
+  tenant_id:     string
+  requested_at:  ISO8601 string
+}
+
+DeletionPropagationReport {
+  deletion_id:          string
+  surfaces_cleared:     DataSurface[]
+  surfaces_pending:     DataSurface[]
+  surfaces_holding_data: SurfaceHoldRecord[]    // Still holds data derived from the source
+  verified:             boolean
+}
+
+SurfaceHoldRecord {
+  surface:      DataSurface
+  item_refs:    string[]
+  reason:       string
+}
+```
+
+> **Invariant (SEC-012):** `UNKNOWN` classification is treated as `SENSITIVE` for admission, caching, and retention purposes until resolved. This is a Tier 0 (SEC-protected) concern per ARCH §46's tier model and is never overridden by relevance score or budget pressure.
+>
+> **Failure Behavior:** a `classify()` failure defaults `classification` to `SENSITIVE` — never `NON_SENSITIVE`.
+
+---
+
+### 43.3 Tool/MCP Trust Gate (TMG)
+
+*Traceability: ARCH §47.2.3; SPEC §42.11; PS §52.11; SEC-014; AC-048*
+
+```
+interface ToolMCPTrustGate {
+  authenticate_identity(tool_id: string, mcp_server_id: string | null) -> IdentityVerificationResult
+  validate_schema(tool_id: string, schema: ToolDefinition,
+                  previous_schema_hash: string | null)                 -> SchemaValidationResult
+  check_staleness(tool_id: string)                                     -> ToolFreshnessResult
+  trust_decision(tool_id: string, call_context: ToolCallContext)       -> ToolTrustResult
+}
+
+IdentityVerificationResult {
+  authenticated: boolean
+  identity_id:   string
+  verified_at:   ISO8601 string
+}
+
+SchemaValidationResult {
+  valid:                     boolean
+  schema_hash:               string
+  changed_since_last_call:   boolean
+  integrity_event_ref:       string | null
+}
+
+ToolFreshnessResult {
+  fresh:                  boolean
+  last_revalidated_at:    ISO8601 string
+  revalidation_interval_s: integer
+}
+
+ToolTrustResult {
+  status: enum { TRUSTED, SCHEMA_STALE, UNAUTHORIZED, QUARANTINED }
+  reason: string | null
+}
+```
+
+> **Note:** Authorization itself is delegated to `AuthorizationService.check_tool_access` (INTF-038, §21.2); TMG's trust decision is evaluated independently of TE-x's cost/ROI signal (INTF-019, §10.3) — efficiency never substitutes for a trust decision. TMG extends `ToolDefinition` (INTF-017, §10.1) and `CL-003`-style dependency invalidation (ARCH §15.3) to tool/MCP version changes specifically.
+>
+> **Failure Behavior:** an identity or schema-integrity failure returns `QUARANTINED` (fail-closed) — not an optimization fallback to using the untrusted tool anyway.
+
+---
+
+### 43.4 Human Approval Gate (HAG)
+
+*Traceability: ARCH §47.2.4; SPEC §42.13; PS §52.13; SEC-015; OBJ-033; AC-050*
+
+```
+interface HumanApprovalGate {
+  requires_approval(action: ProposedAction, policy: OptimizationPolicy) -> ApprovalRequirement
+  request_approval(action: ProposedAction, risk: RiskClassification)    -> ApprovalRequest
+  get_approval_status(approval_id: string)                              -> ApprovalStatus
+  resolve_approval(approval_id: string, decision: enum { APPROVE, DENY },
+                    approver_id: string)                                -> ApprovalResolution
+}
+
+ProposedAction {
+  action_id:     string
+  execution_id:  string
+  action_type:   string
+  reversible:    boolean
+  description:   string
+}
+
+RiskClassification {
+  risk_tier:              enum { LOW, MEDIUM, HIGH, CRITICAL }
+  designated_for_approval: boolean
+  policy_id:              string
+}
+
+ApprovalRequirement {
+  required: boolean
+  risk:     RiskClassification
+}
+
+ApprovalRequest {
+  approval_id:    string
+  action_id:      string
+  requested_at:   ISO8601 string
+  timeout_at:     ISO8601 string
+  policy_version: string
+}
+
+ApprovalStatus {
+  approval_id: string
+  status:      enum { AWAITING_APPROVAL, APPROVED, DENIED, EXPIRED }
+}
+
+ApprovalResolution {
+  approval_id:  string
+  status:       enum { APPROVED, DENIED, EXPIRED }
+  approver_id:  string | null
+  resolved_at:  ISO8601 string
+  audit_ref:    string
+}
+```
+
+> **Note:** `requires_approval()` is policy/risk-driven per action — not every action routes through HAG. A non-designated action proceeds under the ownership model of §3.4/§43.10 without an approval gate. A pending approval follows the same suspension handling as any other interruption cause (§43.11's `SuspensionMarker`, §42.3 WVM).
+>
+> **Failure Behavior:** if the approval mechanism itself is unavailable, the gated action is blocked (fail-closed). On `timeout_at` expiry, the policy-defined default (deny, or escalate to a different approver) applies — never silent `APPROVED`.
+
+---
+
+### 43.5 Content Integrity Screen (CIS)
+
+*Traceability: ARCH §47.2.5; SPEC §42.14; PS §52.14; SEC-016; OBJ-034; AC-051*
+
+```
+interface ContentIntegrityScreen {
+  screen(content: ExternalContentItem) -> ScreeningResult
+}
+
+ExternalContentItem {
+  item_id:      string
+  execution_id: string
+  source:       enum { RAG_CHUNK, SEARCH_RESULT, TOOL_RESULT, SUBAGENT_HANDOFF, MCP_RESULT }
+  content_ref:  string
+}
+
+ScreeningResult {
+  status:                enum { PASS, REJECT, QUARANTINE, SCREENING_UNAVAILABLE }
+  injection_assessment:  InjectionAssessment | null
+  confidence:            float | null
+  security_event_ref:    string | null
+  screened_at:           ISO8601 string
+}
+
+InjectionAssessment {
+  technique_detected: string | null
+  severity:           enum { NONE, LOW, MEDIUM, HIGH }
+}
+```
+
+> **Invariant (SEC-016):** `screen()` MUST be called, and MUST return `PASS`, before an `ExternalContentItem` may be admitted, ranked, compressed, cached, or used to authorize a tool/action — for every `source` value, not only end-user input (already covered by the Sanitizer, §1's admission stage). This ordering requirement takes precedence over any Operating Mode preference (§43.10): precomputation may speed up the screening mechanism, but the screening step itself may not be skipped or deferred until after admission.
+>
+> **Failure Behavior:** `SCREENING_UNAVAILABLE` is fail-closed — the content is `REJECT`ed or `QUARANTINE`d, never silently admitted because the check itself failed.
+
+---
+
+### 43.6 Feasibility Tier Registry (FTR)
+
+*Traceability: ARCH §47.10; SPEC §42.8; PS §52.8; OBJ-030; AC-046*
+
+```
+interface FeasibilityTierRegistry {
+  declare_tier(platform_id: string, tier: FeasibilityTier,
+               reachable_modules: string[])          -> TierDeclaration
+  get_tier(platform_id: string)                       -> TierDeclaration | null
+  redeclare_tier(platform_id: string, new_tier: FeasibilityTier,
+                 reason: string)                      -> TierDeclaration
+}
+
+FeasibilityTier: enum {
+  DEEP_NATIVE, GATEWAY_INTERCEPTION, PLUGIN_EXTENSION,
+  PROTOCOL_TOOL_LEVEL, ADVISORY_OBSERVABILITY_ONLY
+}
+
+TierDeclaration {
+  platform_id:               string    // e.g., "claude-code", "cursor", "github-copilot"
+  tier:                      FeasibilityTier
+  reachable_modules:         string[]    // Subset of DA-001–DA-025 module IDs (§13)
+  unsupported_capabilities:  string[]
+  declared_at:               ISO8601 string
+}
+```
+
+> **Note:** `reachable_modules` bounds which fields of the `DeveloperAgentRequest` extension (INTF-024, §13.1) are actually populated for a given platform. A caller MUST NOT infer full-pipeline optimization coverage for a platform whose declared tier is `PROTOCOL_TOOL_LEVEL` or `ADVISORY_OBSERVABILITY_ONLY`.
+>
+> **Failure Behavior:** if actual platform access degrades below the declared tier at runtime (e.g., an extensibility API is deprecated), `redeclare_tier()` to a lower tier is required — silently continuing to claim the stale (higher) tier is prohibited.
+
+---
+
+### 43.7 Cross-Execution Coordinator (XEC)
+
+*Traceability: ARCH §47.3.2; SPEC §42.12; PS §52.12; OBJ-032; AC-049*
+
+```
+interface CrossExecutionCoordinator {
+  check_conflict(resource: SharedResourceRef, execution_id: string) -> ConcurrencyConflictResult
+  reconcile(resource: SharedResourceRef,
+            competing_execution_ids: string[])                      -> CrossExecutionReconciliationResult
+  acquire_lock(resource: SharedResourceRef, execution_id: string,
+               reason: string)                                       -> LockResult
+  release_lock(resource: SharedResourceRef, execution_id: string)    -> void
+}
+
+SharedResourceRef {
+  resource_type:    enum { FILE, TICKET, MEMORY_ENTRY, EXTERNAL_RESOURCE }
+  resource_id:      string
+  resource_version: string
+}
+
+ConcurrencyConflictResult {
+  status:             enum { NO_CONFLICT, STALE_SNAPSHOT, VERSION_CONFLICT, LOCK_REQUIRED }
+  current_version:    string
+  requested_version:  string
+}
+
+CrossExecutionReconciliationResult {
+  status:               enum { RECONCILED, BLOCKED }
+  winning_execution_id: string
+  losing_execution_id:  string | null
+  action:               string
+}
+
+LockResult {
+  acquired:            boolean
+  lock_id:             string | null
+  holder_execution_id: string
+  expires_at:          ISO8601 string | null
+}
+```
+
+> **Note:** XEC extends `ReconciliationEngine` (INTF-054, §42.5) and `SupersessionManager` (INTF-061, §42.12) from single-execution to cross-execution scope; it does not replace either. Locking (`acquire_lock`) is required only where the shared resource/action is non-idempotent and concurrently reachable — not universally.
+>
+> **Failure Behavior:** an unresolvable conflict blocks the losing execution's write/action (`status = BLOCKED`) — never an unreconciled dual-write. Non-idempotent operations are never blindly replayed across executions, extending RCO's (INTF-062) resume-time invariant to cross-execution scope.
+
+---
+
+### 43.8 Self-Protection Controller (SPC)
+
+*Traceability: ARCH §47.4.1; SPEC §42.3; PS §52.3; OBJ-025; NFR-014; AC-041*
+
+```
+interface SelfProtectionController {
+  check_latency_budget(stage_id: string, elapsed_ms: integer)   -> LatencyBudgetStatus
+  check_compute_budget(tenant_id: string, consumed_units: float) -> ComputeBudgetStatus
+  report_overload_signal(signal: OverloadSignal)                 -> DepthSheddingDecision
+  get_current_depth_tier(tenant_id: string)                      -> OptimizationDepthTier
+}
+
+LatencyBudgetStatus {
+  within_budget: boolean
+  elapsed_ms:    integer
+  budget_ms:     integer
+  action:        enum { CONTINUE, FAIL_OPEN }
+}
+
+ComputeBudgetStatus {
+  within_budget:  boolean
+  consumed_units: float
+  budget_units:   float
+}
+
+OverloadSignal {
+  queue_depth:     integer
+  latency_p99_ms:  integer
+  error_rate:      float
+}
+
+DepthSheddingDecision {
+  new_depth_tier:              enum { LOW, MEDIUM, HIGH }
+  shed_stages:                 string[]
+  security_stages_preserved:   boolean    // MUST always be true
+}
+
+OptimizationDepthTier {
+  tenant_id: string
+  tier:      enum { LOW, MEDIUM, HIGH }
+  reason:    string
+}
+```
+
+> **Invariant (NFR-014):** `DepthSheddingDecision.security_stages_preserved` is always `true`. SPC may shed §5/§6-class optimization stages under backpressure but MUST NOT shed SGE (§43.1), DGE (§43.2), TMG (§43.3), HAG (§43.4), or CIS (§43.5) evaluation.
+>
+> **Failure Behavior:** on latency-budget exhaustion, `action = FAIL_OPEN` to the unoptimized path (never blocks the request) — *unless* doing so would skip a security/authorization/PII check, in which case the request fails closed per §25's precedence.
+
+---
+
+### 43.9 Verifier Calibration Layer (VCL)
+
+*Traceability: ARCH §47.4.3; SPEC §42.6; PS §52.6; OBJ-028; AC-044*
+
+```
+interface VerifierCalibrationLayer {
+  register_verifier(verifier: VerifierDescriptor)                        -> void
+  verify(verifier_id: string, output: any, evidence: VerifierEvidence)   -> VerificationResult
+  get_calibration(verifier_id: string)                                   -> CalibrationMetadata
+  report_drift(verifier_id: string, observed_delta: float)               -> DriftEvent | null
+}
+
+VerifierDescriptor {
+  verifier_id:    string
+  verifier_type:  enum { UNIT_TEST, SCHEMA_VALIDATION, TYPE_CHECK, STATIC_ANALYSIS,
+                         BUSINESS_RULE, CITATION_CHECK, FORMAT_VALIDATION,
+                         LLM_JUDGE_SEMANTIC_EQUIVALENCE, TASK_SUCCESS_CHECK }
+  deterministic:  boolean
+}
+
+VerifierEvidence {
+  inputs_considered: map<string, any>
+  method:            string
+}
+
+VerificationResult {
+  passed:                boolean
+  confidence:            float
+  calibrated:            boolean
+  acceptance_threshold:  float
+  escalation_required:   boolean
+}
+
+CalibrationMetadata {
+  verifier_id:        string
+  benchmark_set_ref:  string
+  calibrated_at:      ISO8601 string
+  observed_accuracy:  float
+}
+
+DriftEvent {
+  verifier_id:              string
+  previous_acceptance_rate: float
+  current_acceptance_rate:  float
+  flagged_at:               ISO8601 string
+}
+```
+
+> **Invariant (OBJ-028):** `VerificationResult.passed` is never exposed or consumed as unconditional ground truth. A deterministic verifier's `confidence` is definitionally `1.0`; a probabilistic verifier's `confidence` MUST be `< 1.0` unless `calibrated = true` against `CalibrationMetadata` from a benchmark set.
+>
+> **Failure Behavior:** below `acceptance_threshold`, `escalation_required = true` and the caller applies `FallbackStrategy` (INTF-041, §22.1) — restore the prior representation, escalate the model, or disable the technique. Silent acceptance is prohibited.
+
+---
+
+### 43.10 Shared Types: Operating Mode and Decision Ownership
+
+*Traceability: ARCH §47.5, §47.6; SPEC §42.1, §42.2; PS §52.1, §52.2; OBJ-023, OBJ-024; AC-039, AC-040*
+
+```
+OperatingMode:     enum { SYNC, ASYNC, HYBRID }
+DecisionOwnership: enum { ADVISORY, ENFORCEMENT, EXECUTION_OWNERSHIP }
+```
+
+These two enums are referenced — not redefined — by every interface in §1–§43 whose decision output carries the §3.4 extension fields (`OptimizationPlan.operating_mode` / `.decision_ownership`) or an equivalent per-decision field, including every interface newly defined in §43.1–43.9.
+
+| Mode | Applies when | Example interfaces |
+|---|---|---|
+| `SYNC` | Decision depends on request-time-only information | INTF-002 (per-request stages), CIS (§43.5), HAG pending-decision path |
+| `ASYNC` | Underlying information changes slowly relative to request volume | INTF-014/015 (Model Profiles), FTR (§43.6) declarations |
+| `HYBRID` | A precomputed artifact is consulted synchronously with a freshness/confidence gate | INTF-012 (Cache), VCL (§43.9) |
+
+> **Default rule:** an interface implementation that has not explicitly declared a `decision_ownership` value for a given decision defaults to `ADVISORY` (least authority) — never to `EXECUTION_OWNERSHIP` by omission.
+
+---
+
+### 43.11 New Event Types (Extension to §23.2)
+
+The following event types are added to the Standard Event Types table defined in §23.2:
+
+| Event Type | Source Component | Payload (key fields) |
+|---|---|---|
+| `BUDGET_THROTTLED` | SGE | `scope_type`, `scope_id`, `remaining_budget` |
+| `BUDGET_HALTED` | SGE | `scope_type`, `scope_id`, `circuit_breaker_id` |
+| `RUNAWAY_COST_DETECTED` | SGE | `scope_id`, `acceleration_factor` |
+| `DATA_CLASSIFIED_SENSITIVE` | DGE | `item_id`, `classification` |
+| `DELETION_PROPAGATED` | DGE | `deletion_id`, `surfaces_cleared` |
+| `TOOL_TRUST_QUARANTINED` | TMG | `tool_id`, `reason` |
+| `APPROVAL_REQUESTED` | HAG | `approval_id`, `action_id`, `risk_tier` |
+| `APPROVAL_RESOLVED` | HAG | `approval_id`, `status`, `approver_id` |
+| `CONTENT_SCREENING_REJECTED` | CIS | `item_id`, `source`, `severity` |
+| `CONTENT_SCREENING_UNAVAILABLE` | CIS | `item_id`, `source` |
+| `FEASIBILITY_TIER_DECLARED` | FTR | `platform_id`, `tier` |
+| `FEASIBILITY_TIER_DOWNGRADED` | FTR | `platform_id`, `from_tier`, `to_tier` |
+| `CROSS_EXECUTION_CONFLICT` | XEC | `resource_id`, `conflicting_execution_ids` |
+| `OPTIMIZATION_DEPTH_SHED` | SPC | `tenant_id`, `from_tier`, `to_tier`, `cause` |
+| `VERIFIER_DRIFT_DETECTED` | VCL | `verifier_id`, `delta` |
+
+---
+
+### 43.12 Fail-Safe Classification (Extension to §22.2)
+
+The following rows extend the Per-Stage Fallback Requirements table in §22.2:
+
+| Stage | Default Fallback | Fail-Safe? |
+|---|---|---|
+| SGE — budget evaluation unavailable | Policy-configured default (THROTTLED/HALTED) | No (conservative — never defaults to unconstrained spend) |
+| SGE — spend vs. security independence | Budget decision never substitutes for a security/authorization/policy decision | No |
+| DGE — classification unavailable | Treat as SENSITIVE | No (fail-closed) |
+| TMG — identity/schema-integrity failure | QUARANTINED | No (fail-closed) |
+| HAG — approval mechanism unavailable | Block gated action | No (fail-closed) |
+| HAG — approval timeout | Policy default (deny/escalate) | No |
+| CIS — screening unavailable | REJECT/QUARANTINE | No (fail-closed) |
+| FTR — actual access degrades below declared tier | Redeclare lower tier | Yes (fail-open to reduced capability, never silent overclaim) |
+| XEC — unresolvable conflict | Block losing execution's action | No |
+| SPC — latency/compute budget exceeded | Fail open to unoptimized path | Yes — unless a security check would be skipped, then fail closed |
+| VCL — result below acceptance threshold | Quality-aware fallback (escalate/restore/disable) | Yes (fail-open, conservative) |
+
+---
+
+### 43.13 Memory Authority (ESM Extension) (H09)
+
+*Traceability: ARCH §47.3.1; SPEC §42.9; PS §52.9; OBJ-031; AC-047*
+
+```
+interface MemoryAuthorityCheck {   // Extension consumed by ESM (INTF-050); not a standalone store
+  check_conflict(execution_id: string, memory_claim: MemoryClaim) -> MemoryConflictResult
+}
+
+MemoryClaim {
+  entry_ref:      string    // References a MemoryEntry (INTF-028, §16)
+  claimed_state:  map<string, any>
+  memory_version: string    // Provenance tag on the agent-owned memory read
+}
+
+MemoryConflictResult {
+  status:              enum { CONSISTENT, CONFLICT_DETECTED, UNRESOLVABLE }
+  authoritative_source: enum { ESM, CVM, WVM, AUTHORIZATION }
+  authoritative_value:  any
+  claimed_value:        any
+  surfaced_at:          ISO8601 string
+}
+```
+
+> **Invariant (OBJ-031):** Agent-owned memory (INTF-028 `MemoryStore`, §16) is never authoritative over `ExecutionStateSnapshot` (INTF-050), `ContextVersionManager` state (INTF-051), `WorkflowVersionManager` state (INTF-052), or current authorization state (INTF-038). On `CONFLICT_DETECTED`, `authoritative_value` (from ESM/CVM/WVM/authorization) wins and the conflict is surfaced as an event — never silently resolved in the agent memory's favor. An `UNRESOLVABLE` conflict (ambiguous provenance) defaults to treating the memory claim as stale/untrusted for that decision.
+
+---
+
+### 43.14 Verified Net Optimization Economics (Accounting Extension) (H04)
+
+*Traceability: ARCH §47.4.2; SPEC §42.4; PS §52.4; OBJ-026; AC-042*
+
+This is an accounting extension to `OptimizationPlan` (INTF-002, §3.2) and `CostLedgerEntry` (INTF-047, §28), not a new component interface.
+
+```
+NetOptimizationValue {    // Extends OptimizationPlan's ECONOMICS block (§3.2)
+  baseline_cost:              float
+  optimized_cost:             float
+  tokens_saved:                integer
+  inference_cost_saved:        float
+  optimization_compute_cost:   float    // From SPC (§43.8) budget metering
+  retrieval_overhead:          float
+  routing_overhead:            float
+  cache_overhead:              float
+  added_latency_ms:            integer
+  retry_cost:                  float
+  quality_degradation_cost:    float | null
+  downstream_tool_cost:        float
+  net_benefit:                 float
+  net_benefit_confidence:      float
+  verification_status:         enum { VERIFIED, UNVERIFIED }
+}
+
+OptimizationDecisionOutcome: enum { APPLY, SKIP, DO_NOT_OPTIMIZE, FALLBACK, REJECT, REQUIRE_REVALIDATION }
+```
+
+> **Invariant (OBJ-026, AC-002):** a technique is counted as a saving only when `NetOptimizationValue.net_benefit > 0` and applicable quality gates (§17) pass. Where any input term cannot be measured, `verification_status = UNVERIFIED` and the result is excluded from reported savings — never assumed favorable. `TOKEN REDUCTION != VERIFIED NET SAVINGS`: `tokens_saved` alone never sets `verification_status = VERIFIED`.
+
+---
+
+### 43.15 Anti-Scope Boundary (No Interface) (H20)
+
+*Traceability: ARCH §47.13; SPEC §42.20; PS §52.20; OBJ-035*
+
+No interface is defined for this requirement — it is a scope boundary, not a runtime contract, consistent with its treatment in `architecture.md` §47.13 (no component, no failure behavior, no observability). Per §35 (Implementation Boundary) and `architecture.md` §1.6: no interface in this document may be implemented in a way that makes the Control Plane itself the agent orchestrator, the IDE, the coding-agent UX, the model-training system, the provider, or the inference-runtime infrastructure. Any interface proposal that would require this is out of scope and must be flagged at design-review time, not built silently.
+
+---
+
+### 43.16 Consistency Check (§43)
+
+| Check | Status |
+|---|---|
+| All 9 new interfaces are additive — no existing interface (INTF-001–062) modified | PASS |
+| SGE independence from `AuthorizationService`/`PolicyEnforcer` (SEC-011) preserved — no shared mutable state | PASS |
+| DGE `SensitivityClassificationResult` extends rather than duplicates `PIIClassificationResult` (INTF-040) | PASS |
+| TMG trust decision independent of TE-x ROI signal (INTF-019) | PASS |
+| HAG does not require approval for every action (policy/risk-driven only) | PASS |
+| CIS ordering requirement (screen before admission) does not conflict with §43.10's HYBRID preference | PASS |
+| FTR tier model consistent with ARCH §47.10's five declared tiers | PASS |
+| XEC extends INTF-054/INTF-061 without altering single-execution reconciliation semantics | PASS |
+| SPC `security_stages_preserved` invariant consistent with NFR-014 and the fail-open/fail-closed precedence in §25 | PASS |
+| VCL never exposes `passed` as unconditional ground truth | PASS |
+| New event types (§43.11) do not conflict with §23.2 or §42.14 existing event types | PASS |
+| New fallback rows (§43.12) do not conflict with §22.2 or §42.15 existing stage fallbacks | PASS |
+| All new interfaces carry `tenant_id` or `execution_id` sufficient for tenant scoping; tenant isolation invariants (§27) maintained | PASS |
+| No raw credentials in any new interface field | PASS |
+| No provider-specific field in any new core schema | PASS |
+| §3.4 `OperatingMode`/`DecisionOwnership` extension fields correctly cross-referenced from §43.10 rather than redefined | PASS |
+| Interface IDs INTF-063–071 do not collide with INTF-001–062 | PASS |
+| Memory Authority (§43.13) references INTF-028/INTF-050–052/INTF-038 without redefining them | PASS |
+| Net Optimization Economics (§43.14) extends INTF-002/INTF-047 rather than duplicating them | PASS |
+| Anti-Scope Boundary (§43.15) correctly defines no interface, consistent with H20's nature as a scope boundary rather than a runtime contract | PASS |
+| All of H01–H20 have an identifiable §43 representation (interface, extension, or explicit no-interface boundary statement) | PASS |
+| OBJ-023–035 each traceable to a §43 subsection (§34.2 table plus §43.13/43.14) | PASS |
+
+> [!IMPORTANT]
+> **SECTION 43 CONSISTENCY CHECK: PASSED (20/20)**
+>
+> All 9 Hardening component interface definitions (INTF-063–071) plus the Memory Authority (§43.13), Net Optimization Economics (§43.14), and Anti-Scope (§43.15) extensions are internally consistent, fully traceable to ARCH §47, SPEC §42, and PS §52 (H01–H20). No existing interface (INTF-001–062) has been modified. All security invariants (fail-closed for security/authorization/PII, fail-open for optimization only) are preserved or extended.
+
+---
+
+*Total interface definitions: 71 | Total schema types: 260+ | Total sections: 43*
+*Authoritative source: `Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt` (as hardened 2026-09-15, PS §52; reconciled 2026-09-16, PS §51.13)*
+*Architecture cross-reference: `architecture.md` (EAIOC-ARCH-001 Rev 1.3)*
+*Engineering specification cross-reference: EAIOC-SPEC-001 Rev 1.4*
