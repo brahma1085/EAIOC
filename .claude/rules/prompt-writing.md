@@ -3,13 +3,14 @@ paths:
   - "outputs/*prompt*.md"
   - "outputs/**/prompt*.md"
   - "prompts/**"
+  - "docs/prompts/**"
 ---
 
 # Prompt-Writing Rules
 
 Apply whenever the user asks to "create a prompt", "write a prompt", "draft a prompt", "review a prompt", or generate instructions for a fresh Claude / Claude Code session to execute. Task type does not matter: code, data, research, automation, evaluation, content, debugging, agent orchestration.
 
-**Delivery is chat-only. Output the finished prompt directly in the conversation, inside one fenced code block so it is copy-pasteable. Do not write a file. Do not create anything in `outputs/` or `prompts/`. No subagent for review. This rule replaces that step.**
+**Delivery is chat-only. Output the finished prompt directly in the conversation, inside one fenced code block so it is copy-pasteable. Do not write a file. Do not create anything in `outputs/` or `prompts/`. No subagent for review. This rule replaces that step.** (Exception: `docs/prompts/**` documentation-generation-pipeline prompts — see the dedicated section below.)
 
 **Always copy the finished prompt to the clipboard automatically as the last step, without being asked.** After printing the prompt in chat, pipe the exact same prompt text to `pbcopy` using a quoted heredoc so nothing needs escaping, then confirm in one line that it was copied. Use this pattern (the heredoc delimiter `'PROMPTEOF'` is quoted so `$`, backticks, and quotes inside the prompt are copied literally):
 
@@ -21,6 +22,19 @@ echo "prompt copied to clipboard ($(pbpaste | wc -c | tr -d ' ') chars)"
 ```
 
 The clipboard copy must be byte-identical to what you printed in chat. Do this on every prompt you deliver, including iterations, so the user never has to ask separately.
+
+---
+
+## Exception: durable documentation-generation pipeline prompts
+
+Some repos run a multi-document generation pipeline where each downstream document (`docs/<name>.md`) is produced from its own committed, versioned prompt file at `docs/prompts/generate-<name>.prompt.md`, chained so that each document's own `## <Name> Readiness` verdict gates generation of the next. For this specific class only, the chat-only delivery rule above does not apply:
+
+- **Write the file, don't just print it.** The prompt file is a durable, git-tracked pipeline artifact meant to be committed alongside the document it generates, not a one-off instruction pasted elsewhere. Write it to `docs/prompts/generate-<name>.prompt.md` and skip the `pbcopy` step entirely — there is nothing to paste elsewhere.
+- **Expect the user to replace your draft before execution.** The normal cycle in this class of pipeline is: deliver a grounded V1, then the user pastes in their own far larger "consolidated master prompt" version at the same path before asking you to execute it. That replacement is routine, not a rejection of the V1 — when later asked to execute "the prompt" at that path, re-read the file fresh rather than trusting what you delivered or any earlier summary of its contents.
+- **Still clear the >95 rubric below**, plus two pipeline-specific requirements: (1) every claim the prompt instructs the executor to make must cite the actual current source file/section, never a prior research summary or memory of an earlier pass over that file; (2) the prompt must instruct the executor to independently re-verify every candidate ID (`EC-NNN`, `SCN-NNN`, `AC-NNN`, etc.) against the live file rather than trust the prompt's own characterization of it — this single instruction has repeatedly caught real discrepancies (duplicate IDs cited as independent evidence, a scenario domain that exists under a different name than assumed, off-by-one section references) that trusting the prompt text alone would have missed.
+- **Require an explicit terminal verdict line.** The prompt must require the generated document to end in its own `## <Name> Readiness` verdict (e.g. `READY FOR NEXT DOCUMENTATION PHASE`), since that exact line is what gates the next document in the chain — verify it occurs exactly once, as the true final line, not merely mentioned in passing elsewhere in the document.
+
+---
 
 Target quality: **>95/100** against the rubric below. Self-score silently before delivering. Iterate until the score clears 95, then deliver the prompt in the chat with a 2-3 line note on what it contains. Do not show the user the rubric or the scoring process.
 
