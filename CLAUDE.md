@@ -42,6 +42,8 @@ Every one of these twelve downstream documents treats the others as authoritativ
 
 `docs/strategy/control-plane-stress-test.md` (+ its `.html` copy, EAIOC-STRAT-001) is a separate, explicitly **non-authoritative** brainstorming/critique document (architecture challenge, research landscape, competitive analysis) written before the baseline freeze. It never overrides the six documents above where they disagree with it.
 
+Two further root-level files are outside the documentation chain entirely (untracked in git as of this writing): `EAIOC_Presentation.html` (a stakeholder-facing summary deck of the architecture) and `EAIOC_Tech_Stack_Brainstorming_Conversation.txt` (a raw brainstorming transcript exploring implementation technology choices). Like the stress-test document, treat both as non-authoritative scratch/presentation material — never a source to reconcile documentation against, and never a substitute for the ADRs in `docs/adr/` when an actual technology question comes up.
+
 ### Dynamic Execution / Control-Plane hardening amendment (2026-09-10)
 
 The baseline was hardened once, after initial stabilization, to make dynamic/runtime execution semantics explicit (they were previously implicit in a request/response-shaped model). This added 13 components and 13 interfaces without touching or renumbering anything that existed before:
@@ -118,3 +120,7 @@ These are structural, not stylistic — violating them is a spec violation, not 
 ## Prompt-writing rule (existing project rule)
 
 `.claude/rules/prompt-writing.md` applies whenever asked to create/write/draft/review a prompt for a fresh Claude/Claude Code session, for paths matching `outputs/*prompt*.md`, `outputs/**/prompt*.md`, or `prompts/**`. Key points: deliver the finished prompt only in chat inside one fenced code block (never write a file to those paths), then copy it to the clipboard via a quoted `pbcopy` heredoc as the last step. Target a >95/100 self-score against the rubric in that file before delivering.
+
+## Custom subagent (existing project asset)
+
+`.claude/agents/eaioc-guide.md` defines an `eaioc-guide` subagent: a personal Q&A/research companion for doubts about this project (conceptual, architectural, or technology-choice questions) or for verifying an external claim, technology, or paper against the web or the project's own docs. It grounds itself in this file and the specific doc/section/ID a question touches before answering, flags genuine gaps as `SOURCE-GAP`/`CONTRA` rather than inventing an answer, is advisory-only (never edits the baseline documents itself), and always answers via a published HTML artifact rather than plain chat text. Claude Code routes matching questions to it automatically.
