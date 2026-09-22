@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EAIOC abbreviations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F2F5F7;
+  --panel: #FFFFFF;
+  --ink: #15202B;
+  --mute: #566472;
+  --line: #D3DBE2;
+  --accent: #0E6E8C;
+  --accent-ink: #FFFFFF;
+  --l: 32%;
+  --sans: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1720;
+    --panel: #16212C;
+    --ink: #E6EDF3;
+    --mute: #9AA8B5;
+    --line: #26323E;
+    --accent: #5CC0DC;
+    --accent-ink: #0B1218;
+    --l: 72%;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1720;
+  --panel: #16212C;
+  --ink: #E6EDF3;
+  --mute: #9AA8B5;
+  --line: #26323E;
+  --accent: #5CC0DC;
+  --accent-ink: #0B1218;
+  --l: 72%;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.top {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  background: var(--bg);
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.top h1 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 700; }
+.top h1 span { color: var(--mute); font-weight: 400; margin-left: 6px; font-size: 0.9rem; }
+.search {
+  width: 100%;
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 0 2px;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.tools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 6px;
+  font-size: 0.85rem;
+  color: var(--mute);
+}
+.tools label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.tools input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+main { padding: 4px 14px 96px; max-width: 720px; margin: 0 auto; }
+[hidden] { display: none !important; }
+
+.fam { --fam: hsl(var(--h) 55% var(--l)); margin-top: 22px; }
+.fam h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--fam);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.count { font-size: 0.82rem; color: var(--mute); font-weight: 400; }
+.hook {
+  margin: 4px 0 8px;
+  color: var(--mute);
+  font-size: 0.93rem;
+  padding-left: 10px;
+  border-left: 3px solid var(--fam);
+}
+.rows { display: flex; flex-direction: column; }
+.row {
+  display: grid;
+  grid-template-columns: minmax(4.6rem, 6.4rem) 1fr;
+  gap: 12px;
+  text-align: left;
+  width: 100%;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  padding: 10px 0 10px 10px;
+  border-left: 3px solid var(--fam);
+  cursor: pointer;
+}
+.row:last-child { border-bottom: 1px solid var(--line); }
+.abbr {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--fam);
+  overflow-wrap: anywhere;
+  padding-top: 1px;
+}
+.txt { display: block; min-width: 0; }
+.name { display: block; font-weight: 700; }
+.mean { display: block; color: var(--ink); font-size: 0.95rem; margin-top: 2px; }
+.where { display: block; color: var(--mute); font-size: 0.82rem; margin-top: 3px; font-family: var(--mono); }
+.compact .mean, .compact .where { display: none; }
+.compact .row.open .mean, .compact .row.open .where { display: block; }
+.empty { color: var(--mute); padding: 28px 0; text-align: center; }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.seg { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+select {
+  font: inherit;
+  font-size: 16px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  max-width: 100%;
+}
+.card {
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 4px;
+}
+.q-main { font-family: var(--mono); font-weight: 700; font-size: 2rem; overflow-wrap: anywhere; }
+.q-main.words { font-family: var(--sans); font-size: 1.25rem; line-height: 1.3; }
+.q-fam { font-size: 0.88rem; color: var(--mute); }
+.a-name { font-weight: 700; font-size: 1.15rem; }
+.a-mean { color: var(--ink); }
+.a-where { color: var(--mute); font-family: var(--mono); font-size: 0.85rem; }
+.a-abbr { font-family: var(--mono); font-weight: 700; font-size: 1.6rem; }
+.btns { display: flex; gap: 8px; margin-top: 8px; }
+.btn {
+  flex: 1;
+  padding: 13px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.progress { color: var(--mute); font-size: 0.88rem; margin-top: 10px; }
+.link { background: none; border: 0; color: var(--accent); padding: 8px 0; cursor: pointer; text-decoration: underline; }
+
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.steps li {
+  counter-increment: s;
+  border-top: 1px solid var(--line);
+  padding: 14px 0 14px 34px;
+  position: relative;
+}
+.steps li:last-child { border-bottom: 1px solid var(--line); }
+.steps li::before {
+  content: counter(s);
+  position: absolute;
+  left: 0;
+  top: 14px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: grid;
+  place-items: center;
+}
+.steps b { display: block; }
+.steps p { margin: 2px 0 8px; color: var(--mute); font-size: 0.93rem; }
+.jumps { display: flex; flex-wrap: wrap; gap: 6px; }
+.rule {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  font-size: 0.93rem;
+}
+.rule b { display: block; margin-bottom: 2px; }
+
+.nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: flex;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav button {
+  flex: 1;
+  padding: 14px 8px;
+  background: none;
+  border: 0;
+  font-weight: 700;
+  color: var(--mute);
+  cursor: pointer;
+}
+.nav button[aria-current="page"] { color: var(--accent); box-shadow: inset 0 3px 0 var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>EAIOC abbreviations <span id="total"></span></h1>
+  <div id="browse-tools">
+    <input id="q" class="search" type="search" inputmode="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Search: ESM, cache, budget, approval" aria-label="Search abbreviations">
+    <div class="chips" id="chips" role="group" aria-label="Filter by family"></div>
+    <div class="tools">
+      <span id="status"></span>
+      <label><input type="checkbox" id="compact"> Hide meanings to self-test</label>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="view-browse"><div id="list" class="list"></div></div>
+
+  <div id="view-quiz" hidden>
+    <div class="panel">
+      <label for="qfam"><b>Practice set</b></label><br>
+      <select id="qfam"></select>
+      <div class="seg" role="group" aria-label="Card direction">
+        <button type="button" class="chip" id="dir-a" aria-pressed="true">See abbreviation</button>
+        <button type="button" class="chip" id="dir-m" aria-pressed="false">See meaning</button>
+      </div>
+      <div class="card" id="card"></div>
+      <div class="btns" id="qbtns"></div>
+      <div class="progress" id="qprog"></div>
+      <button type="button" class="link" id="qreset">Forget my progress for this set</button>
+    </div>
+  </div>
+
+  <div id="view-map" hidden>
+    <div class="panel">
+      <b>How the pieces fit</b>
+      <ol class="steps" style="margin-top:10px">
+        <li><b>Sources</b><p>PS is the top authority. ES sits beside it. Four more baseline documents plus the scenario matrix follow, then twelve downstream documents and an ADR set, each gated by the last one's readiness verdict.</p>
+          <div class="jumps"><button class="chip" data-jump="docs">Baseline documents</button><button class="chip" data-jump="downstream">Downstream documents</button></div></li>
+        <li><b>Requirements</b><p>What the system must do and must never do. Objectives, security, non-functional, acceptance, and the twenty hardening items.</p>
+          <div class="jumps"><button class="chip" data-jump="ids">ID prefixes</button><button class="chip" data-jump="nfr">Non-functional</button><button class="chip" data-jump="hard">Hardening H01 to H20</button></div></li>
+        <li><b>Components</b><p>The per-request pipeline, the intelligence modules that steer it, the state machinery that makes a request resumable, and the governance parts that can block anything.</p>
+          <div class="jumps"><button class="chip" data-jump="pipe">Pipeline</button><button class="chip" data-jump="intel">Intelligence</button><button class="chip" data-jump="exec">Execution truth</button><button class="chip" data-jump="gov">Governance</button></div></li>
+        <li><b>Techniques and capabilities</b><p>The named optimizations, the cache types, the developer-agent modules, and the optional serving-layer capabilities.</p>
+          <div class="jumps"><button class="chip" data-jump="tech">Techniques</button><button class="chip" data-jump="cache">Cache types</button><button class="chip" data-jump="da">Developer agents</button><button class="chip" data-jump="p5">Serving layer</button></div></li>
+        <li><b>Build order and proof</b><p>When to build each thing, and how proven it is.</p>
+          <div class="jumps"><button class="chip" data-jump="tiers">Priorities and maturity</button><button class="chip" data-jump="qg">Quality gates</button><button class="chip" data-jump="scale">Scaling and dashboards</button></div></li>
+        <li><b>Vocabulary</b><p>Words and tags that repeat across every document.</p>
+          <div class="jumps"><button class="chip" data-jump="terms">Common terms</button></div></li>
+      </ol>
+    </div>
+    <div class="rule"><b>Three scales that look alike</b>Build priority P0 to P5 says when to build. Maturity Level 0 to 5 says how proven it is. Test priority P0 to P3 says how risky a scenario is to leave untested. They are unrelated.</div>
+    <div class="rule"><b>Two failure rules</b>Optimization stage fails: fall back to the original path and continue. Security or authorization fails: reject the request.</div>
+  </div>
+</main>
+
+<nav class="nav" aria-label="Sections">
+  <button type="button" data-tab="browse" aria-current="page">Browse</button>
+  <button type="button" data-tab="quiz">Practice</button>
+  <button type="button" data-tab="map">Map</button>
+</nav>
+
+<script>
+(function () {
+  "use strict";
+
+  var FAMS = [
+    { id: "docs", t: "Baseline documents", h: 215,
+      hook: "PS wins any conflict. ES stands beside it. ARCH, INTF, CONV and EDGE hang below. SCN reconciles against all six.",
+      items: [
+        ["EAIOC", "Enterprise Agent & LLM Inference Optimization Control Plane", "The system itself: a policy layer between AI apps or agents and LLM providers that finds the cheapest safe way to satisfy each task, including no model call at all.", "CLAUDE.md"],
+        ["PS", "Problem Statement (EAIOC-SPEC-001)", "The primary authoritative source. If any other document conflicts with it, PS wins.", "docs/…problemstatement.txt"],
+        ["PS §52", "Problem Statement section 52", "Where the twenty hardening requirements H01 to H20 come from.", "PS"],
+        ["ES", "Engineering Spec (Rev 1.4)", "Companion specification. Authoritative alongside PS, subordinate to it if they conflict.", "docs/…Engineering_Spec.md"],
+        ["ARCH", "Architecture (EAIOC-ARCH-001, Rev 1.3)", "Objectives, pipeline stages, component specs, optimization catalog.", "docs/architecture.md"],
+        ["INTF", "Interfaces (EAIOC-INTF-001, v1.2.0)", "Contracts and schemas: 71 interfaces (INTF-001 to 071) and 260+ schema types that cross component boundaries.", "docs/interfaces.md"],
+        ["CONV", "Conventions (EAIOC-CONV-001, Rev 1.1.0)", "Mandatory engineering rules: naming, module layout, fail-open and fail-closed, anti-patterns.", "docs/conventions.md"],
+        ["EDGE", "Edge Cases (EAIOC-EDGE-001, v1.2.0)", "Catalogue of edge cases EC-001 to EC-213, each with detection, fallback and test needs.", "docs/edge-cases.md"],
+        ["Baseline", "The stabilized six", "PS, ES, ARCH, INTF, CONV and EDGE. Everything else is built on them.", "CLAUDE.md"],
+        ["SCN doc", "Scenario Matrix", "263 scenarios across 30 domains (codes A to AD, 93 compound), reconciled against the baseline. Passed its own readiness check: 177 DIRECT / 35 PARTIAL / 0 NOT COVERED / 1 DUPLICATE edge-case reconciliation.", "docs/scenario-matrix.md"],
+        ["STRAT", "Control-plane stress test (EAIOC-STRAT-001)", "Non-authoritative brainstorm and critique, written before the baseline freeze. Never overrides the baseline.", "docs/strategy/"],
+        ["Scratch", "Presentation & brainstorming files", "EAIOC_Presentation.html and EAIOC_Tech_Stack_Brainstorming_Conversation.txt, both untracked root files. Non-authoritative like STRAT, never a source to reconcile against.", "repo root"]
+      ] },
+
+    { id: "downstream", t: "Downstream documents (12)", h: 265,
+      hook: "Generated in this order, each from its own prompt, each gated by the last document's own Readiness verdict.",
+      items: [
+        ["optimization-catalog.md", "Optimization Catalog", "Adds the 20 TECH-NNN techniques, elaborates the 25 DA-NNN modules at schema/applicability level, and the 11 P5 Index entries (index-level only).", "generate-optimization-catalog.prompt.md"],
+        ["provider-matrix.md", "Provider Matrix", "Provider/model capability and accessibility matrix (PROV-NNN), the six-state Provider Accessibility Model, and evidence-labeled FTR tier assignments.", "generate-provider-matrix.prompt.md"],
+        ["cache-strategy.md", "Cache Strategy", "Concrete key/TTL/economics policy for the seven canonical cache types, CACHE-001 to 007.", "generate-cache-strategy.prompt.md"],
+        ["agent-optimization.md", "Agent Optimization", "Full algorithms for AL-001 to 006 / AR-001 to 004 and the seven agent-loop-facing DA-NNN modules, deferred here by optimization-catalog.md's own scope boundary.", "generate-agent-optimization.prompt.md"],
+        ["inference-optimization.md", "Inference Optimization", "Full Control-Plane elaboration of the 11 INFOPT-NNN / P5 / Layer-3 capabilities. Detection, routing, negotiation and measurement only, never infrastructure (H17, H18).", "generate-inference-optimization.prompt.md"],
+        ["quality-gates.md", "Quality Gates", "Concrete thresholds and methodology for the 10 QG-NNN dimensions, the VCL calibration procedure, QO-001 compression-contract test suites, and the mandatory per-optimization validation invariant.", "generate-quality-gates.prompt.md"],
+        ["security.md", "Security", "Concrete mechanisms for the 5 GSP-NNN Governance/Safety Plane components (SGE, DGE, TMG, HAG, CIS), 12 Control-Plane algorithms A to L, and 8 security matrices.", "generate-security.prompt.md"],
+        ["observability.md", "Observability", "Telemetry pipeline architecture, metric-to-dashboard mapping, alerting/SLO implementation for the 3 OBS-NNN dashboard tiers, and the audit/explanation retrieval layer for H15.", "generate-observability.prompt.md"],
+        ["eval.md", "Eval", "Full algorithm-level elaboration of the 5 EL-NNN Experimentation and Learning modules, plus benchmarking-corpus, statistical-methodology, rollout-phase and regression-testing detail.", "generate-eval.prompt.md"],
+        ["SCALING.md", "Scaling", "Capacity planning, throughput targets and horizontal-scaling triggers beneath ARCH §33/§37. Introduces its own 8-entry SC-NNN series, tagged SOURCE-DERIVED.", "generate-SCALING.prompt.md"],
+        ["implementation-plan.md", "Implementation Plan", "Build-sequencing elaboration of the six Implementation Priority tiers (P0 to P5): capability-level lifecycle decomposition for 6 exemplar capabilities plus 1 P5 boundary treatment, and dispositions all 25 DA-NNN modules into tiers.", "generate-implementation-plan.prompt.md"],
+        ["requirements-traceability.md", "Requirements Traceability", "The canonical cross-document forward-traceability layer: all 138 OBJ/SEC/NFR/H/AC requirement IDs traced (97 FULLY, 11 PARTIALLY, 7 INDIRECTLY, 23 NO DOWNSTREAM ELABORATION), a master source-gap register of 50 distinct gaps, and a master contradiction register of 4 IDs, all resolved.", "generate-requirements-traceability.prompt.md"],
+        ["ADR set", "Architecture Decision Records", "docs/adr/: 0000-index.md plus 0001 to 0006, recording six implementation-blocking technology/pattern questions. Every Status is PROPOSED, never ACCEPTED. 0 hard dependencies among the six.", "generate-adr-set.prompt.md"],
+        ["IRG", "Implementation Readiness Gate", "Re-verifies the whole doc set's summary claims rather than citing them at face value. Verdict: PASS WITH CONDITIONS, P0 may begin, observability has one capability-level condition.", "docs/implementation-readiness-gate.md"],
+        ["Chain rule", "READY FOR NEXT DOCUMENTATION PHASE", "Each of the twelve documents ends with this verdict, gating the next one. The ADR index instead ends with ADR SET COMPLETE — READY FOR IMPLEMENTATION READINESS GATE, a checkpoint the original chain never planned for.", "CLAUDE.md"]
+      ] },
+
+    { id: "ids", t: "ID prefixes", h: 255,
+      hook: "The prefix names the kind of thing. The number is only its slot. New material joins the matching series.",
+      items: [
+        ["OBJ", "Objective", "35 objectives. OBJ-001 to 014 original, 015 to 022 from the first hardening pass, 023 to 035 from the second.", ""],
+        ["SEC", "Security requirement", "16 requirements. SEC-011 to 016 came from the second hardening pass.", ""],
+        ["NFR", "Non-functional requirement", "14 requirements such as correctness, multi-tenancy, low overhead, self-protection.", ""],
+        ["AC", "Acceptance criterion", "53 criteria for judging the system done.", ""],
+        ["EC", "Edge case", "213 edge cases, each with a fixed structure.", "edge-cases.md"],
+        ["H", "Hardening requirement", "H01 to H20, translated from PS §52 into components.", "ARCH §47"],
+        ["DA", "Developer-Agent module", "25 modules for coding agents such as Cursor, Claude Code and Copilot.", "optimization-catalog.md"],
+        ["TECH", "Canonical optimization technique", "20 named techniques, TECH-001 to 020.", "optimization-catalog.md"],
+        ["P5 Index", "Inference-serving index entry", "11 entries, index level only.", "optimization-catalog.md"],
+        ["PROV", "Provider/model matrix entry", "Capability and accessibility facts about providers and models.", "provider-matrix.md"],
+        ["CACHE", "Cache type", "Seven canonical cache types, CACHE-001 to 007.", "cache-strategy.md"],
+        ["INFOPT", "Inference optimization capability", "Eleven P5 capabilities. Detect, route, negotiate, measure only.", "inference-optimization.md"],
+        ["QG", "Quality gate", "Ten quality dimensions, QG-001 to 010.", "quality-gates.md"],
+        ["GSP", "Governance/Safety Plane entry", "Five entries, one per governance component.", "security.md"],
+        ["OBS", "Observability dashboard tier", "Three tiers: executive, engineering, product/operations.", "observability.md"],
+        ["EL", "Experimentation and Learning module", "Five modules, EL-001 to 005.", "eval.md, ARCH §21"],
+        ["SC", "Scaling capacity surface", "Eight surfaces, SC-001 to 008, scaled independently.", "SCALING.md"],
+        ["ADR", "Architecture Decision Record", "Six decisions, ADR-0001 to 0006. All are PROPOSED, none accepted.", "docs/adr/"],
+        ["SCN", "Scenario", "Written SCN-<CODE>-NNN. 263 scenarios in 30 domain codes A to AD.", "scenario-matrix.md"],
+        ["SOURCE-GAP", "Tracked source gap", "A place the sources are underspecified. Recorded, never closed by inventing content. Each downstream document tags its own with a document-scoped suffix, e.g. SOURCE-GAP-SECURITY-01, rather than renumbering an upstream gap it carries forward.", ""],
+        ["CONTRA", "Tracked contradiction", "Two documents disagree. Recorded until a source is updated. 4 distinct contradiction IDs exist corpus-wide, all resolved.", ""],
+        ["IMPL-DEC", "Implementation decision candidate", "An open technology or pattern question named by the implementation plan.", "implementation-plan.md §25"],
+        ["Component ID", "LAYER.SEQUENCE-NAME", "Pipeline and intelligence components use this form, for example T1.6. Execution and hardening components use bare acronyms such as ESM or SGE.", "CONV §3.1"]
+      ] },
+
+    { id: "pipe", t: "Pipeline stages (T-series)", h: 175,
+      hook: "T0 decides, T1 handles context, T2 the query, T3 agents and tools.",
+      items: [
+        ["T0.1", "Model Router", "Pick the least expensive model that still meets quality, capability, latency and compliance needs.", "ARCH §10.1"],
+        ["T0.2", "Task / Complexity Analyzer", "Estimate how hard the task is before paying for inference.", "ARCH §10.2"],
+        ["T0.3", "Reasoning Budget Controller", "Choose how much reasoning to allow, based on complexity.", "ARCH §10.3"],
+        ["T1.1", "Sanitizer", "Normalize raw input and produce the token count.", "ARCH §11.1"],
+        ["T1.2", "Intent Classifier", "Classify what the request wants and choose downstream policies.", "ARCH §11.2"],
+        ["T1.3", "Entity Extraction", "Pull out structured entities before retrieval or the model runs.", "ARCH §11.3"],
+        ["T1.5", "Soft Reset / Context Budgeter", "Enforce the context size ceiling with staged compaction.", "ARCH §11.12"],
+        ["T1.6", "Prompt Cache", "Exact match: return the earlier result with no model call.", "ARCH §11.4"],
+        ["T1.7", "Semantic Cache", "Similar-meaning match: reuse an earlier result with no model call.", "ARCH §11.5"],
+        ["T1.8", "Context Compressor", "Shrink context while keeping what the task needs: extractive, model-based or query-aware.", "ARCH §11.10"],
+        ["T1.9", "Context Pruner", "Remove low-value context before the expensive stages.", "ARCH §11.6"],
+        ["T1.10", "Context Deduplicator", "Remove duplicate and near-duplicate context.", "ARCH §11.7"],
+        ["T1.11", "Context Reorderer", "Reorder context to counter position bias.", "ARCH §11.11"],
+        ["T1.12", "Adaptive Retrieval / Top-K", "Choose K by need instead of a fixed chunk count.", "ARCH §11.9"],
+        ["Token-Aware Ranker", "Ranker (no T number)", "Rank context by more than relevance alone.", "ARCH §11.8"],
+        ["T2.1", "Query Compressor", "Compress the user request while preserving intent and constraints.", "ARCH §12.1"],
+        ["T3.1", "Agent Stop Controller", "Decide whether the agent loop should continue or stop.", "ARCH §13.1"],
+        ["T3.2", "Tool Output Filter / Compressor", "Filter, compress and enforce schema on tool results.", "ARCH §13.2"],
+        ["T3.3", "Tool Result Cache", "Cache deterministic or stable tool results.", "ARCH §13.3"],
+        ["Stage order", "The 24-stage default order", "Cheapest and lowest-risk first, model call at stage 20. Reorder only with benchmark evidence.", "CONV §6.1"]
+      ] },
+
+    { id: "intel", t: "Intelligence modules", h: 145,
+      hook: "Two letters name the section. OI decides, CL keeps context, CE prices caches, TE tools, AL loops, AR adapts, QO guards quality, EL learns.",
+      items: [
+        ["Layer 1", "Agent / Workflow Optimization", "Task planning, tool selection, sub-agent economics, agent loops, early exit.", "ARCH §7"],
+        ["Layer 2", "Context Optimization", "Retrieval, ranking, pruning, dedup, compression, reordering, budgeting, caching.", "ARCH §7"],
+        ["Layer 3", "Inference / Serving Optimization", "Optional, P5. Must stay measured separately from Layers 1 and 2.", "ARCH §26"],
+        ["OI layer", "Optimization Intelligence Layer", "Decides per request which stages run and how deep, and whether optimizing is worth its own cost.", "ARCH §14"],
+        ["OI-001", "Optimization Decision Engine", "For every request, decide which optimization stages run, including whether inference happens at all.", "ARCH §14.1"],
+        ["OI-002", "Cost-of-Optimization Controller", "Skip an optimization when its expected net value is not enough.", "ARCH §14.2"],
+        ["OI-003", "Adaptive Optimization Depth Controller", "Choose how deep to optimize. SPC can force the lowest tier under overload.", "ARCH §14.3"],
+        ["OI-004", "Context Utility / ROI Scorer", "Give each context item a utility score.", "ARCH §14.4"],
+        ["OI-005", "Outcome-Based Optimization Engine", "Judge optimization by outcomes rather than tokens alone.", "ARCH §14.5"],
+        ["CL-001", "Context Dependency Graph", "Represent context as a graph of dependencies, not a flat list.", "ARCH §15.1"],
+        ["CL-002", "Context Freshness Scoring", "Score how fresh each context item is.", "ARCH §15.2"],
+        ["CL-003", "Dependency-Aware Cache Invalidation", "Invalidate cache entries when what they depend on changes.", "ARCH §15.3"],
+        ["CL-004", "Reversible Optimization", "Record enough to undo an optimization. A ReversibilityRecord is written before any content change.", "ARCH §15.4"],
+        ["CL-005", "Progressive Context Compaction", "Compact context in steps as it grows.", "ARCH §15.5"],
+        ["CL-006", "Hierarchical Memory", "Layered memory for retained context.", "ARCH §15.6"],
+        ["CL-007", "Session Phase Management", "Manage context according to the phase of a session.", "ARCH §15.7"],
+        ["CE-001", "Cache Economics Engine", "Make caching decisions on cost, not habit.", "ARCH §16.1"],
+        ["CE-002", "Cache-Aware Context Construction", "Build prompts so their stable prefix caches well.", "ARCH §16.2"],
+        ["CE-003", "Cache Fragmentation Detector", "Detect cache fragmentation.", "ARCH §16.3"],
+        ["CE-004", "Cache Pre-Warming Policy", "Decide what to load into cache before it is asked for.", "ARCH §16.4"],
+        ["CE-005", "Cache Breakpoint Optimizer", "Choose where cache breakpoints go in a prompt.", "ARCH §16.5"],
+        ["TE-001", "Tool Call ROI Predictor", "Predict whether a tool call is worth its cost.", "ARCH §17.1"],
+        ["TE-002", "Tool Argument Optimizer", "Tighten the arguments sent to a tool.", "ARCH §17.2"],
+        ["TE-003", "Dynamic Tool Loading", "Load only the tools a task needs.", "ARCH §17.3"],
+        ["TE-004", "Programmatic Tool Execution", "Run tool steps in code rather than through the model.", "ARCH §17.4"],
+        ["TE-005", "Parallel Tool Execution", "Run independent tool calls at the same time.", "ARCH §17.5"],
+        ["TE-006", "Tool Result Value Filter", "Keep only the tool output that is worth keeping.", "ARCH §17.6"],
+        ["TE-007", "Tool Result Recovery", "Recover tool results.", "ARCH §17.7"],
+        ["AL-001", "Agent Loop Progress Meter", "Measure whether the loop is actually advancing.", "ARCH §18.1"],
+        ["AL-002", "Loop Waste Detector", "Detect loops that burn cost without progress.", "ARCH §18.2"],
+        ["AL-003", "Sub-Agent Value Predictor", "Predict whether spawning a sub-agent will pay off.", "ARCH §18.3"],
+        ["AL-004", "Sub-Agent Scheduler", "Schedule sub-agents.", "ARCH §18.4"],
+        ["AL-005", "Sub-Agent Handoff Compression", "Hand off a compressed summary, never the full history.", "ARCH §18.5"],
+        ["AL-006", "Agent Task Value / Early Exit", "Stop when more calls have low expected value.", "ARCH §18.6"],
+        ["AR-001", "Marginal-Gain Model Routing", "Route by the extra quality a stronger model would add.", "ARCH §19.1"],
+        ["AR-002", "Reasoning Budget Prediction", "Predict how much reasoning a task needs.", "ARCH §19.2"],
+        ["AR-003", "Output Budget Forecasting", "Forecast how many output tokens will be needed.", "ARCH §19.3"],
+        ["AR-004", "Verifier-Guided Escalation", "Use verifiers to confirm an answer or escalate to a stronger model.", "ARCH §19.4"],
+        ["QO-001", "Compression Contracts", "State what a compression must preserve, then test it.", "ARCH §20.1"],
+        ["QO-002", "Quality-Aware Fallback", "Fall back when quality drops.", "ARCH §20.2"],
+        ["QO-003", "Delayed-Relevance Protection", "Protect content that only becomes relevant later.", "ARCH §20.3"],
+        ["EL-001", "Shadow Optimization", "Run an optimization on real traffic without changing what users see.", "ARCH §21.1"],
+        ["EL-002", "Controlled Rollout", "Roll an optimization out gradually.", "ARCH §21.2"],
+        ["EL-003", "Optimization A/B Testing", "Compare optimized and baseline paths.", "ARCH §21.3"],
+        ["EL-004", "Continuous Policy Learning", "Improve policies from evidence over time.", "ARCH §21.4"],
+        ["EL-005", "Optimization Regression Detector", "Catch an optimization that has started to hurt.", "ARCH §21.5"]
+      ] },
+
+    { id: "exec", t: "Execution truth (13)", h: 25,
+      hook: "A request is a versioned, resumable lifecycle, not one atomic call. Think: state, versions, checkpoint, reconcile, guard, recover.",
+      items: [
+        ["ESM", "Execution State Manager", "Owns and persists all mutable state for every active execution. reconcile() must pass before any optimization decision.", "ARCH §46.2.1"],
+        ["CVM", "Context Version Manager", "Versions the context an execution is working from.", "ARCH §46.2.2"],
+        ["WVM", "Workflow Version Manager", "Tracks workflow version, completed actions and open questions.", "ARCH §46.2.3"],
+        ["CPM", "Checkpoint Manager", "Records resumable checkpoints.", "ARCH §46.2.4"],
+        ["RE", "Reconciliation Engine", "Confirms state is consistent before a decision may proceed.", "ARCH §46.2.5"],
+        ["CIG", "Context Integrity Gate", "Validates an item's tier before anything is evicted.", "ARCH §46.2.6"],
+        ["CEC", "Context Expansion Controller", "Handles growth when eviction alone is not enough.", "ARCH §46.2.7"],
+        ["PRV", "Permission Revalidation", "Re-checks permissions as an execution runs on.", "ARCH §46.2.8"],
+        ["DPE", "Dynamic Policy Evaluation", "Re-evaluates policy while an execution is in flight.", "ARCH §46.2.9"],
+        ["CAR", "Capability/Availability Resolver", "Watches provider availability and updates routing if one fails.", "ARCH §46.2.10"],
+        ["SRP", "Stale Result Protection", "Checks freshness before a cached result is returned.", "ARCH §46.2.11"],
+        ["SPM", "Supersession Manager", "Handles executions made obsolete by newer ones.", "ARCH §46.2.12"],
+        ["RCO", "Recovery Coordinator", "Restores an execution after a failure.", "ARCH §46.2.13"]
+      ] },
+
+    { id: "gov", t: "Hardening components (9)", h: 350,
+      hook: "Spend, Data, Tools, Humans, Content: SGE, DGE, TMG, HAG, CIS can block a request regardless of savings. XEC, SPC, VCL and FTR keep the system honest.",
+      items: [
+        ["SGE", "Spend Governance Engine", "Spend limits and runaway-cost circuit breaking. A budget check never substitutes for an authorization check.", "ARCH §47.2.1"],
+        ["DGE", "Data Governance Engine", "Classifies data sensitivity and propagates deletion to every place data was kept.", "ARCH §47.2.2"],
+        ["TMG", "Tool/MCP Trust Gate", "Checks tool and MCP identity, schema staleness and authorization, independent of ROI.", "ARCH §47.2.3"],
+        ["HAG", "Human Approval Gate", "Requires human approval before policy-designated consequential or irreversible actions.", "ARCH §47.2.4"],
+        ["CIS", "Content Integrity Screen", "Screens retrieved and tool content for prompt injection before any optimization touches it.", "ARCH §47.2.5"],
+        ["XEC", "Cross-Execution Coordinator", "Detects conflicts between concurrent executions. Fails closed if coordination is unavailable.", "ARCH §47.3.2"],
+        ["SPC", "Self-Protection Controller", "Enforces the control plane's own latency and cost budgets, with backpressure under overload.", "ARCH §47.4.1"],
+        ["VCL", "Verifier Calibration Layer", "Calibrates verifiers so their confidence can be trusted.", "ARCH §47.4.3"],
+        ["FTR", "Feasibility Tier Registry", "Declares how deeply each integration can be optimized, tiers 1 to 5.", "ARCH §47.10"]
+      ] },
+
+    { id: "hard", t: "Hardening H01 to H20", h: 305,
+      hook: "Twenty items from PS §52. Each maps to one subsection of ARCH §47.",
+      items: [
+        ["H01", "Operating model", "Every component declares SYNC, ASYNC or HYBRID.", "§47.5"],
+        ["H02", "Advisory / enforcement boundary", "Who advises, who enforces, who owns execution.", "§47.6"],
+        ["H03", "Self-protection", "SPC and NFR-014.", "§47.4.1"],
+        ["H04", "Net optimization economics", "Value counted as verified net benefit, not tokens.", "§47.4.2"],
+        ["H05", "Spend governance", "SGE.", "§47.2.1"],
+        ["H06", "Verifier calibration", "VCL.", "§47.4.3"],
+        ["H07", "Data governance", "DGE.", "§47.2.2"],
+        ["H08", "Feasibility tiers", "FTR.", "§47.10"],
+        ["H09", "Memory authority", "An ESM extension.", "§47.3.1"],
+        ["H10", "Reflection and loop awareness", "Also amends AL-002.", "§47.7"],
+        ["H11", "Tool/MCP trust", "TMG.", "§47.2.3"],
+        ["H12", "Cross-execution coordination", "XEC.", "§47.3.2"],
+        ["H13", "Human approval", "HAG.", "§47.2.4"],
+        ["H14", "Content integrity", "CIS.", "§47.2.5"],
+        ["H15", "Decision explainability and audit", "Explanations must be retrievable for audit. Failed required audit write fails closed.", "§47.16"],
+        ["H16", "Execution state portability", "Checkpoints are provider and session neutral.", "§47.11"],
+        ["H17", "Layer 3 boundary", "Inference-serving work stays detect, route, negotiate, measure.", "§47.8"],
+        ["H18", "Ownership boundaries", "What the control plane does not own.", "§47.9"],
+        ["H19", "Research claims reaffirmed", "Paper benchmarks are validation targets, not guarantees.", "§47.12"],
+        ["H20", "Anti-scope boundary", "Not an agent orchestrator, model host, IDE or provider.", "§47.13"]
+      ] },
+
+    { id: "tiers", t: "Priorities and maturity", h: 45,
+      hook: "Priority is when to build. Maturity is how proven. Test priority is how risky to leave untested.",
+      items: [
+        ["P0", "Foundation", "Token accounting, benchmark harness, sanitizer, context policy, prompt assembler, output controls, observability, quality evaluation.", "ARCH §36"],
+        ["P1", "High-confidence optimization", "Exact caching, dedup, pruning, adaptive Top-K, tool-output filtering, query and context compression, output control, soft reset.", "ARCH §36"],
+        ["P2", "Cost intelligence", "Model routing and cascade, semantic and tool-result caching, reasoning budget, agent early exit.", "ARCH §36"],
+        ["P3", "Advanced optimization", "Token-aware ranking, reordering, learned routing, advanced compression, dynamic budgets, batching.", "ARCH §36"],
+        ["P4", "Control-plane intelligence", "The OI, CL, CE, TE, AL, AR-004 and EL families.", "ARCH §36"],
+        ["P5", "Infrastructure-dependent inference optimization (optional)", "KV and prefix cache, batching, speculative decoding, quantization and more.", "ARCH §36"],
+        ["Level 0", "RESEARCH", "Literature or provider evidence only.", "ARCH §42"],
+        ["Level 1", "EXPERIMENTAL", "Local benchmark, offline validation.", "ARCH §42"],
+        ["Level 2", "SHADOW", "Production-like traffic, no user-visible change.", "ARCH §42"],
+        ["Level 3", "CONTROLLED PILOT", "Limited production traffic with baseline fallback.", "ARCH §42"],
+        ["Level 4", "PRODUCTION", "Validated policy, monitoring and rollback.", "ARCH §42"],
+        ["Level 5", "AUTO-TUNED", "Continuous evidence-based adjustment inside governance boundaries.", "ARCH §42"],
+        ["Test P0 to P3", "Scenario test priority", "How risk-critical a test scenario is. Unrelated to build P0 to P5.", "scenario-matrix.md"],
+        ["FTR tier 1", "Deep / Native", "Embedded. Full pre-inference context is visible and changeable.", "ARCH §47.10"],
+        ["FTR tier 2", "Gateway / Interception", "Sits at the API or gateway boundary.", "ARCH §47.10"],
+        ["FTR tier 3", "Plugin / Extension", "Limited to the platform's own extension surface.", "ARCH §47.10"],
+        ["FTR tier 4", "Protocol / Tool-level", "Participates as an MCP server or tool only.", "ARCH §47.10"],
+        ["FTR tier 5", "Advisory / Observability-only", "Can observe and advise. Cannot transform or block.", "ARCH §47.10"],
+        ["Accessibility ladder", "Provider Accessibility Model", "Six states in order: Discovered, Accessible, Available, Authorized, Recommended, Eligible.", "provider-matrix.md §1"]
+      ] },
+
+    { id: "cache", t: "Cache types (7)", h: 195,
+      hook: "Seven kinds of thing that can be cached. Exact and semantic are the ones you meet first.",
+      items: [
+        ["CACHE-001", "EXACT", "Identical request returns the earlier result.", "cache-strategy.md"],
+        ["CACHE-002", "SEMANTIC", "Similar-meaning request reuses the earlier result. Needs authorization and freshness checks.", "cache-strategy.md"],
+        ["CACHE-003", "TOOL_RESULT", "Deterministic tool outputs.", "cache-strategy.md"],
+        ["CACHE-004", "EMBEDDING", "Computed embeddings.", "cache-strategy.md"],
+        ["CACHE-005", "PROVIDER_NATIVE", "The provider's own prompt or prefix caching.", "cache-strategy.md"],
+        ["CACHE-006", "APPLICATION", "Application-level cached results.", "cache-strategy.md"],
+        ["CACHE-007", "CONTEXT", "Cached context material.", "cache-strategy.md"]
+      ] },
+
+    { id: "tech", t: "Techniques TECH-001 to 020", h: 100,
+      hook: "The twenty canonical optimizations. The tag shows the build priority.",
+      items: [
+        ["TECH-001", "Sanitization", "P0", "T1.1"],
+        ["TECH-002", "Query Compression", "P1", "T2.1"],
+        ["TECH-003", "Context Pruning", "P1", "T1.9"],
+        ["TECH-004", "Context Deduplication", "P1", "T1.10"],
+        ["TECH-005", "Adaptive Top-K Retrieval", "P1", "T1.12"],
+        ["TECH-006", "Token-Aware Ranking", "P3", ""],
+        ["TECH-007", "Context Compression", "P1 (advanced P3)", "T1.8"],
+        ["TECH-008", "Context Reordering", "P3", "T1.11"],
+        ["TECH-009", "Prompt Caching", "P1", "T1.6"],
+        ["TECH-010", "Semantic Caching", "P2", "T1.7"],
+        ["TECH-011", "Tool Output Filtering", "P1", "T3.2"],
+        ["TECH-012", "Tool Result Caching", "P2", "T3.3"],
+        ["TECH-013", "Model Routing", "P2", "T0.1"],
+        ["TECH-014", "Model Cascade / Escalation", "P2", ""],
+        ["TECH-015", "Reasoning Budget Control", "P2", "T0.3"],
+        ["TECH-016", "Agent Early Exit", "P2", "T3.1"],
+        ["TECH-017", "Output Schema Enforcement", "P1", ""],
+        ["TECH-018", "Output Length Control", "P1", ""],
+        ["TECH-019", "Batch Optimization", "P3", ""],
+        ["TECH-020", "Soft Reset / Context Budgeting", "P1", "T1.5"]
+      ] },
+
+    { id: "qg", t: "Quality gates QG-001 to 010", h: 280,
+      hook: "Token savings never count on their own. Every optimization must clear these dimensions.",
+      items: [
+        ["QG-001", "Accuracy", "", "quality-gates.md"],
+        ["QG-002", "Task completion", "", "quality-gates.md"],
+        ["QG-003", "Retrieval quality", "", "quality-gates.md"],
+        ["QG-004", "Factuality", "", "quality-gates.md"],
+        ["QG-005", "Schema compliance", "", "quality-gates.md"],
+        ["QG-006", "Semantic equivalence", "", "quality-gates.md"],
+        ["QG-007", "Safety", "", "quality-gates.md"],
+        ["QG-008", "User satisfaction", "", "quality-gates.md"],
+        ["QG-009", "Latency", "", "quality-gates.md"],
+        ["QG-010", "Cost", "", "quality-gates.md"]
+      ] },
+
+    { id: "p5", t: "Serving layer INFOPT-001 to 011", h: 330,
+      hook: "Optional P5. The control plane only detects, routes, negotiates and measures. It never builds the infrastructure.",
+      items: [
+        ["INFOPT-001", "Prefix / KV-Cache Reuse", "", "inference-optimization.md"],
+        ["INFOPT-002", "KV-Cache Compression", "", "inference-optimization.md"],
+        ["INFOPT-003", "Continuous Batching", "", "inference-optimization.md"],
+        ["INFOPT-004", "Request Scheduling", "", "inference-optimization.md"],
+        ["INFOPT-005", "Prefill Optimization", "", "inference-optimization.md"],
+        ["INFOPT-006", "Decode Optimization", "", "inference-optimization.md"],
+        ["INFOPT-007", "Speculative Decoding", "", "inference-optimization.md"],
+        ["INFOPT-008", "Quantization", "", "inference-optimization.md"],
+        ["INFOPT-009", "Model Replica Selection", "", "inference-optimization.md"],
+        ["INFOPT-010", "GPU Utilization Optimization", "", "inference-optimization.md"],
+        ["INFOPT-011", "Inference Queue Management", "", "inference-optimization.md"]
+      ] },
+
+    { id: "da", t: "Developer agents DA-001 to 025", h: 70,
+      hook: "Modules for coding agents. First-class, not optional, but not needed for a first proof.",
+      items: [
+        ["DA-001", "Code-Aware Context Pruner", "Remove low-value code context but keep task-critical dependencies.", ""],
+        ["DA-002", "Symbol-Level Context Selector", "Select functions, classes and references instead of whole files.", ""],
+        ["DA-003", "Repository Map Generator and Cache", "Keep a compact repo structure and reuse it.", ""],
+        ["DA-004", "Git-Diff Optimizer", "Summarize large diffs and expose detail selectively.", ""],
+        ["DA-005", "Terminal Output Optimizer", "Filter and dedupe large terminal output.", ""],
+        ["DA-006", "Compiler / Test / Linter Error Extractor", "Pull actionable failures out of noisy output.", ""],
+        ["DA-007", "Dynamic MCP / Tool Selector", "Expose only the MCP tools relevant to the task.", ""],
+        ["DA-008", "Tool Schema Optimizer", "Shrink tool definitions without changing their meaning.", ""],
+        ["DA-009", "Sub-Agent Result Compressor", "Turn verbose sub-agent output into compact findings.", ""],
+        ["DA-010", "Agent Memory Optimizer", "Separate short-term task state from durable memory.", ""],
+        ["DA-011", "Code-Aware Semantic Deduplicator", "Detect equivalent code, traces, errors and findings.", ""],
+        ["DA-012", "Error-Driven Context Retrieval", "Let errors and locations drive targeted retrieval.", ""],
+        ["DA-013", "Developer-Agent Context Budget Manager", "Split budget across repo, chat, tools, memory and output.", ""],
+        ["DA-014", "Agent Loop Cost / Token Controller", "Track loop cost and stop low-value loops.", ""],
+        ["DA-015", "Code Context Reorderer", "Order code, errors and evidence while keeping instruction precedence.", ""],
+        ["DA-016", "File-Section Lazy Loader", "Prefer signatures and sections before whole files.", ""],
+        ["DA-017", "Repository Search Result Optimizer", "Rank and dedupe search results to the smallest useful set.", ""],
+        ["DA-018", "Agent Plan Context Optimizer", "Keep active plan state, not the full planning history.", ""],
+        ["DA-019", "Code Edit Context Optimizer", "Give the smallest safe context for a correct patch.", ""],
+        ["DA-020", "Developer-Agent Output Controller", "Bound verbose explanations and patches.", ""],
+        ["DA-021", "Agent Task Completion / Early-Exit Controller", "Stop extra searches, calls and tests once done.", ""],
+        ["DA-022", "Developer-Agent Cache Layer", "Exact, semantic, repo-aware and tool-result caching with freshness controls.", ""],
+        ["DA-023", "Context Provenance Tracker", "Record where each piece of retained context came from.", ""],
+        ["DA-024", "Context Invalidation Engine", "Invalidate caches when files, branches or permissions change.", ""],
+        ["DA-025", "Patch / Change Impact Analyzer", "Estimate affected files, symbols and tests.", ""]
+      ] },
+
+    { id: "scale", t: "Scaling and dashboards", h: 230,
+      hook: "Capacity is planned per surface, never as one global number.",
+      items: [
+        ["SC-001", "Control-Plane compute", "", "SCALING.md"],
+        ["SC-002", "Cross-execution coordination", "", "SCALING.md"],
+        ["SC-003", "Per-tenant governance-check throughput", "", "SCALING.md"],
+        ["SC-004", "Cache-layer operations", "", "SCALING.md"],
+        ["SC-005", "Provider/model concurrency", "", "SCALING.md"],
+        ["SC-006", "Agent and sub-agent fan-out", "", "SCALING.md"],
+        ["SC-007", "Evaluation and benchmark workers", "", "SCALING.md"],
+        ["SC-008", "Telemetry ingestion", "", "SCALING.md"],
+        ["OBS-001", "Executive dashboard", "", "observability.md"],
+        ["OBS-002", "Engineering dashboard", "", "observability.md"],
+        ["OBS-003", "Product / Operations dashboard", "", "observability.md"],
+        ["OverloadSignal", "queue_depth, latency_p99_ms, error_rate", "The three signals SPC watches for overload.", "SCALING.md"]
+      ] },
+
+    { id: "nfr", t: "Non-functional NFR-001 to 014", h: 125,
+      hook: "Fourteen qualities every optimization must respect.",
+      items: [
+        ["NFR-001", "Correctness", "Optimization must preserve task correctness.", ""],
+        ["NFR-002", "Security", "Must not weaken security controls.", ""],
+        ["NFR-003", "Privacy", "Caching and optimization follow retention and privacy settings.", ""],
+        ["NFR-004", "Multi-tenancy", "Tenant data and cache entries stay isolated.", ""],
+        ["NFR-005", "Provider Independence", "Core is not tied to a single provider.", ""],
+        ["NFR-006", "Observability", "Every optimization decision is measurable.", ""],
+        ["NFR-007", "Reliability", "Optimization failures have safe fallbacks.", ""],
+        ["NFR-008", "Scalability", "Supports high-volume enterprise traffic.", ""],
+        ["NFR-009", "Low Overhead", "Optimization must not cost more than it saves.", ""],
+        ["NFR-010", "Explainability", "Removal, compression, caching and routing decisions can be explained for audit.", ""],
+        ["NFR-011", "Determinism", "Policy-based optimization is deterministic where feasible.", ""],
+        ["NFR-012", "Configurability", "Policies are tunable per workflow.", ""],
+        ["NFR-013", "Testability", "Every stage is independently testable.", ""],
+        ["NFR-014", "Control-Plane Self-Protection", "The control plane enforces its own budgets and degrades safely under overload.", ""]
+      ] },
+
+    { id: "terms", t: "Common terms", h: 205,
+      hook: "Words and tags that repeat across every document.",
+      items: [
+        ["SYNC", "Synchronous mode", "Decided at request time from request-only information.", "ARCH §47.5"],
+        ["ASYNC", "Asynchronous / precomputed mode", "For information that changes slowly compared to request volume.", "ARCH §47.5"],
+        ["HYBRID", "Hybrid mode", "A precomputed artifact is used inline and revalidated when it may be stale.", "ARCH §47.5"],
+        ["Fail-open", "Optimization failure rule", "A failed optimization stage falls back to the original path and the request continues, if still authorized.", "CONV §16.2"],
+        ["Fail-closed", "Security failure rule", "If authorization, policy or a required audit write cannot be established, reject the request.", "CONV §16.2"],
+        ["Net Savings", "Inference cost avoided, minus overhead", "Minus optimizer compute, extra provider and tool cost, latency cost and quality risk. Must be above zero to count.", "CONV §6.4"],
+        ["PROPOSED DEFAULT: VALIDATE LOCALLY", "Number tag", "A starting value to re-measure, never a hard-coded expectation.", ""],
+        ["SOURCE-DEFINED", "Tag", "The behavior is stated by an upstream document.", ""],
+        ["SOURCE-DERIVED", "Tag", "Introduced by a downstream document, not defined upstream.", ""],
+        ["ILLUSTRATIVE EXAMPLE", "Tag", "An example figure, not a number to hard-code.", ""],
+        ["PROPOSED", "ADR status", "Recorded but not accepted. No repository evidence yet selects a technology.", "docs/adr/"],
+        ["READY FOR NEXT DOCUMENTATION PHASE", "Closing verdict", "Each chain document ends with it, which gates the next document.", ""],
+        ["tenant_id", "Tenant identifier", "First namespace component on every cache key, memory entry, cost record and event.", "CONV §13.2"],
+        ["Provider neutrality", "Core rule", "Core code never names a provider, model, agent framework, MCP library or embedding model. Adapters do.", "CONV"],
+        ["LLM", "Large language model", "", ""],
+        ["RAG", "Retrieval-augmented generation", "", ""],
+        ["MCP", "Model Context Protocol", "How tools and resources are exposed to agents.", ""],
+        ["KV cache", "Key-value cache", "The attention cache inside model serving. Belongs to the optional P5 layer.", ""],
+        ["TTL", "Time to live", "How long a cache entry stays valid.", ""],
+        ["ROI", "Return on investment", "Used for context items and tool calls.", ""],
+        ["PII", "Personally identifiable information", "", ""],
+        ["SLO", "Service level objective", "The docs set a per-decision latency budget but no numeric latency SLO.", ""]
+      ] }
+  ];
+
+  var ITEMS = [];
+  FAMS.forEach(function (f) {
+    f.items.forEach(function (i) {
+      var isTech = f.id === "tech";
+      ITEMS.push({
+        fam: f.id,
+        a: i[0],
+        n: i[1],
+        m: isTech ? "Build priority " + i[2] : (i[2] || ""),
+        w: isTech ? (i[3] ? "Stage " + i[3] : "") : (i[3] || ""),
+        k: f.id + ":" + i[0]
+      });
+    });
+  });
+
+  var famById = {};
+  FAMS.forEach(function (f) { famById[f.id] = f; });
+
+  function $(s) { return document.querySelector(s); }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  var KEY = "eaioc-abbr-known-v1";
+  function loadKnown() {
+    try { return new Set(JSON.parse(localStorage.getItem(KEY) || "[]")); }
+    catch (e) { return new Set(); }
+  }
+  function saveKnown() {
+    try { localStorage.setItem(KEY, JSON.stringify(Array.from(known))); }
+    catch (e) { /* storage unavailable: progress lasts for this visit only */ }
+  }
+  var known = loadKnown();
+
+  var state = { tab: "browse", fam: "all", q: "", compact: false, dir: "a", qfam: "all", queue: [], shown: false, cur: null };
+
+  $("#total").textContent = ITEMS.length + " entries";
+
+  /* ---------- Browse ---------- */
+  function renderChips() {
+    var html = '<button type="button" class="chip" data-fam="all" aria-pressed="' + (state.fam === "all") + '">All</button>';
+    FAMS.forEach(function (f) {
+      html += '<button type="button" class="chip" data-fam="' + f.id + '" aria-pressed="' + (state.fam === f.id) + '">' + esc(f.t) + "</button>";
+    });
+    $("#chips").innerHTML = html;
+  }
+
+  function rowHtml(x) {
+    return '<button type="button" class="row" aria-expanded="false">' +
+      '<span class="abbr">' + esc(x.a) + "</span>" +
+      '<span class="txt"><span class="name">' + esc(x.n) + "</span>" +
+      (x.m ? '<span class="mean">' + esc(x.m) + "</span>" : "") +
+      (x.w ? '<span class="where">' + esc(x.w) + "</span>" : "") +
+      "</span></button>";
+  }
+
+  function renderBrowse() {
+    var q = state.q.trim().toLowerCase();
+    var html = "";
+    var total = 0;
+    FAMS.forEach(function (f) {
+      if (state.fam !== "all" && state.fam !== f.id) return;
+      var items = ITEMS.filter(function (x) {
+        if (x.fam !== f.id) return false;
+        if (!q) return true;
+        return (x.a + " " + x.n + " " + x.m + " " + x.w).toLowerCase().indexOf(q) !== -1;
+      });
+      if (!items.length) return;
+      total += items.length;
+      html += '<section class="fam" style="--h:' + f.h + '"><h2>' + esc(f.t) +
+        ' <span class="count">' + items.length + "</span></h2>" +
+        (q ? "" : '<p class="hook">' + esc(f.hook) + "</p>") +
+        '<div class="rows">' + items.map(rowHtml).join("") + "</div></section>";
+    });
+    $("#list").innerHTML = html || '<p class="empty">Nothing matches. Try a shorter word or an ID such as ESM or T1.6.</p>';
+    $("#status").textContent = total + " shown";
+    $("#view-browse").className = state.compact ? "compact" : "";
+  }
+
+  /* ---------- Practice ---------- */
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function pool() {
+    return ITEMS.filter(function (x) { return state.qfam === "all" || x.fam === state.qfam; });
+  }
+
+  function rebuildQueue() {
+    state.queue = shuffle(pool().filter(function (x) { return !known.has(x.k); }));
+    state.shown = false;
+    renderQuiz();
+  }
+
+  function renderQuiz() {
+    var p = pool();
+    var knownCount = p.filter(function (x) { return known.has(x.k); }).length;
+    $("#qprog").textContent = "Known " + knownCount + " of " + p.length + " in this set. " + state.queue.length + " still to go.";
+    $("#dir-a").setAttribute("aria-pressed", String(state.dir === "a"));
+    $("#dir-m").setAttribute("aria-pressed", String(state.dir === "m"));
+    var card = $("#card");
+    var btns = $("#qbtns");
+    if (!state.queue.length) {
+      card.innerHTML = '<div class="q-main words">Every card in this set is marked known.</div><div class="q-fam">Pick another set, or forget progress below to go again.</div>';
+      btns.innerHTML = "";
+      return;
+    }
+    var x = state.queue[0];
+    state.cur = x;
+    var f = famById[x.fam];
+    var front;
+    if (state.dir === "a") {
+      front = '<div class="q-main">' + esc(x.a) + "</div>";
+    } else {
+      front = '<div class="q-main words">' + esc(x.n) + (x.m ? " . " + esc(x.m) : "") + "</div>";
+    }
+    var html = '<div class="q-fam">' + esc(f.t) + "</div>" + front;
+    if (state.shown) {
+      if (state.dir === "a") {
+        html += '<div class="a-name">' + esc(x.n) + "</div>" + (x.m ? '<div class="a-mean">' + esc(x.m) + "</div>" : "") + (x.w ? '<div class="a-where">' + esc(x.w) + "</div>" : "");
+      } else {
+        html += '<div class="a-abbr">' + esc(x.a) + "</div>" + (x.w ? '<div class="a-where">' + esc(x.w) + "</div>" : "");
+      }
+      btns.innerHTML = '<button type="button" class="btn" id="b-again">Again</button><button type="button" class="btn primary" id="b-got">Got it</button>';
+    } else {
+      btns.innerHTML = '<button type="button" class="btn primary" id="b-show">Show answer</button>';
+    }
+    card.innerHTML = html;
+  }
+
+  function fillQuizSelect() {
+    var html = '<option value="all">Everything</option>';
+    FAMS.forEach(function (f) { html += '<option value="' + f.id + '">' + esc(f.t) + "</option>"; });
+    $("#qfam").innerHTML = html;
+    $("#qfam").value = state.qfam;
+  }
+
+  /* ---------- Tabs ---------- */
+  function setTab(t) {
+    state.tab = t;
+    ["browse", "quiz", "map"].forEach(function (name) {
+      $("#view-" + name).hidden = name !== t;
+    });
+    $("#browse-tools").hidden = t !== "browse";
+    Array.prototype.forEach.call(document.querySelectorAll(".nav button"), function (b) {
+      if (b.getAttribute("data-tab") === t) b.setAttribute("aria-current", "page");
+      else b.removeAttribute("aria-current");
+    });
+    if (t === "quiz") rebuildQueue();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- Events ---------- */
+  $("#q").addEventListener("input", function (e) { state.q = e.target.value; renderBrowse(); });
+  $("#compact").addEventListener("change", function (e) { state.compact = e.target.checked; renderBrowse(); });
+
+  $("#chips").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-fam]");
+    if (!b) return;
+    state.fam = b.getAttribute("data-fam");
+    renderChips();
+    renderBrowse();
+    window.scrollTo(0, 0);
+  });
+
+  $("#list").addEventListener("click", function (e) {
+    var r = e.target.closest(".row");
+    if (!r) return;
+    var open = r.classList.toggle("open");
+    r.setAttribute("aria-expanded", String(open));
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll(".nav button"), function (b) {
+    b.addEventListener("click", function () { setTab(b.getAttribute("data-tab")); });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-jump]"), function (b) {
+    b.addEventListener("click", function () {
+      state.fam = b.getAttribute("data-jump");
+      state.q = "";
+      $("#q").value = "";
+      renderChips();
+      renderBrowse();
+      setTab("browse");
+    });
+  });
+
+  $("#qfam").addEventListener("change", function (e) { state.qfam = e.target.value; rebuildQueue(); });
+  $("#dir-a").addEventListener("click", function () { state.dir = "a"; state.shown = false; renderQuiz(); });
+  $("#dir-m").addEventListener("click", function () { state.dir = "m"; state.shown = false; renderQuiz(); });
+
+  $("#qbtns").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    if (b.id === "b-show") {
+      state.shown = true;
+      renderQuiz();
+    } else if (b.id === "b-got") {
+      known.add(state.queue[0].k);
+      saveKnown();
+      state.queue.shift();
+      state.shown = false;
+      renderQuiz();
+    } else if (b.id === "b-again") {
+      var c = state.queue.shift();
+      var at = Math.min(3, state.queue.length);
+      state.queue.splice(at, 0, c);
+      state.shown = false;
+      renderQuiz();
+    }
+  });
+
+  $("#qreset").addEventListener("click", function () {
+    pool().forEach(function (x) { known.delete(x.k); });
+    saveKnown();
+    rebuildQueue();
+  });
+
+  /* ---------- Init ---------- */
+  renderChips();
+  fillQuizSelect();
+  renderBrowse();
+})();
+</script>
+</body>
+</html>
