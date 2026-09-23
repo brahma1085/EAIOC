@@ -2,11 +2,11 @@
 
 **Document ID:** EAIOC-EXECPLAN-001
 **Status:** PRE-IMPLEMENTATION — Level 0 (RESEARCH). This document plans execution; it does not itself constitute implementation, and its existence does not change the repository's maturity level.
-**Version:** 1.0.3
+**Version:** 1.0.5
 **Generated:** 2026-09-23 (per repository date)
 **Generation prompt:** `docs/prompts/execute-p0-foundation.prompt.md` (Master Prompt — Execution Plan Generation + Gated Implementation Execution, Mode A)
 **Mode executed:** MODE A — Execution-Plan Generation. No source code was written in producing this document.
-**Correction history:** v1.0.0 → v1.0.1 — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.1.md`: removed a Sub-phase A/B shared-commit contradiction (§18.4) and all wording that could be misread as permitting parallel *execution* of Capabilities 1–3 in Mode B (§18.3, §48, §H below), while preserving the true dependency-independence fact those capabilities share. No requirement, scope, technology-baseline, or source-gap content was altered — see this document's own version-1.0.1 self-check at the end. **v1.0.1 → v1.0.2** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.2.md`: reclassified the Capability Gate as a post-lifecycle review/promotion checkpoint rather than a ninth implementation sub-phase (§18.10) — it receives its own explicit human approval but no implementation commit and no `EXE-P0.<n>.<letter>` ID — and corrected every dependent count reference from "54 atomic execution units" to "48 atomic `EXE-P0.<n>.<letter>` execution units + 6 Capability Gates = 54 total gated checkpoints" (§18.2, §H, and this header). No scope, technology-baseline, source-gap, or sequential-execution content was altered — see this document's own version-1.0.2 self-check at the end. **v1.0.2 → v1.0.3** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.3.md`: added a new §18.11 "Claude Code Mode B Execution Command Protocol" — the canonical `Execute EXE-P0.<n>.<letter>`/`Approve EXE-P0.<n>.<letter>`/`Approve CAPABILITY-GATE P0.<n>` command syntax, the required per-unit response/reporting format, a command-state table, a prohibited-ambiguous-command list, and the full six-capability copy/paste operator reference sequence. No scope, architecture, technology-baseline, requirements, source-gap, ADR, or sequencing content was changed — see this document's own version-1.0.3 self-check at the end.
+**Correction history:** v1.0.0 → v1.0.1 — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.1.md`: removed a Sub-phase A/B shared-commit contradiction (§18.4) and all wording that could be misread as permitting parallel *execution* of Capabilities 1–3 in Mode B (§18.3, §48, §H below), while preserving the true dependency-independence fact those capabilities share. No requirement, scope, technology-baseline, or source-gap content was altered — see this document's own version-1.0.1 self-check at the end. **v1.0.1 → v1.0.2** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.2.md`: reclassified the Capability Gate as a post-lifecycle review/promotion checkpoint rather than a ninth implementation sub-phase (§18.10) — it receives its own explicit human approval but no implementation commit and no `EXE-P0.<n>.<letter>` ID — and corrected every dependent count reference from "54 atomic execution units" to "48 atomic `EXE-P0.<n>.<letter>` execution units + 6 Capability Gates = 54 total gated checkpoints" (§18.2, §H, and this header). No scope, technology-baseline, source-gap, or sequential-execution content was altered — see this document's own version-1.0.2 self-check at the end. **v1.0.2 → v1.0.3** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.3.md`: added a new §18.11 "Claude Code Mode B Execution Command Protocol" — the canonical `Execute EXE-P0.<n>.<letter>`/`Approve EXE-P0.<n>.<letter>`/`Approve CAPABILITY-GATE P0.<n>` command syntax, the required per-unit response/reporting format, a command-state table, a prohibited-ambiguous-command list, and the full six-capability copy/paste operator reference sequence. No scope, architecture, technology-baseline, requirements, source-gap, ADR, or sequencing content was changed — see this document's own version-1.0.3 self-check at the end. **v1.0.3 → v1.0.4** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.4.md`, addressing the shared-core-foundation ownership gap exposed by `EXE-P0.2.B` and strengthening Mode B approval into a mandatory two-stage control: Claude Code AI verification first, followed by explicit human approval. The correction assigns the shared `core/interfaces`, `core/schemas`, and `core/errors` foundation ownership to Capability 1 / `EXE-P0.1.A`, adds a post-hoc reconciliation mechanism for already-executed P0.1.A, adds explicit precondition guards for P0.2.B, defines AI verification checklists/reporting/state transitions, separates AI verification from human approval, adds AI Capability Gate verification before human Gate approval, clarifies N/A sub-phase handling, and records the historical `c3d6ecf` out-of-band documentation/editor-settings commit as non-implementation history. No upstream architecture, requirements, ADR, technology-baseline, or P0 capability scope is changed by this correction. New/changed sections: §18.2 (N/A commit exception), §18.4/§18.5/§18.6 (Preconditions and the affected A/B rows), §18.10 (two-layer Gate), §18.11.3/§18.11.5–§18.11.8/§18.11.11 (revised), new §18.12–§18.18, §37, §38 (`SOURCE-GAP-EXECPLAN-04`), §52, and this document's version-1.0.4 self-check at the end. **v1.0.4 → v1.0.5** — surgical correction per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.5.md`, to eliminate remaining internal inconsistencies after post-v1.0.4 verification. Corrected the architecture-to-implementation mapping so only A–H are lifecycle sub-phases; corrected the §18.2 field-compaction wording from nine entries to eight lifecycle entries plus a separate Gate; retired ambiguous capability-level shorthand execution semantics in favor of the mandatory canonical `Execute EXE-P0.<n>.<letter>` syntax; corrected final validation/readiness language to recognize `SOURCE-GAP-EXECPLAN-04` as the current implementation-side blocker; and aligned the companion operator runbook to v1.0.5. No scope, architecture, requirements, technology baseline, ADR status, P0 capability definition, execution counts, remediation mechanism, or implementation code was changed. Sections touched: §1 (Version row), §7, §18.2, §18.11.2, §18.11.9, §52, Summary K/U, Execution Plan Readiness, and the new version-1.0.5 self-check at the end.
 
 **Relationship to the documentation chain:** Not part of the originally-planned chain (2 authoritative sources + 5 baseline documents + 12 generated documents + ADR set + Implementation Readiness Gate). It is a downstream implementation-planning artifact consuming that completed chain — it does not replace `architecture.md`, `implementation-plan.md`, `requirements-traceability.md`, any ADR, `security.md`, `observability.md`, or any other approved authoritative source, and it does not modify any of them.
 
@@ -25,8 +25,8 @@
 | Document ID | `EAIOC-EXECPLAN-001` |
 | Title | Enterprise Agent & LLM Inference Optimization Control Plane — Execution Plan |
 | Level | LEVEL 0 — RESEARCH / PRE-IMPLEMENTATION |
-| Status | Mode A (planning) output; Mode B (execution) has not yet begun as of this document's generation |
-| Version | 1.0.3 (surgical correction — see Correction History above) |
+| Status | Mode A (planning) output. Mode B had not begun when this document was first generated; as of v1.0.4 it has begun under the gated protocol (§18.11) — Capability 1 A–E/G/H committed (F `NOT APPLICABLE`, no commit), `EXE-P0.2.A` committed, `EXE-P0.2.B` stopped on an unmet precondition (§18.13–§18.15) |
+| Version | 1.0.5 (surgical correction — see Correction History above) |
 | Owning artifact class | Downstream implementation-planning document, outside the original chain, alongside the ADR set and the Implementation Readiness Gate |
 | File-scope this generation | Only `docs/execution-plan.md` created. No upstream, sibling, or ADR document modified. Verified via `git status --short`/`git diff --stat` (§52). |
 
@@ -91,7 +91,7 @@ Per the generation prompt's own required classification (§5 of that prompt):
 | T0–T3 pipeline stages (`architecture.md` §7–§13) | `architecture.md` | Capabilities 3 (Sanitizer, T1.1), 5 (Prompt Assembler, §12.2), 6 (Output Controls, §12.3–12.4) map directly to named pipeline stages; Capabilities 1, 2, 4 (Token Accounting, Benchmark Harness, Context Policy) are cross-cutting substrate the pipeline stages consume, not pipeline stages themselves |
 | `control_plane/` package layout (`conventions.md` §2.1) | `conventions.md` | §9 below maps each of the six capabilities to its exact subpackage |
 | Module dependency rules (`conventions.md` §2.2) | `conventions.md` | `core/interfaces/`/`core/schemas/` built first, zero dependencies; no capability imports `providers/adapters/` |
-| Capability Lifecycle Model (`implementation-plan.md` §6) | `implementation-plan.md` | Every `EXE-P0.<n>.<letter>` unit in §18 below maps 1:1 to a lifecycle sub-phase (A–H + Gate) |
+| Capability Lifecycle Model (`implementation-plan.md` §6) | `implementation-plan.md` | Every `EXE-P0.<n>.<letter>` unit in §18 below maps 1:1 to one lifecycle sub-phase A–H. The Capability Gate is a separate post-lifecycle review/promotion checkpoint and is not an `EXE-P0.<n>.<letter>` execution unit. |
 | Fail-open/fail-closed (root `CLAUDE.md` rule 2; `conventions.md` §16.2) | root `CLAUDE.md` | Every capability's Sub-phase H states its own disposition explicitly (§18) |
 | Tenant isolation (root `CLAUDE.md` rule 4) | root `CLAUDE.md` | §25 |
 
@@ -215,11 +215,13 @@ Where a sub-phase is genuinely not applicable, this document states `NOT APPLICA
 
 ### 18.2 Atomic Unit Granularity — a compaction note, and the commit/approval boundary
 
-**Every `EXE-P0.<n>.<letter>` unit below is a standalone, independently executable and independently reviewable step: one lifecycle sub-phase = one git commit = one explicit human-approval checkpoint, with no exception anywhere in this document.** Sub-phase A's design note is never committed together with Sub-phase B's implementation, nor is any pair of sub-phases ever combined into one commit or one approval round; `EXE-P0.<n>.B` (and every subsequent letter) does not begin until the prior sub-phase's own commit has been reviewed and explicitly approved. This applies uniformly across all six capabilities (§18.4–§18.9) and is restated, not weakened, by the field-compaction note below. Concretely: a Mode B instruction of "Execute P0.1" must be read as "Execute `EXE-P0.1.A`, then stop" — never as authorization to implement Sub-phases A through H (or the Capability Gate) of Capability 1 in one uninterrupted turn. Claude Code implements exactly the requested unit, reports evidence, and waits; it does not infer permission to continue to the next sub-phase or the next capability from a closed gate, a passing test, or the absence of an objection.
+**Every `EXE-P0.<n>.<letter>` unit below is a standalone, independently executable and independently reviewable step: one lifecycle sub-phase = one git commit = one explicit human-approval checkpoint, with no exception anywhere in this document.** Sub-phase A's design note is never committed together with Sub-phase B's implementation, nor is any pair of sub-phases ever combined into one commit or one approval round; `EXE-P0.<n>.B` (and every subsequent letter) does not begin until the prior sub-phase's own commit has been reviewed and explicitly approved. This applies uniformly across all six capabilities (§18.4–§18.9) and is restated, not weakened, by the field-compaction note below. Concretely: Mode B is driven only by the canonical `Execute EXE-P0.<n>.<letter>` command, which names exactly one unit (§18.11.2); no capability-level instruction is ever authorization to implement Sub-phases A through H (or the Capability Gate) of a capability in one uninterrupted turn. Claude Code implements exactly the requested unit, reports evidence, and waits; it does not infer permission to continue to the next sub-phase or the next capability from a closed gate, a passing test, or the absence of an objection.
+
+**v1.0.4 clarifications to this boundary (§18.12, §18.16):** (1) every unit's checkpoint is now two-stage — Claude Code's own AI Verification (§18.12) must complete with an acceptable verdict before the human-approval checkpoint is presented, and human approval remains required afterwards; neither substitutes for the other. (2) The "one sub-phase = one git commit" rule applies to every sub-phase that **produces implementation changes**. A sub-phase whose row is genuinely `NOT APPLICABLE` (e.g. every capability's Sub-phase F at P0 scope, §28) produces no source change and therefore **no implementation commit** — it still receives its own AI Verification (verdict `NOT APPLICABLE`) and its own explicit human approval, and is never given a fake or empty commit merely to satisfy sequencing (§18.16). The 48-unit count is unchanged by this exception.
 
 **The Capability Gate that follows Sub-phase H (§18.10) is not one of these `EXE-P0.<n>.<letter>` units** — it is a separate post-lifecycle review/promotion checkpoint, not an implementation sub-phase, and receives no `EXE-P0` ID and no implementation commit of its own (§18.10). Across the six capabilities this document therefore defines exactly **48** `EXE-P0.<n>.<letter>` atomic execution units (8 lifecycle sub-phases, A–H, per capability) plus **6** Capability Gates — **54 total gated checkpoints**, never described as "54 atomic execution units" anywhere in this document.
 
-Every field the generation prompt's §10 requires (Objective, Scope, Sources, Requirements, Architecture components, Interfaces, Dependencies, Preconditions, Files/modules, Package responsibility, Data-model impact, API impact, Event impact, Configuration impact, Security impact, Observability impact, Tests, Negative tests, Benchmark requirements, Edge cases, Acceptance criteria, Definition of Done, Evidence, Rollback, Downstream impact, Blocking status, Source gaps, ADR dependency) is present below — but fields that do not vary sub-phase-to-sub-phase (Requirements covered, Architecture components, Interfaces, Dependencies, Security disposition, ADR dependency) are stated once per capability, in that capability's header block, rather than repeated verbatim across all nine of its sub-phase entries. Restating an identical field nine times per capability would pad this document's length without adding sequencing signal beyond what `implementation-plan.md` §8 already established — the same discipline that document itself applied to its own exemplar/sequencing-table split (§6, `implementation-plan.md`). Every sub-phase-varying field (deliverable, files, tests, benchmark requirement, edge cases, Definition of Done, evidence) is given individually, per sub-phase, below.
+Every field the generation prompt's §10 requires (Objective, Scope, Sources, Requirements, Architecture components, Interfaces, Dependencies, Preconditions, Files/modules, Package responsibility, Data-model impact, API impact, Event impact, Configuration impact, Security impact, Observability impact, Tests, Negative tests, Benchmark requirements, Edge cases, Acceptance criteria, Definition of Done, Evidence, Rollback, Downstream impact, Blocking status, Source gaps, ADR dependency) is present below — but fields that do not vary sub-phase-to-sub-phase (Requirements covered, Architecture components, Interfaces, Dependencies, Security disposition, ADR dependency) are stated once per capability in the capability header rather than repeated across all eight lifecycle sub-phase entries A–H. The Capability Gate is a separate post-lifecycle review/promotion checkpoint and is not one of the eight lifecycle sub-phase entries (its table row points to §18.10, not to per-sub-phase fields). Restating an identical field eight times per capability would pad this document's length without adding sequencing signal beyond what `implementation-plan.md` §8 already established — the same discipline that document itself applied to its own exemplar/sequencing-table split (§6, `implementation-plan.md`). Every sub-phase-varying field (deliverable, files, tests, benchmark requirement, edge cases, Definition of Done, evidence) is given individually, per sub-phase, below.
 
 ### 18.3 P0 Execution Order
 
@@ -249,7 +251,7 @@ Capabilities 1, 2, and 3 have no cross-capability *prerequisite* — this is a d
 | **Architecture components** | Token and Cost Accounting Ledger, `architecture.md` §27 |
 | **Interfaces/contracts** | §27.1's ledger field categories (INPUT/OUTPUT/CACHE/MODEL/TOOLS/WORKFLOW/COST/PERFORMANCE/QUALITY); §27.3's cost model formulas — consumed as-is, no new schema |
 | **Dependencies** | None (P0, no prerequisite) |
-| **Preconditions** | §6's technology baseline confirmed (Java core); `core/interfaces/`/`core/schemas/`/`core/errors/` scaffolded (this capability is the first consumer, so its Sub-phase A also establishes the shared zero-dependency substrate) |
+| **Preconditions** | §6's technology baseline confirmed (Java core). **Shared-foundation ownership (v1.0.4, §18.13):** this capability — specifically `EXE-P0.1.A` — **owns** the design and minimal repository-scaffolding definition of the shared zero-dependency substrate `control_plane/core/interfaces/`, `control_plane/core/schemas/`, and `control_plane/core/errors/`, including the minimum shared types the already-defined P0 contracts reference (at minimum `ControlPlaneRequest` and `OptimizationPlan`, required by Capability 2's `INTF-030`, and the `ControlPlaneError` taxonomy, `interfaces.md` §25) — fields verified verbatim against the live `interfaces.md`, never invented. Every later capability *consumes* this foundation and never creates it opportunistically. The already-executed `EXE-P0.1.A` did not produce it; see §18.14's post-hoc reconciliation and remediation units `REM-P0.1.A-01`/`-02` |
 | **Package/module responsibility** | `control_plane/accounting/` (§9, direct match) |
 | **Security/Governance disposition** | Not directly gated by any `GSP-NNN`, but `security.md`'s SGE (`GSP-001`) consumes this ledger's output — the ledger must exist before SGE's spend-governance logic has anything to evaluate |
 | **ADR dependency** | None |
@@ -260,7 +262,7 @@ Capabilities 1, 2, and 3 have no cross-capability *prerequisite* — this is a d
 
 | Sub-phase | Deliverable | Files/Modules | Tests | Failure-Path Test | Benchmark Requirement | Edge Cases | Definition of Done | Expected Evidence |
 |---|---|---|---|---|---|---|---|---|
-| **A — Contract & Design** | Consume §27.1's ledger field list and §27.3's cost model as-is | `control_plane/accounting/ledger/LedgerEntry` (schema note, not yet code) | Schema-conformance review | N/A (design stage) | None yet | None directly | No new schema invented; every field traced to §27.1 | Design note citing §27.1/27.3 verbatim, committed on its own (`EXE-P0.1.A`, one sub-phase = one commit — §18.2, `EXE-P0.1.B` does not begin until this commit is reviewed and explicitly approved) |
+| **A — Contract & Design** | Consume §27.1's ledger field list and §27.3's cost model as-is. **v1.0.4 (§18.13):** additionally owns the shared-core-foundation contract — the design and minimal scaffolding definition of `control_plane/core/interfaces/`, `core/schemas/`, `core/errors/`, enumerating the minimum shared types P0 contracts reference (`ControlPlaneRequest` — `interfaces.md` §2.1; `OptimizationPlan` — §3.2; `ControlPlaneError` — §25.1) with every field re-verified against the live `interfaces.md` rather than this row's text | `control_plane/accounting/ledger/LedgerEntry` (schema note, not yet code); shared-core foundation design/scaffold definition under `control_plane/core/` | Schema-conformance review (ledger fields **and** shared-core types against `interfaces.md`) | N/A (design stage) | None yet | None directly | No new schema invented; every field traced to §27.1; shared-core ownership discharged — foundation contract defined, not deferred to a consumer capability | Design note citing §27.1/27.3 verbatim, committed on its own (`EXE-P0.1.A`, one sub-phase = one commit — §18.2, `EXE-P0.1.B` does not begin until this commit is AI-verified and explicitly approved). **Historical note:** the executed `EXE-P0.1.A` (commit `a345742`) predates this v1.0.4 requirement and did not produce the shared-core foundation — reconciled, not rewritten, per §18.14 |
 | **B — Minimal Implementation** | Per-request token/cost recording, tenant-scoped from the first write | `control_plane/accounting/ledger/` | Unit tests: write, read-back, tenant-scoping enforcement | Unit test: write with missing `tenant_id` is rejected, not silently defaulted | None yet | `EC-077` (adversarial optimization-cost input) — cross-cutting, cited not re-derived here | Ledger write/read round-trips correctly; every record has `tenant_id` as first namespace component | Passing unit-test suite; `git diff` scoped to `control_plane/accounting/` only |
 | **C — Integration** | Wire the ledger as the substrate every T0–T3 stage/technique will eventually write to (no other in-scope capability's Sub-phase C depends on this yet, since none is a technique that spends tokens) | `control_plane/accounting/` public write API | Integration test: a second in-scope capability (once built) can call the write API | N/A | None yet | None | Write API is stable and documented for other capabilities to call | Integration test passing against at least a stub caller |
 | **D — Observability** | Cite `observability.md`'s already-named ledger-consuming metrics (`cost.net_savings`, `cost.baseline_estimated`, etc.) — do not invent a competing metric name | `control_plane/accounting/` emits structured log lines (interim sink, `SOURCE-GAP-EXECPLAN-01`, §38) | Log-output format check | N/A | None | None | Every ledger write emits one structured log line citing the existing metric names | Sample log output reviewed against `observability.md` §7's metric table |
@@ -283,7 +285,7 @@ Capabilities 1, 2, and 3 have no cross-capability *prerequisite* — this is a d
 | **Architecture components** | Benchmarking Framework (`architecture.md` §32), Quality Evaluation (folded in per `implementation-plan.md` §8.2's own rationale — two distinct §36 items, one shared implementation foundation) |
 | **Interfaces/contracts** | `EvaluationFramework.run_baseline()`/`run_optimized()`/`compare()` (`interfaces.md` §18, `INTF-030`); `EvaluationRun`'s fields (`eval.md` §16, cited) |
 | **Dependencies** | None (P0, no prerequisite) |
-| **Preconditions** | `core/interfaces/`/`core/schemas/` exist (built during Capability 1, reused here) |
+| **Preconditions** | `core/interfaces/`/`core/schemas/`/`core/errors/` exist, created under Capability 1's ownership (`EXE-P0.1.A`, or — for this repository's actual history — remediation units `REM-P0.1.A-01`/`-02`, §18.14) and **consumed, never created**, here. `EXE-P0.2.B` carries a hard pre-execution guard on this precondition (§18.15) |
 | **Package/module responsibility** | `control_plane/benchmarking/` + `control_plane/evaluation/` (§9, direct match) |
 | **Security/Governance disposition** | The harness must run under the same tenant-isolation and authorization rules as a live request — a benchmark is not an exemption from governance (root `CLAUDE.md` rules 2/4) |
 | **ADR dependency** | None |
@@ -295,7 +297,7 @@ Capabilities 1, 2, and 3 have no cross-capability *prerequisite* — this is a d
 | Sub-phase | Deliverable | Files/Modules | Tests | Failure-Path Test | Benchmark Requirement | Edge Cases | Definition of Done | Expected Evidence |
 |---|---|---|---|---|---|---|---|---|
 | **A — Contract & Design** | Cite `EvaluationFramework`'s three defined schemas (`INTF-030`) and `quality-gates.md`'s methodology as-is; this capability is the first *consumer* of both, not a redefinition | `control_plane/evaluation/` schema notes | Schema-conformance review | N/A | None yet | None | No competing schema introduced; `RegressionReport`'s undefined status (`SOURCE-GAP-EVAL-01`) explicitly not resolved here — out of scope | Design note |
-| **B — Minimal Implementation** | `run_baseline()` executes and records `EvaluationRun` baseline fields; `run_optimized()` is an explicit no-op, documented as such, not silently stubbed | `control_plane/benchmarking/`, `control_plane/evaluation/` | Unit test: `run_baseline()` produces a complete, correctly-typed `EvaluationRun` | Unit test: a failed baseline run does not produce a partial/malformed record | None yet — this capability *is* the benchmark substrate, nothing to benchmark against yet | None | `run_baseline()` round-trips correctly; `run_optimized()`'s no-op status is explicit in code and docs | Passing unit tests |
+| **B — Minimal Implementation** | `run_baseline()` executes and records `EvaluationRun` baseline fields; `run_optimized()` is an explicit no-op, documented as such, not silently stubbed. **Consumes** the shared `ControlPlaneRequest`/`OptimizationPlan` types from `core/schemas/` — never defines its own or a harness-local stand-in. Subject to §18.15's hard pre-execution guard: if any shared-foundation prerequisite is missing, `AI VERIFICATION: BLOCKED` and no code is written | `control_plane/benchmarking/`, `control_plane/evaluation/` (no file under `control_plane/core/`) | Unit test: `run_baseline()` produces a complete, correctly-typed `EvaluationRun` | Unit test: a failed baseline run does not produce a partial/malformed record | None yet — this capability *is* the benchmark substrate, nothing to benchmark against yet | None | `run_baseline()` round-trips correctly; `run_optimized()`'s no-op status is explicit in code and docs | Passing unit tests |
 | **C — Integration** | Every future P1+ technique's validation-matrix gate will call into this harness — the shared substrate is built once | `control_plane/benchmarking/` public API | Integration test with a stub caller | N/A | None yet | None | Public API stable for future technique gates to call | Integration test passing |
 | **D — Observability** | Cite `observability.md`'s existing quality/cost metrics — no competing name introduced | Structured log output (interim sink, `SOURCE-GAP-EXECPLAN-01`) | Log-format check | N/A | None | None | Every `run_baseline()` call emits one structured log line | Sample log output |
 | **E — Security/Governance** | Harness runs under the same authorization/tenant rules as a live request | `control_plane/evaluation/` | Unit test: a benchmark run cannot bypass tenant scoping | Unit test: cross-tenant benchmark data leakage is impossible | None | None | No governance bypass path exists | Passing test |
@@ -317,7 +319,7 @@ Capabilities 1, 2, and 3 have no cross-capability *prerequisite* — this is a d
 | **Architecture components** | T1.1 — Sanitizer, `architecture.md` §11.1 |
 | **Interfaces/contracts** | T1.1's normalization/token-count contract (`architecture.md` §11.1, cited) |
 | **Dependencies** | None (P0, no prerequisite) |
-| **Preconditions** | `core/interfaces/`/`core/schemas/` exist |
+| **Preconditions** | `core/interfaces/`/`core/schemas/`/`core/errors/` exist under Capability 1's ownership (§18.13–§18.14) and are consumed, never created, here — the same pre-execution check §18.15 makes mandatory for `EXE-P0.2.B` applies to `EXE-P0.3.B` |
 | **Package/module responsibility** | `control_plane/pipeline/t1_context/sanitizer/` (§9, direct match) |
 | **Security/Governance disposition** | Sanitization failure is treated as a **security-adjacent** failure, not a pure optimization-stage failure, since it is the first content-safety gate — a sanitizer that cannot run must not silently pass unsanitized content downstream (fail-closed for the sanitization decision itself, distinct from — and stricter than — a later optimization stage's ordinary fail-open behavior) |
 | **ADR dependency** | None |
@@ -462,11 +464,25 @@ A Capability Gate is a build/validation gate, never a claim of production readin
 
 **The Capability Gate is a separate post-lifecycle review and promotion gate, not a lifecycle sub-phase.** Sub-phase H is the final implementation lifecycle sub-phase — it is independently verified, committed, and approved exactly like every other A–H sub-phase (§18.2). Only after that approval is the Capability Gate conducted: a review of the question set above against the evidence Sub-phases B–H actually produced. The Gate does not implement code, does not produce a new `EXE-P0.<n>.<letter>` unit, and receives no implementation commit of its own (§18.2, restated: 48 such units exist across the six capabilities, not 54). Explicit human approval of the Gate is nonetheless required, as its own distinct checkpoint, before Mode B may begin the next capability's Sub-phase A — passing H is necessary but not sufficient, and a closed gate is a promotion decision, not an automatic pass-through:
 
+**v1.0.4 — three-stage model (§18.12, §18.11.6):** the Gate now has two layers of its own, on top of H's own two-stage checkpoint. The authoritative sequence is:
+
 ```
-... → H → verify → commit → AWAITING APPROVAL (for H)
-        → Capability Gate → review gate criteria → AWAITING APPROVAL (for the Gate; no commit)
-        → next capability's Sub-phase A
+Sub-phase H
+   ↓
+AI Verification of H                 (§18.12 — verdict must be acceptable)
+   ↓
+Human Approval of H                  (Approve EXE-P0.n.H)
+   ↓
+Capability Gate Review               (the question set above, against B–H evidence)
+   ↓
+AI Gate Verification                 (AI CAPABILITY GATE VERIFICATION: PASS / BLOCKED)
+   ↓
+Human Gate Approval                  (Approve CAPABILITY-GATE P0.n — valid only after an AI PASS; no commit)
+   ↓
+Next Capability A                    (still requires its own explicit Execute EXE-P0.(n+1).A)
 ```
+
+Units executed before v1.0.4 (single-stage human approval only) are not retroactively re-executed; the AI Gate Verification for their capability re-examines their evidence as part of the Gate review, and any unit whose evidence does not hold up is treated as a Blocking Condition (§18.14).
 
 If the Gate finds a Blocking Condition unmet, promotion to the next capability is denied until it is addressed — this is a promotion decision, not a code rollback (§37): every A–H commit remains individually revertible, but the Gate has no commit of its own to revert.
 
@@ -499,36 +515,74 @@ Execute EXE-P0.1.H
 
 The same pattern applies unchanged for Capabilities 2 through 6 (`EXE-P0.2.A`…`EXE-P0.6.H`).
 
-The existing shorthand rule (§18.2) is preserved exactly and restated here as a command-syntax matter: `Execute P0.1` means `Execute EXE-P0.1.A` — the first sub-phase only — and must never be read as authorization to implement Sub-phases A through H of Capability 1 in one turn. The canonical `EXE-P0.<n>.<letter>` form is preferred over the shorthand because it names exactly one atomic unit with no ambiguity; the shorthand remains valid but always resolves to the capability's next unexecuted `.A`-equivalent unit, never to "the whole capability."
+For approvals:
+
+```
+Approve EXE-P0.<n>.<letter>
+```
+
+For Capability Gates:
+
+```
+Approve CAPABILITY-GATE P0.<n>
+```
+
+For Gate review:
+
+```
+Review CAPABILITY-GATE P0.<n>
+```
+
+(History-specific remediation units use the same pattern with their own IDs — `Execute REM-P0.1.A-0N` / `Approve REM-P0.1.A-0N`, §18.14.)
+
+**The canonical `Execute EXE-P0.<n>.<letter>` syntax is mandatory for Mode B execution. Do not use `Execute P0.<n>` as an execution command.** No capability-only command resolves, dynamically or otherwise, to any sub-phase depending on execution history; Claude Code treats such a command as ambiguous under §18.11.9 and asks for the canonical unit ID instead of executing anything.
+
+*Historical behavior superseded by the canonical command protocol (v1.0.3–v1.0.4 only; not an active rule):* earlier versions allowed a capability-level shorthand (`Execute P0.1`) that resolved to one sub-phase. It was retired in v1.0.5 because its resolution depended on execution history and was therefore ambiguous.
 
 #### 18.11.3 Per-unit execution lifecycle
 
+**Replaced in v1.0.4** by the two-stage lifecycle below (the v1.0.3 single-stage diagram — execute → commit → `### AWAITING APPROVAL` — is superseded; nothing in it is weakened, AI Verification is inserted before the human checkpoint):
+
 ```
 USER
   |
-  |  Execute EXE-P0.n.X
+  | Execute EXE-P0.n.X
   v
 CLAUDE CODE
-  |-- Re-read the required source sections for this unit (§18.4–18.9's Sources fields)
-  |-- Verify the prerequisite approval state (has the prior sub-phase, or the
-  |     capability's own Dependencies/Preconditions, actually been approved?)
-  |-- Execute ONLY EXE-P0.n.X — no other sub-phase, no other capability
-  |-- Run the required verification/tests for this unit (§18.4–18.9's Tests/
-  |     Failure-Path Test columns)
-  |-- Inspect git diff/status to confirm scope
-  |-- Create exactly ONE commit for this sub-phase
-  |-- Report evidence per §18.11.5
-  v
-### AWAITING APPROVAL
   |
-  |  (Claude Code stops here and takes no further action)
+  |-- Re-read the authoritative source sections
+  |-- Verify prerequisite approval state
+  |-- Execute ONLY EXE-P0.n.X
+  |-- Run required tests/checks
+  |-- Perform AI verification against:
+  |      - execution-plan row
+  |      - authoritative source contracts
+  |      - requirements
+  |      - architecture
+  |      - security/governance
+  |      - failure/recovery expectations
+  |      - file-scope rules
+  |      - git-scope rules
+  |-- Produce AI VERIFICATION verdict
+  |-- If PASS: create required implementation commit
+  |-- Report evidence
+  v
+### AI VERIFIED — AWAITING HUMAN APPROVAL
+  |
+  | Claude Code STOPS
   |
 USER
   |
-  |  Approve EXE-P0.n.X  (§18.11.4)
+  | Approve EXE-P0.n.X
   v
-NEXT EXPLICIT Execute EXE-P0.n.<next-letter> command
+HUMAN APPROVED
+  |
+  | Claude Code may acknowledge approval
+  |
+NEXT EXPLICIT Execute EXE-P0.n.next-letter
 ```
+
+The AI verification is a prerequisite to human approval. "If PASS" includes `PASS WITH DOCUMENTED NON-BLOCKING GAP`; a `NOT APPLICABLE` verdict produces no commit (§18.16); a `BLOCKED` verdict produces no commit and **no approval request** — the report ends with `### AI VERIFICATION BLOCKED` instead (§18.12.4). Where the prerequisite check itself fails (e.g. §18.15's guard), Claude Code writes no code at all and reports `AI VERIFICATION: BLOCKED` naming exactly which prerequisite is missing.
 
 Claude Code stops after exactly one atomic unit every time. It does not continue to the next letter automatically, and it does not perform the Capability Gate automatically after `H` is approved (§18.11.6).
 
@@ -569,44 +623,65 @@ SUB-PHASE: <name>
 
 **Scope Compliance** — an explicit confirmation that: only the requested atomic unit was executed; no later sub-phase was executed; no other capability was executed; no upstream document was modified.
 
-**Approval Checkpoint** — the report ends with exactly:
+**AI Verification Report (v1.0.4, mandatory)** — the full §18.12.3 report, covering all nine verification dimensions and ending in exactly one `AI VERIFICATION:` verdict. The Verification/Git Evidence/Scope Compliance blocks above feed this report; they do not replace it.
+
+**Approval Checkpoint (v1.0.4 — supersedes the v1.0.3 `### AWAITING APPROVAL` ending)** — only after an acceptable AI verdict, the report ends with exactly:
+
+For A–G:
 ```
-### AWAITING APPROVAL
+### AI VERIFIED — AWAITING HUMAN APPROVAL
+
+AI VERIFICATION: PASS
+
 Approve EXE-P0.n.X to continue.
 ```
-except for Sub-phase `H`, whose report ends instead with:
+For H:
 ```
-### AWAITING APPROVAL
+### AI VERIFIED — AWAITING HUMAN APPROVAL
+
+AI VERIFICATION: PASS
+
 Approve EXE-P0.n.H to proceed to the Capability Gate.
 ```
-Claude Code does not perform the Capability Gate automatically after this.
+(`AI VERIFICATION: PASS` in these blocks is replaced by `PASS WITH DOCUMENTED NON-BLOCKING GAP` or `NOT APPLICABLE` when that is the actual verdict — §18.12.2, §18.16.) If AI verification is blocked, the report instead ends with the §18.12.4 blocked block and **no approval request**. Claude Code does not perform the Capability Gate automatically after any of these.
 
 #### 18.11.6 Capability Gate command protocol
 
-After the user issues `Approve EXE-P0.n.H`, Claude Code may prepare and present the Capability Gate review — evaluating the question set already defined in §18.10 (Entry/Implementation/Integration/Security-Governance/Quality/Scenario/Failure-Recovery Completion, Exit Criteria, Blocking Conditions) against the evidence Sub-phases B–H actually produced — but must never treat the gate as automatically approved. The review is reported as:
+After the user issues `Approve EXE-P0.n.H`, Claude Code may prepare and present the Capability Gate review — evaluating the question set already defined in §18.10 (Entry/Implementation/Integration/Security-Governance/Quality/Scenario/Failure-Recovery Completion, Exit Criteria, Blocking Conditions) against the evidence Sub-phases B–H actually produced — but must never treat the gate as automatically approved. If the Gate review is resumed in a later session (i.e. not in the same turn that received `Approve EXE-P0.n.H`), the operator triggers it with `Review CAPABILITY-GATE P0.n` — a review-only trigger that authorizes no implementation and no approval.
+
+**v1.0.4 — two layers (§18.10):** the review now produces an explicit **AI Gate Verification** — Claude Code re-examines Entry Criteria, Implementation Completion, Integration Completion, Security/Governance Completion, Quality Completion, Scenario Completion, Failure/Recovery Completion, Exit Criteria, and Blocking Conditions against the actual commits, tests, and live sources (including any pre-v1.0.4 unit's evidence and any open §18.14 reconciliation finding) — followed by **Human Gate Approval**. The human command is valid only after the AI Gate Verification is satisfactory. The review is reported as:
+
+If AI Gate Verification passes:
 
 ```
 CAPABILITY GATE REVIEW: P0.n
-STATUS: PASS / BLOCKED
+AI CAPABILITY GATE VERIFICATION: PASS
+STATUS: AWAITING HUMAN APPROVAL
+
+Approve CAPABILITY-GATE P0.n
 ```
 
 If blocked:
 
 ```
 ### CAPABILITY GATE BLOCKED
+
+AI CAPABILITY GATE VERIFICATION: BLOCKED
+
 Reason:
 Required remediation:
 No next capability may begin.
+Human Gate Approval is not requested.
 ```
 
-If the user then issues `Approve CAPABILITY-GATE P0.n` (§18.11.4), Claude Code reports:
+If the user then issues `Approve CAPABILITY-GATE P0.n` (§18.11.4) after an AI PASS, Claude Code reports:
 
 ```
 CAPABILITY GATE APPROVED: P0.n
 NEXT AUTHORIZED UNIT: EXE-P0.(n+1).A
 ```
 
-but still waits for the separate, explicit command `Execute EXE-P0.(n+1).A` before doing anything further — the gate-approval report is informational, not an execution trigger.
+but still waits for the separate, explicit command `Execute EXE-P0.(n+1).A` before doing anything further — the gate-approval report is informational, not an execution trigger. An `Approve CAPABILITY-GATE P0.n` issued while the AI Gate Verification is `BLOCKED` or has not yet been performed is not acted on; Claude Code reports that the Gate's AI verification is outstanding.
 
 #### 18.11.7 Full P0 operator reference sequence
 
@@ -661,25 +736,30 @@ Execute EXE-P0.6.A
 Approve CAPABILITY-GATE P0.6
 ```
 
+**v1.0.4 reading of this sequence:** between every `Execute` and its `Approve`, Claude Code's AI Verification (§18.12) runs automatically and must return an acceptable verdict — the operator never issues a separate `Verify` command, and never issues `Approve …` in response to a `### AI VERIFICATION BLOCKED` report. Between `Approve EXE-P0.n.H` and `Approve CAPABILITY-GATE P0.n`, the AI Gate Verification (§18.11.6) runs and must return `PASS`. For **this repository's actual execution history**, the idealized sequence above does not describe where execution currently stands; §18.18 gives the authoritative remaining sequence, including the remediation units §18.14 requires before `EXE-P0.2.B`.
+
 #### 18.11.8 Command-state table
 
 | State | Allowed next action |
 |---|---|
 | No active unit | User may issue `Execute EXE-P0.n.X` if that unit's own prerequisites are approved |
 | Unit executing | Claude Code executes only that unit |
-| Unit complete, awaiting approval | User must issue `Approve EXE-P0.n.X` before anything else can happen |
-| `H` approved | Capability Gate review may occur (§18.11.6) |
-| Gate awaiting approval | User must issue `Approve CAPABILITY-GATE P0.n` |
+| Unit executed, AI verifying (v1.0.4) | Claude Code performs AI Verification (§18.12) — automatic, part of the same `Execute` command; no user command involved |
+| AI verification blocked (v1.0.4) | No approval request is made; remediation must occur, then the unit is re-executed/re-verified on a new explicit `Execute` command (§18.17) |
+| AI verified, awaiting human approval | User must issue `Approve EXE-P0.n.X` before anything else can happen |
+| `H` approved | Capability Gate review and AI Gate Verification may occur (§18.11.6) |
+| Gate AI-verified (`PASS`), awaiting human approval | User must issue `Approve CAPABILITY-GATE P0.n` |
 | Gate approved | User may issue the next capability's `Execute EXE-P0.(n+1).A` |
-| Gate blocked | No next capability may start until the blocking condition is addressed and the gate is re-reviewed |
+| Gate blocked (AI Gate Verification `BLOCKED`) | No next capability may start and no Gate approval is requested until the blocking condition is addressed and the gate is re-reviewed |
 
-Claude Code never self-authorizes any transition in this table — every row's "allowed next action" column names a user command, never an automatic Claude Code action.
+Claude Code never self-authorizes any transition in this table — every row's "allowed next action" column names a user command, never an automatic Claude Code action. The only automatic Claude Code transition is performing AI Verification on the unit or Gate it was just asked to execute or review; AI Verification is evidence, never authorization. The full per-unit state model is §18.17.
 
 #### 18.11.9 Prohibited command interpretation
 
 Claude Code must reject or stop on ambiguous natural-language instructions rather than guessing which unit(s) they mean, including but not limited to:
 
 ```
+Execute P0.1
 Implement P0.1
 Complete Capability 1
 Continue with P0
@@ -694,16 +774,532 @@ unless the user explicitly maps the request to one canonical `EXE-P0.<n>.<letter
 
 6 capabilities × 8 lifecycle sub-phases (A–H) = **48** atomic `EXE-P0.<n>.<letter>` execution units, plus **6** Capability Gates (review/promotion checkpoints, no ID, no commit) = **54** total gated checkpoints. The Capability Gates are never described as atomic execution units.
 
-#### 18.11.11 Commit rule (restated, unchanged from §18.2/§18.10)
+#### 18.11.11 Commit rule (restated from §18.2/§18.10, clarified in v1.0.4)
 
 ```
-One A–H lifecycle sub-phase = one implementation commit.
+One executable A–H sub-phase = one isolated implementation change-set.
+Where that sub-phase produces implementation changes: one sub-phase = one implementation commit.
+Where a sub-phase is genuinely NOT APPLICABLE and produces no implementation changes: no implementation commit.
 Capability Gate = no implementation commit (review/promotion checkpoint only).
+Remediation unit (§18.14) = one remediation commit per remediation unit that produces changes — never counted among the 48.
 ```
+
+An implementation commit contains only the files its unit's row names (§18.12.1 G). It never includes personal editor configuration (e.g. `.vscode/`), `CLAUDE.md`, or progress/status documentation unless a source-backed row explicitly authorizes it (§18.16). No N/A checkpoint is ever represented by a fake or empty commit.
 
 #### 18.11.12 No-automatic-chaining rule
 
-Claude Code must stop after the requested atomic unit even when all tests pass, the commit succeeds, no blocking condition is found, or the user previously approved the broader capability in general terms. No completion signal, passing gate, or successful command result is ever interpreted as permission to execute the next unit — the only valid authorization is the next explicit `Execute EXE-P0.<n>.<letter>` (or `Approve …`) command from the user (§18.11.1).
+Claude Code must stop after the requested atomic unit even when all tests pass, the commit succeeds, no blocking condition is found, or the user previously approved the broader capability in general terms. No completion signal, passing gate, or successful command result is ever interpreted as permission to execute the next unit — the only valid authorization is the next explicit `Execute EXE-P0.<n>.<letter>` (or `Approve …`) command from the user (§18.11.1). **v1.0.4:** this explicitly includes Claude Code's own `AI VERIFICATION: PASS` and `AI CAPABILITY GATE VERIFICATION: PASS` — neither is ever permission to continue (§18.12.5). Approval and the next execution are never combined into one command.
+
+### 18.12 AI Verification Protocol (v1.0.4)
+
+From v1.0.4 onward, every atomic execution unit follows:
+
+```
+EXECUTE
+   ↓
+AI VERIFICATION
+   ↓
+AI VERDICT
+   ↓
+HUMAN REVIEW
+   ↓
+HUMAN APPROVAL
+   ↓
+NEXT EXPLICIT EXECUTE COMMAND
+```
+
+Human approval alone is not sufficient. AI verification alone is not sufficient. Both are required. The rationale: the v1.0.3 model relied entirely on the human operator to detect a unit that silently fell short of its row — exactly the failure `EXE-P0.2.B` exposed, where a precondition the plan asserted as satisfied (§18.5) had never been produced by any executed unit. An explicit, checklist-driven AI verification makes such gaps surface as a `BLOCKED` verdict *before* approval is requested, rather than depending on the operator to notice.
+
+#### 18.12.1 AI Verification Checklist
+
+For **every** `EXE-P0.n.X` (and every §18.14 remediation unit), Claude Code verifies all applicable dimensions below.
+
+**A. Scope verification.** Confirm:
+
+```
+Only requested EXE-P0.n.X executed.
+No later sub-phase executed.
+No other capability executed.
+No unrelated source files changed.
+No upstream documentation modified.
+```
+
+**B. Source verification.** Re-read the live authoritative source sections named by that capability's Sources field (§18.4–18.9). Do not rely solely on the execution-plan text — prior units have found row claims inaccurate against the live corpus (e.g. `EXE-P0.1.G`'s "no dedicated scenario" claim). Confirm:
+
+```
+Source section exists.
+Referenced contract exists.
+Implementation matches source.
+No invented schema/requirement was introduced.
+```
+
+**C. Requirement verification.** Verify each requirement listed for the capability/sub-phase (the capability header's Requirements covered field, plus the row's own Definition of Done). Report:
+
+```
+Requirement ID → satisfied / not satisfied / not applicable
+```
+
+**D. Architecture verification.** Verify the implementation respects: component boundary; package/module boundary (§8–§9, `conventions.md` §2.1); dependency direction (`conventions.md` §2.2 — `core/` depends on nothing else in `control_plane/`); provider neutrality (root `CLAUDE.md` rule 1); state ownership; tenant isolation (root `CLAUDE.md` rule 4); fail-open/fail-closed disposition (root `CLAUDE.md` rule 2, `conventions.md` §16.2).
+
+**E. Test verification.** Run the tests/checks actually required by the sub-phase's Tests column. Do not claim a test passed unless it actually ran in this session. Report:
+
+```
+Command
+Result
+Relevant evidence
+```
+
+**F. Negative/failure-path verification.** Run the failure-path or negative test explicitly identified by the row's Failure-Path Test column, where applicable; state `N/A` with the row's own reason where the row says N/A.
+
+**G. Git verification.** Verify:
+
+```
+git status --short
+git diff --stat
+git diff --name-only
+```
+
+and confirm that changed files belong to the requested unit. Where a commit is required:
+
+```
+git log -1 --oneline
+```
+
+and verify the commit contains only the intended scope (no `.vscode/`, `CLAUDE.md`, or other out-of-unit file — §18.16).
+
+**H. Dependency/precondition verification.** Confirm all prerequisites are actually satisfied — by inspecting the repository and the approval record, not by trusting the plan's Preconditions text. This is especially important for `EXE-P0.2.B`, which must verify the shared core foundation really exists before implementing against it (§18.15).
+
+**I. Source-gap verification.** If an execution exposes a missing contract or source gap:
+
+```
+AI VERIFICATION: BLOCKED
+```
+
+unless the plan explicitly classifies the gap as non-blocking (e.g. `SOURCE-GAP-EXECPLAN-01`–`03`, §38; `SOURCE-GAP-EVAL-01` for Capability 2) and the unit can proceed without inventing content — in which case the verdict is `PASS WITH DOCUMENTED NON-BLOCKING GAP`, naming the gap ID.
+
+**J. Final AI verdict.** Conclude with exactly one of:
+
+```
+AI VERIFICATION: PASS
+```
+
+```
+AI VERIFICATION: BLOCKED
+```
+
+```
+AI VERIFICATION: NOT APPLICABLE
+```
+
+```
+AI VERIFICATION: PASS WITH DOCUMENTED NON-BLOCKING GAP
+```
+
+#### 18.12.2 AI Verification Is Not Human Approval
+
+**AI Verification** — Claude Code answers: *"Based on the authoritative sources, the execution-plan row, the actual changes, tests, and Git evidence, did this atomic unit satisfy its defined requirements?"* Possible outcomes: `AI VERIFICATION: PASS`, `AI VERIFICATION: BLOCKED`, `AI VERIFICATION: NOT APPLICABLE`, `AI VERIFICATION: PASS WITH DOCUMENTED NON-BLOCKING GAP`.
+
+**Human Approval** — the user answers: *"I reviewed the AI verification and the evidence and authorize progression."* Canonical command:
+
+```
+Approve EXE-P0.n.X
+```
+
+The human approval must never be simulated by the AI. The user issues `Approve EXE-P0.n.X` only after reviewing the AI verification and the actual implementation evidence. Claude Code must not interpret `AI VERIFICATION: PASS` as human approval, and must not interpret a human approval of a previous unit as approval of the next unit.
+
+#### 18.12.3 Mandatory AI Verification Report
+
+For every atomic unit, Claude Code uses:
+
+```
+AI VERIFICATION REPORT
+
+Execution Unit: EXE-P0.n.X
+Capability: <name>
+Sub-phase: <name>
+
+1. Scope Verification:
+2. Source Verification:
+3. Requirement Verification:
+4. Architecture Verification:
+5. Test Verification:
+6. Negative/Failure-Path Verification:
+7. Git Verification:
+8. Dependency/Precondition Verification:
+9. Source-Gap Verification:
+
+AI VERIFICATION: PASS / BLOCKED / NOT APPLICABLE / PASS WITH DOCUMENTED NON-BLOCKING GAP
+
+Blocking Issues:
+<none or explicit issues>
+```
+
+Only after the AI verdict is satisfactory (`PASS`, `PASS WITH DOCUMENTED NON-BLOCKING GAP`, or — for a genuinely N/A row — `NOT APPLICABLE`) may Claude Code present the human approval checkpoint.
+
+#### 18.12.4 Revised Human Approval Checkpoint
+
+For A–G:
+
+```
+### AI VERIFIED — AWAITING HUMAN APPROVAL
+
+AI VERIFICATION: PASS
+
+Approve EXE-P0.n.X to continue.
+```
+
+For H:
+
+```
+### AI VERIFIED — AWAITING HUMAN APPROVAL
+
+AI VERIFICATION: PASS
+
+Approve EXE-P0.n.H to proceed to the Capability Gate.
+```
+
+If AI verification is blocked:
+
+```
+### AI VERIFICATION BLOCKED
+
+AI VERIFICATION: BLOCKED
+
+Reason:
+Required remediation:
+
+Human approval is NOT requested.
+The next execution unit is NOT authorized.
+```
+
+A blocked AI verification must not be followed by an approval request. An `Approve EXE-P0.n.X` issued for a unit whose AI verification is `BLOCKED` is not acted on as progression; Claude Code reports that the unit is blocked and restates the required remediation.
+
+#### 18.12.5 Critical Safety Rule for Mode B
+
+> **Claude Code MUST NOT request human approval until its own AI Verification has completed and returned an acceptable verdict. Human approval is a second, independent authorization layer. AI verification is evidence; human approval is authorization. Neither substitutes for the other.**
+
+> **Claude Code MUST NOT treat its own AI Verification PASS as permission to execute the next unit. Only the explicit human `Approve ...` command authorizes progression, and only a subsequent explicit `Execute ...` command authorizes implementation.**
+
+#### 18.12.6 Explicit Command Rules
+
+| Step | Command | Issued by |
+|---|---|---|
+| Start | `Execute EXE-P0.n.X` | User |
+| AI verification | *(none — performed by Claude Code automatically after the requested unit's work and tests; the human does not issue a separate `Verify` command)* | Claude Code |
+| Human approval | `Approve EXE-P0.n.X` | User |
+| Capability Gate review (resume trigger, §18.11.6) | `Review CAPABILITY-GATE P0.n` | User |
+| Capability Gate approval | `Approve CAPABILITY-GATE P0.n` | User |
+| Remediation (§18.14) | `Execute REM-P0.1.A-0N` / `Approve REM-P0.1.A-0N` | User |
+| Next execution | `Execute EXE-P0.(n+1).A` (or the next letter) | User |
+
+Never combine the approval and next execution into one command.
+
+#### 18.12.7 Revised Example (illustrative, normative)
+
+```
+USER:
+Execute EXE-P0.2.B
+
+CLAUDE CODE:
+- verifies prerequisites
+- executes only EXE-P0.2.B
+- runs tests
+- performs AI verification
+
+If successful:
+
+AI VERIFICATION: PASS
+
+### AI VERIFIED — AWAITING HUMAN APPROVAL
+Approve EXE-P0.2.B to continue.
+
+CLAUDE CODE STOPS.
+
+USER reviews evidence.
+
+USER:
+Approve EXE-P0.2.B
+
+CLAUDE CODE:
+P0.2.B human approval recorded.
+
+CLAUDE CODE STOPS.
+
+USER:
+Execute EXE-P0.2.C
+```
+
+And if the unit is blocked:
+
+```
+USER:
+Execute EXE-P0.2.B
+
+CLAUDE CODE:
+AI VERIFICATION: BLOCKED
+
+Reason:
+control_plane/core/interfaces/ is missing.
+ControlPlaneRequest is missing.
+
+### AI VERIFICATION BLOCKED
+Human approval is not requested.
+No code committed.
+No next unit authorized.
+```
+
+The second example is not hypothetical: it is the actual outcome of this repository's first `Execute EXE-P0.2.B` (under v1.0.3, where the operator elected to stop and correct the plan first — §18.14).
+
+### 18.13 Shared Core Foundation Ownership (v1.0.4)
+
+**Problem corrected.** Through v1.0.3, Capability 1's header Preconditions field stated that `core/interfaces/`/`core/schemas/`/`core/errors/` were "scaffolded" and that "its Sub-phase A also establishes the shared zero-dependency substrate", while Capability 2's (§18.5) and Capability 3's (§18.6) Preconditions assumed those packages already existed. But no executable unit row — neither `EXE-P0.1.A`'s nor `EXE-P0.1.B`'s Files/Modules field — actually named the foundation as a deliverable. The ownership existed only in a header field, so the executed units reasonably did not produce it (§18.14), and `EXE-P0.2.B` then had no `ControlPlaneRequest` type for `INTF-030`'s `run_baseline(request: ControlPlaneRequest)` to take. Recorded as `SOURCE-GAP-EXECPLAN-04` (§38).
+
+**Shared Foundation Owner:**
+
+```
+Capability 1 — Token Accounting and Cost Ledger
+```
+
+specifically:
+
+```
+EXE-P0.1.A — Contract & Design
+```
+
+**Required `EXE-P0.1.A` scope.** `EXE-P0.1.A` explicitly includes the **design and minimal repository scaffolding definition** for:
+
+```
+control_plane/core/interfaces/
+control_plane/core/schemas/
+control_plane/core/errors/
+```
+
+and identifies the minimum shared types required by the already-defined P0 contracts, without inventing unrelated schema. At minimum, the plan accounts for the types Capability 2's `INTF-030` references and which therefore must exist before `EXE-P0.2.B`:
+
+```
+ControlPlaneRequest     — interfaces.md §2.1 (INTF-001 entrypoint schema)
+OptimizationPlan        — interfaces.md §3.2
+```
+
+plus the shared error taxonomy the `core/errors/` leaf exists for (`ControlPlaneError`, `interfaces.md` §25.1–25.2). **This plan deliberately does not reproduce or pre-decide their schemas.** Both `ControlPlaneRequest` and `OptimizationPlan` reference a sizeable transitive closure of sub-types (e.g. `InstructionContext`, `ConversationContext`, `QualityRequirements`, `SecurityClassification`, `OptimizationStage`, `FallbackStrategy`, `DecisionRationale`); Claude Code must enumerate that closure from the live `interfaces.md` at execution time and verify every field verbatim before implementation. Any decision to realize a subset of that closure at P0 (rather than the full closure) is a design decision the owning unit must make explicitly — listing every deferred field/type, why it is deferred, and which consuming capability will add it — and surface for human approval, never make silently.
+
+**Java realization of the paths.** Consistent with Capability 1's existing realization (`conventions.md` §2.1's `accounting/` leaf → `com.eaioc.controlplane.accounting.ledger`), "`control_plane/core/<leaf>/` exists" means the Java package `control_plane/src/main/java/com/eaioc/controlplane/core/<leaf>/` exists with real content (at minimum a `package-info.java` documenting the leaf's contract role, plus the types assigned to it), while Contract & Design notes live beside the future package path under `control_plane/core/` (the same convention `control_plane/accounting/ledger/LedgerEntry.md` and `control_plane/evaluation/EvaluationFramework.md` follow).
+
+**Important boundary.** `EXE-P0.1.A` owns the shared foundation. `EXE-P0.2.B` (and every later capability) must **consume** that foundation, never create it opportunistically — a consumer unit that finds the foundation missing stops with `AI VERIFICATION: BLOCKED` (§18.15), it does not fold the missing work into its own change-set:
+
+```
+EXE-P0.1.A
+    ↓
+shared core foundation contract + required scaffold/design
+    ↓
+EXE-P0.1.B and later Capability 1 work
+    ↓
+Capability 1 Gate
+    ↓
+EXE-P0.2.A
+    ↓
+EXE-P0.2.B may consume the already-created foundation
+```
+
+For a fresh execution of this plan, the above is the normative order. For this repository's actual history, where `EXE-P0.1.A` has already executed without producing the foundation, §18.14 defines how the ownership is discharged after the fact.
+
+### 18.14 Post-Hoc Execution Reconciliation (v1.0.4)
+
+The v1.0.4 correction must not silently pretend that already-completed checkpoints have not happened, and must not rewrite historical commits. Instead it introduces **POST-HOC EXECUTION RECONCILIATION**: for an already-executed unit whose requirement changed after the fact, Claude Code compares
+
+```
+HISTORICAL EXECUTION RESULT
+vs.
+CORRECTED EXECUTION-PLAN REQUIREMENT
+```
+
+and records exactly one of:
+
+```
+RECONCILED: PASS
+```
+
+```
+RECONCILED: GAP FOUND
+```
+
+A `GAP FOUND` result is never folded into a later unit (in particular, never into `EXE-P0.2.B`). It is closed only by an explicitly identified, separately-committed **remediation unit** that runs before the dependent unit proceeds, follows the same two-stage AI-verification-then-human-approval checkpoint as any `EXE-P0` unit (§18.12), and leaves the historical commit untouched. Remediation units are history-specific corrective checkpoints: they carry a `REM-` ID, never an `EXE-P0` ID, and are **not** counted among the 48 atomic units or the 54 gated checkpoints (§18.11.10 is unchanged).
+
+#### 18.14.1 Reconciliation of `EXE-P0.1.A` — recorded at v1.0.4 correction time from repository evidence
+
+| Field | Finding |
+|---|---|
+| Unit | `EXE-P0.1.A` — Token Accounting and Cost Ledger, Contract & Design |
+| Historical commit | `a345742` ("P0-1.A: Token Accounting and Cost Ledger — Contract & Design") — explicitly approved under v1.0.3 |
+| HISTORICAL EXECUTION RESULT | Produced only `control_plane/accounting/ledger/LedgerEntry.md`. That note's own §5 ("Shared-substrate scaffolding — explicitly not performed in this commit") deliberately deferred `core/interfaces/`/`core/schemas/`/`core/errors/` and the Maven scaffold, and flagged the question for human approval. `EXE-P0.1.B` (`e353dcf`) then created `control_plane/pom.xml` and the Maven layout (discharging the Maven-scaffold part) but created no `core/` package — its local exceptions (`MissingTenantIdException`, `DuplicateLedgerEntryException`) were placed in `accounting/ledger/`, explicitly *not* in a shared `core/errors/` taxonomy. As of v1.0.4, no `core/` package exists anywhere under `control_plane/src/`. |
+| CORRECTED EXECUTION-PLAN REQUIREMENT | §18.4 A row and §18.13: `EXE-P0.1.A` owns the shared-core-foundation contract and minimal scaffolding definition, including `ControlPlaneRequest`, `OptimizationPlan`, and `ControlPlaneError`. |
+| Result | **RECONCILED: GAP FOUND** — the historical unit satisfied its v1.0.3 row, but not the corrected ownership boundary. |
+| Disposition | Historical commit and its approval are preserved unchanged. The gap is closed by remediation units `REM-P0.1.A-01` and `REM-P0.1.A-02` (§18.14.2) before Capability 1's Gate review and before `EXE-P0.2.B`. The first remediation unit's own AI Verification re-confirms this finding against the live repository rather than trusting this table. |
+
+#### 18.14.2 Remediation units for the `EXE-P0.1.A` gap
+
+Split into two units for the same reason every capability separates Sub-phase A from Sub-phase B (§18.2): a design decision is never committed together with the implementation that depends on it.
+
+| Field | `REM-P0.1.A-01` — Shared Core Foundation: Contract & Design (Remediation) | `REM-P0.1.A-02` — Shared Core Foundation: Minimal Scaffold (Remediation) |
+|---|---|---|
+| Commands | `Execute REM-P0.1.A-01` → AI verification → `Approve REM-P0.1.A-01` | `Execute REM-P0.1.A-02` → AI verification → `Approve REM-P0.1.A-02` |
+| Precondition | v1.0.4 of this plan in effect | `REM-P0.1.A-01` AI-verified **and** human-approved |
+| Deliverable | Design note enumerating, verbatim from the live `interfaces.md` §2.1, §3.2, §25.1–25.2, every field of `ControlPlaneRequest`, `OptimizationPlan`, and `ControlPlaneError` and their full transitive sub-type closure; for each type/field, an explicit disposition — *realized in the P0 foundation* or *deferred to <consuming capability>* with reason; the Java package mapping (`com.eaioc.controlplane.core.interfaces`/`.schemas`/`.errors`); the dependency rule (`core/` imports nothing else from `control_plane/`, `conventions.md` §2.2); how REQUIRED fields (notably `tenant_id`) are enforced structurally at construction (root `CLAUDE.md` rule 4, mirroring `CostLedgerEntry`'s compact-constructor precedent); and the explicit decision that Capability 1's existing local exceptions are **not** migrated by this remediation | Java types exactly as `REM-P0.1.A-01` approved them, under `core/interfaces/`, `core/schemas/`, `core/errors/` (each leaf with a `package-info.java`), plus their unit tests — nothing beyond the approved design |
+| Files/Modules | `control_plane/core/CoreFoundation.md` (design note only) | `control_plane/src/main/java/com/eaioc/controlplane/core/**` and `control_plane/src/test/java/com/eaioc/controlplane/core/**` only — no change to `accounting/`, `evaluation/`, `pom.xml`, or any doc |
+| Tests | Schema-conformance review: every listed field diffed against the live `interfaces.md` text (not reproduced from memory) | `mvn test` — new unit tests: construction with all REQUIRED fields round-trips; every enum matches `interfaces.md` verbatim; the full pre-existing suite still passes |
+| Failure-Path Test | N/A (design stage) | Constructing `ControlPlaneRequest` with a missing/blank `tenant_id` (and each other REQUIRED identity field) is rejected, never silently defaulted |
+| Architecture check | Dependency direction stated | `grep` confirms no file under `core/` imports any other `com.eaioc.controlplane.*` package |
+| Definition of Done | No invented field or type; every deferral explicit; subset-vs-full-closure decision surfaced for human approval in the report; any sub-type referenced but not defined in `interfaces.md` recorded as a gap (→ `AI VERIFICATION: BLOCKED` unless it can be deferred without inventing content) | Types match the approved design exactly; foundation exists at every path §18.15's guard checks |
+| Commit | One remediation commit, title `P0-1.A-REM-01: Shared Core Foundation — Contract & Design (Remediation)` | One remediation commit, title `P0-1.A-REM-02: Shared Core Foundation — Minimal Scaffold (Remediation)` |
+
+#### 18.14.3 Other already-executed units
+
+- **Capability 1, Sub-phases B–E, G, H** (`e353dcf`, `5d8640e`, `e1730ce`, `3987957`, `95a1267`, `0c18174`) — executed and approved under v1.0.3's single-stage model. Their requirements did not change in v1.0.4, so they are not individually reconciled or re-executed; the AI Gate Verification for Capability 1 (§18.11.6) re-examines their evidence as part of the Gate review, and any evidence that does not hold up is a Blocking Condition for the Gate, not a silent pass.
+- **Capability 1, Sub-phase F** — `NOT APPLICABLE` (§18.4 F row), no commit, correctly so (§18.16). If the operator's acknowledgment of that N/A disposition was not previously given, it is given now via `Execute EXE-P0.1.F` (Claude Code reports `AI VERIFICATION: NOT APPLICABLE`, no commit) followed by `Approve EXE-P0.1.F`, before the Capability 1 Gate.
+- **Capability 2, Sub-phase A** (`0e92261`) — executed and approved. The repository contains no record of `Approve CAPABILITY-GATE P0.1` having been issued, so `EXE-P0.2.A` may have run before Capability 1's Gate closed, which §18.11.8 does not permit. Content reconciliation: **RECONCILED: PASS** — the design note is documentation-only, cites `INTF-030` verbatim (whitespace-insensitive diff against `interfaces.md` §18 shows no difference), and does not depend on the shared foundation existing. Its approval is preserved and it is not re-executed; the sequencing irregularity is instead neutralized by §18.15's guard, which requires the Capability 1 Gate to be approved before `EXE-P0.2.B` may proceed, and requires the remediated `ControlPlaneRequest`/`OptimizationPlan` types to match the parameter types that note cites.
+
+### 18.15 `EXE-P0.2.B` Pre-Execution Guard (v1.0.4)
+
+Before implementing `EXE-P0.2.B`, Claude Code MUST verify:
+
+```
+control_plane/core/interfaces/ exists
+control_plane/core/schemas/ exists
+control_plane/core/errors/ exists
+required shared request/plan types exist
+those types match the authoritative interfaces
+Capability 1's corrected shared-foundation ownership has been satisfied
+Capability 1 Gate has been approved
+Capability 2.A has been approved
+```
+
+Concretely: each `core/<leaf>/` check is against the Java realization defined in §18.13; "required shared request/plan types" means `ControlPlaneRequest` and `OptimizationPlan` in `core/schemas/`; "match the authoritative interfaces" means field-by-field against the live `interfaces.md` §2.1/§3.2, subject only to deferrals `REM-P0.1.A-01` explicitly recorded and the human approved; "ownership satisfied" means §18.14.1's `GAP FOUND` has been closed by `REM-P0.1.A-01` and `-02`, both AI-verified and human-approved; the two approval checks are against the operator's explicit `Approve CAPABILITY-GATE P0.1` and `Approve EXE-P0.2.A` commands.
+
+If any condition fails:
+
+```
+AI VERIFICATION: BLOCKED
+```
+
+and Claude Code must not write code. It must report exactly what prerequisite is missing, using the §18.12.4 blocked block. The same guard applies, with the capability number substituted, to every later capability's Sub-phase B that consumes `core/` (at minimum `EXE-P0.3.B`, §18.6).
+
+### 18.16 N/A Sub-phases, Commit Discipline, and Out-of-Band Commits (v1.0.4)
+
+**N/A sub-phases.** Several rows are `NOT APPLICABLE` at P0 scope (every capability's Sub-phase F, §28; some G rows state `NO DEDICATED SCENARIO`). They are never silently converted into artificial implementation work. For an N/A unit, Claude Code verifies and reports
+
+```
+AI VERIFICATION: NOT APPLICABLE
+```
+
+with its evidence/reason (the row's own stated reason, re-checked against the live source it cites), then:
+
+```
+### AI VERIFIED — AWAITING HUMAN APPROVAL
+
+AI VERIFICATION: NOT APPLICABLE
+
+Approve EXE-P0.n.X to continue.
+```
+
+Human approval remains required so the operator explicitly acknowledges the N/A disposition. No fake implementation commit is created for an N/A sub-phase merely to satisfy sequencing. The plan's count remains **48 atomic `EXE-P0.<n>.<letter>` execution units**, but an N/A unit may have no source-code change and therefore no implementation commit — this document no longer claims every A–H unit necessarily has a code commit (§18.2, §18.11.11). A `NO DEDICATED SCENARIO` G row is *not* automatically N/A: Claude Code first re-verifies the claim against the live `scenario-matrix.md` (as `EXE-P0.1.G` did, finding `SCN-TEN-003`/`SCN-AUDIT-003`), and only a confirmed absence yields `NOT APPLICABLE`.
+
+**Commit discipline clarification.** Preserved: `One executable A–H sub-phase = one isolated implementation change-set.` Where that sub-phase produces implementation changes: `one sub-phase = one implementation commit`. Where a sub-phase is genuinely `NOT APPLICABLE` and produces no implementation changes: `no implementation commit`. The Capability Gate remains: `no implementation commit`. An N/A checkpoint is never called, or represented by, a fake commit.
+
+**Out-of-band commit `c3d6ecf`.** The repository contains an additional commit, `c3d6ecf` — "docs: sync CLAUDE.md with P0 implementation progress; add VS Code settings" — which modified `CLAUDE.md` and added `.vscode/settings.json`. This plan records that:
+
+- it was **not** an `EXE-P0.n.X` implementation commit;
+- it must **not** be counted as one of the 48 atomic implementation units' commits;
+- it must **not** be used as evidence that any execution unit was completed;
+- future sub-phase execution must not modify unrelated editor files;
+- future progress/status documentation changes must remain outside implementation-unit commits unless explicitly authorized by the execution plan.
+
+The historical commit is not retroactively altered.
+
+**`.vscode/settings.json`.** Not modified by this correction; recorded as existing repository history. Future implementation commands must not add personal editor configuration to an atomic P0 implementation commit unless a future explicit source-backed requirement authorizes it. Whether `.vscode/` should ultimately be ignored is a separate repository-management decision outside this execution plan. It is never counted as a P0 implementation file.
+
+### 18.17 Execution State Model (v1.0.4)
+
+Per unit (and per remediation unit):
+
+```
+NOT STARTED
+    ↓
+EXECUTING
+    ↓
+EXECUTED
+    ↓
+AI VERIFYING
+    ↓
+AI VERIFIED
+    ↓
+AWAITING HUMAN APPROVAL
+    ↓
+HUMAN APPROVED
+    ↓
+NEXT UNIT ELIGIBLE
+```
+
+Failure state:
+
+```
+AI VERIFYING
+    ↓
+AI VERIFICATION BLOCKED
+    ↓
+REMEDIATION
+    ↓
+RE-EXECUTE / RE-VERIFY
+```
+
+No state may bypass AI verification. A precondition failure detected before any work begins (e.g. §18.15) moves the unit directly from `EXECUTING` to `AI VERIFICATION BLOCKED` with no change-set. `RE-EXECUTE / RE-VERIFY` always requires a fresh explicit `Execute` command from the user — Claude Code never re-executes on its own after remediation. `NEXT UNIT ELIGIBLE` means only that the user *may* issue the next `Execute`; it never triggers it.
+
+### 18.18 Updated P0 Sequence Semantics and Current Position (v1.0.4)
+
+The overall P0 sequence becomes:
+
+```
+Environment Readiness
+        ↓
+Execute A
+        ↓
+AI Verification
+        ↓
+Human Approval
+        ↓
+Execute B
+        ↓
+AI Verification
+        ↓
+Human Approval
+        ↓
+...
+Execute H
+        ↓
+AI Verification
+        ↓
+Human Approval
+        ↓
+AI Capability Gate Verification
+        ↓
+Human Capability Gate Approval
+        ↓
+Next Capability A
+```
+
+This is the authoritative operator model.
+
+**Current position in this repository (at v1.0.4 correction time).** Environment readiness passed (`docs/implementation-env-readiness-check-p0.md`). Capability 1: A–E, G, H committed and approved under v1.0.3; F `NOT APPLICABLE`, no commit; Gate P0.1 approval not recorded. Capability 2: A committed and approved; B **stopped — prerequisite missing** (no commit, no code). The authoritative remaining sequence up to `EXE-P0.2.B` is therefore:
+
+```
+Execute REM-P0.1.A-01        → AI verification → Approve REM-P0.1.A-01
+Execute REM-P0.1.A-02        → AI verification → Approve REM-P0.1.A-02
+(only if F's N/A was never acknowledged)
+Execute EXE-P0.1.F           → AI VERIFICATION: NOT APPLICABLE → Approve EXE-P0.1.F
+Review CAPABILITY-GATE P0.1  → AI CAPABILITY GATE VERIFICATION → Approve CAPABILITY-GATE P0.1
+Execute EXE-P0.2.B           → §18.15 guard → AI verification → Approve EXE-P0.2.B
+```
+
+each line issued one command at a time, with no automatic chaining between any of them. After `EXE-P0.2.B`, the idealized §18.11.7 sequence resumes unchanged from `Execute EXE-P0.2.C`.
 
 ---
 
@@ -783,7 +1379,7 @@ Not applicable — no durable store exists yet in this slice (§6, rows 2–3; �
 
 ## 37. Rollback
 
-Per capability, at the code level: each Sub-phase is one git commit (Mode B's own git discipline, cited from the companion execution prompt); a failed sub-phase's changes are reverted via ordinary git revert of that single commit, never a broader rollback, since no sub-phase's commit depends on an uncommitted state from a later sub-phase. At the data level: no durable data exists yet to roll back (§36). The Capability Gate itself has no implementation commit and therefore nothing to revert (§18.10) — a failed or blocked Gate means promotion to the next capability is denied until the blocking condition is addressed, not a code rollback; no special "gate commit" or "gate rollback" mechanism exists or is needed.
+Per capability, at the code level: each Sub-phase that produces implementation changes is one git commit (Mode B's own git discipline, cited from the companion execution prompt; a genuinely `NOT APPLICABLE` sub-phase has no commit and therefore nothing to revert — §18.16); remediation units (§18.14) are likewise one commit each and individually revertible; a failed sub-phase's changes are reverted via ordinary git revert of that single commit, never a broader rollback, since no sub-phase's commit depends on an uncommitted state from a later sub-phase. At the data level: no durable data exists yet to roll back (§36). The Capability Gate itself has no implementation commit and therefore nothing to revert (§18.10) — a failed or blocked Gate means promotion to the next capability is denied until the blocking condition is addressed, not a code rollback; no special "gate commit" or "gate rollback" mechanism exists or is needed.
 
 ## 38. Source-Gap Register
 
@@ -794,6 +1390,7 @@ This document's own scoped gap series, `SOURCE-GAP-EXECPLAN-NN`, distinct from e
 | `SOURCE-GAP-EXECPLAN-01` | No interim telemetry sink is documented anywhere upstream for any capability's Sub-phase D beyond "cite `observability.md`'s already-named metrics" — this mirrors `SOURCE-GAP-IRG-02`'s finding for the Observability P0 item itself, but applies to all six in-scope capabilities' own Sub-phase D, not only the Observability item | This document's own re-verification while writing §18/§26 | Non-blocking — this document proposes a minimal structured-log interim sink (§26) as a reasonable, low-risk default, consistent with `ADR-0001`'s own "interim reference implementation" pattern | No |
 | `SOURCE-GAP-EXECPLAN-02` | Two of the six in-scope capabilities (Context Policy, Output Controls) have no exact package-leaf match in `conventions.md` §2.1's tree (§9) | This document's own module-boundary verification | Non-blocking — proposed placements given, explicitly flagged for confirmation at each capability's own Sub-phase A rather than assumed final | No |
 | `SOURCE-GAP-EXECPLAN-03` | No dedicated `SCN-*` scenario was found isolating Sanitizer, Context Policy, Prompt Assembler, or Output Controls specifically, beyond the cross-cutting `EC-077`/security-adjacent citations already recorded elsewhere in the corpus | This document's own targeted search while writing §18 | Non-blocking — recorded honestly per capability (§18.6–18.9's Sub-phase G entries), not force-fit to an adjacent scenario | No |
+| `SOURCE-GAP-EXECPLAN-04` | *(added v1.0.4)* Shared-core-foundation ownership gap: through v1.0.3, `core/interfaces/`/`core/schemas/`/`core/errors/` were assigned to Capability 1 only in a header Preconditions field, never in any executable unit row, while Capabilities 2 and 3 assumed they existed. No executed unit produced them, so `INTF-030`'s `ControlPlaneRequest`/`OptimizationPlan` parameter types had no realization when `EXE-P0.2.B` was invoked. This is an execution-plan ownership gap, not an upstream-corpus gap — `interfaces.md` defines all three types | Exposed by the first `Execute EXE-P0.2.B` (stopped on precondition, no code written) | **Plan side resolved in v1.0.4** — ownership assigned to `EXE-P0.1.A` (§18.13) and a hard guard added (§18.15). **Implementation side open** until remediation units `REM-P0.1.A-01`/`-02` (§18.14.2) are AI-verified and human-approved | **Yes** — for `EXE-P0.2.B` and `EXE-P0.3.B` only, until remediation closes; no other unit or capability gate is blocked by it beyond Capability 1's own Gate review, which must see the remediation complete |
 
 **Disposition of gaps carried forward from other documents:** `SOURCE-GAP-IRG-02` (Observability interim path) — explicitly out of this slice's scope (§3), not resolved here. `SOURCE-GAP-OPTCAT-01`/`AGENTOPT-01` — not touched, since P1+ `DA-NNN`/session-phase content is out of scope.
 
@@ -882,6 +1479,20 @@ PRODUCTION READY      — not reached, not implied by any statement in this docu
 ENTERPRISE SCALE READY — not reached; explicitly out of scope (§45)
 ```
 
+**v1.0.4 — PLAN READY vs. MODE B READY (distinct, not conflated).** `PLAN READY` means the command and verification protocol is defined (§18.11–§18.18). `MODE B READY` means all of the following hold for the next executable unit: environment readiness has passed; the current execution-plan version is accepted; the AI verification protocol is active; the human approval protocol is active; shared-foundation ownership is resolved; and no known blocking prerequisite remains for the next executable unit. Status at v1.0.4 correction time:
+
+```
+PLAN READY            — YES, after the v1.0.5 correction (pending the operator's acceptance of this version)
+MODE B READY          — for REM-P0.1.A-01: yes, once v1.0.5 is accepted
+                        for EXE-P0.2.B: NO — SOURCE-GAP-EXECPLAN-04's implementation side is open
+                        (REM-P0.1.A-01/-02 not yet AI-verified and human-approved; Capability 1 Gate
+                        approval not recorded — §18.15, §18.18)
+CODE COMPLETE         — not reached
+BENCHMARK VALIDATED   — not reached
+```
+
+Neither `CODE COMPLETE` nor `BENCHMARK VALIDATED` is stated or implied by v1.0.5.
+
 P0 completion, once Mode B finishes all six Capability Gates, does **not** automatically imply: production readiness, enterprise-scale readiness, P1–P5 readiness, any ADR's acceptance, final infrastructure selection, or proven business savings — restated verbatim from the generation prompt's own §37, since this is the single most consequential boundary statement in the entire execution-planning exercise.
 
 ---
@@ -910,7 +1521,7 @@ Phase 1 (Java core) is this slice's own scope; Phases 2–4 (Python, Go, special
 Capability 1 → 2 → 3 (no cross-dependency among these three, but executed strictly sequentially, never in parallel — §18.2–§18.3) → 4 (needs 1) → 5 (needs 3, 4) → 6 (needs 1) — §18.3, §48.
 
 ### H. P0 Execution Sequence
-Six capabilities, 8 lifecycle sub-phases (A–H) each = 48 atomic `EXE-P0.<n>.<letter>` execution units, plus 6 Capability Gates (review/promotion checkpoints — no ID, no commit) = 54 total gated checkpoints across the P0 tier — §18.4–18.10.
+Six capabilities, 8 lifecycle sub-phases (A–H) each = 48 atomic `EXE-P0.<n>.<letter>` execution units, plus 6 Capability Gates (review/promotion checkpoints — no ID, no commit) = 54 total gated checkpoints across the P0 tier — §18.4–18.10. From v1.0.4, every unit is AI-verified before human approval and every Gate is AI-verified before human Gate approval (§18.12, §18.11.6); N/A units carry no commit (§18.16); history-specific remediation units (`REM-P0.1.A-01`/`-02`, §18.14) are additional corrective checkpoints outside this count.
 
 ### I. First Proving Slice
 Docker Compose reference environment; Path A (baseline) vs. Path B (through the six-capability EAIOC substrate); no optimization savings claimed yet, only overhead measured honestly — §16–17.
@@ -919,7 +1530,7 @@ Docker Compose reference environment; Path A (baseline) vs. Path B (through the 
 Zero of six ADRs block any in-scope capability; two (0004, 0005) are loosely touched via interim/moot dispositions — §39.
 
 ### K. Source-Gap Implementation Register
-Three new `SOURCE-GAP-EXECPLAN-NN` entries, all non-blocking — §38.
+Four `SOURCE-GAP-EXECPLAN-NN` entries — §38: `SOURCE-GAP-EXECPLAN-01` — non-blocking; `SOURCE-GAP-EXECPLAN-02` — non-blocking; `SOURCE-GAP-EXECPLAN-03` — non-blocking; `SOURCE-GAP-EXECPLAN-04` (shared-core ownership, added v1.0.4) — **blocking implementation-side gap until remediation**: plan side resolved; implementation side open until remediation completes, blocking `EXE-P0.2.B`/`EXE-P0.3.B` — §18.13–§18.15.
 
 ### L. Requirement Coverage Summary
 Nine distinct requirement IDs directly touched (`OBJ-011/012`, `AC-001/002/005/015/017`, `SEC-001`, `TECH-001`), all `FULLY TRACED` per `requirements-traceability.md` — §40.
@@ -949,7 +1560,7 @@ Five ADRs; exact package placement for two capabilities; P1–P5 atomic decompos
 Four risks recorded with mitigations, none blocking — §49.
 
 ### U. Final Validation
-Zero conflicts between the technology baseline and the frozen architecture; zero ADR blockers; zero requirement-traceability blockers for this slice's own requirement set; three new non-blocking source gaps recorded, not silently omitted.
+Zero conflicts between the technology baseline and the frozen architecture; zero ADR blockers; zero requirement-traceability blockers for this slice's own requirement set; four execution-plan source gaps recorded, not silently omitted — `SOURCE-GAP-EXECPLAN-01`, `-02`, `-03` non-blocking; `SOURCE-GAP-EXECPLAN-04` a **blocking implementation-side gap until remediation** (plan side resolved; implementation side open until remediation completes), and the current blocker for `EXE-P0.2.B`.
 
 ### V. Readiness Boundary
 PLAN READY (this document) ≠ IMPLEMENTATION READY (already true per `implementation-readiness-gate.md`, independently) ≠ CODE COMPLETE / TEST COMPLETE / BENCHMARK VALIDATED / PRODUCTION READY / ENTERPRISE SCALE READY (none reached, none implied) — §52.
@@ -960,7 +1571,28 @@ PLAN READY (this document) ≠ IMPLEMENTATION READY (already true per `implement
 
 Per this document's own required self-check: (1) the technology baseline was validated line-by-line against the frozen architecture and every open ADR, with zero conflicts found and every deferred technology explicitly classified (§6). (2) All six in-scope P0 capabilities were decomposed into atomic `EXE-P0.<n>.<letter>` units carrying every field the generation prompt's §10 requires, compacted at the capability level only where a field is genuinely sub-phase-invariant (§18.2, disclosed as a methodology choice, not a silent omission). (3) Module boundaries were checked against `conventions.md` §2.1 directly; two genuine gaps were found and recorded honestly rather than papered over (§9, `SOURCE-GAP-EXECPLAN-02`). (4) No ADR blocks this execution slice (§39, independently re-confirmed against `implementation-readiness-gate.md` §9's own table). (5) Requirements/acceptance-criteria traceability for this slice's specific requirement set is fully clear (§40–41). (6) Three new, non-blocking source gaps were recorded (§38) rather than invented around. (7) P1–P5 are explicitly not atomized, consistent with `implementation-readiness-gate.md` §26's own finding that P0 clearance does not unlock P1 (§19–23). (8) The readiness-boundary distinctions (§52) are stated explicitly, matching this project's own established discipline of never letting a planning artifact imply more than it has actually verified. (9) File-scope discipline was maintained — only `docs/execution-plan.md` was created this generation; no upstream, sibling, or ADR document was modified.
 
-No blocking issue was found. This plan is ready for Mode B (gated implementation execution) to begin, one atomic unit at a time, under explicit human approval at every checkpoint.
+*The paragraph above is the original v1.0.0 generation self-check, retained as history.* Its original closing conclusion — which found no blocking issue and declared the plan ready for Mode B — held at generation time, when no unit had yet run. It is **superseded** by the current readiness conclusion below and must not be read as current guidance.
+
+**Current readiness conclusion (v1.0.5).**
+
+1. **Technology baseline:** its validation is unchanged (§6): zero conflicts, and all six ADRs remain `PROPOSED`.
+2. **Counts:** P0 contains **48** atomic `EXE-P0.<n>.<letter>` execution units (8 lifecycle sub-phases A–H × 6 capabilities) plus **6** Capability Gates, for **54** gated checkpoints. The history-specific remediation units `REM-P0.1.A-01`/`-02` sit outside these counts.
+3. **Gate:** the Capability Gate is separate from A–H — a post-lifecycle review/promotion checkpoint with no `EXE-P0` ID and no implementation commit.
+4. **Sequencing:** strict sequential execution is unchanged — one capability and one unit at a time.
+5. **AI verification first:** AI Verification precedes human approval for every unit (§18.12). AI Gate Verification precedes human Gate approval (§18.11.6).
+6. **Human approval:** it is always explicit (`Approve …`) and never simulated.
+7. **No automatic chaining:** no test result, commit, AI PASS, or closed Gate authorizes the next unit (§18.11.12).
+8. **Current blocker:** `SOURCE-GAP-EXECPLAN-04` is the current implementation blocker. Its plan side is resolved; its implementation side stays open until remediation completes (§38).
+9. **Repository position:** preserved as recorded in §18.18. Capability 1 A–E, G, H are historically executed, and F is `NOT APPLICABLE` with no commit. `REM-P0.1.A-01` and `REM-P0.1.A-02` are not started. Capability Gate P0.1 approval is not recorded. `EXE-P0.2.A` is executed and approved. `EXE-P0.2.B` is blocked on the shared-core prerequisite.
+10. **Scope of this correction:** documentation-only. No source code, test, or `control_plane/` file changed.
+
+> **PLAN READY: YES — after this v1.0.5 correction.**
+>
+> **MODE B READY for `EXE-P0.2.B`: NO — `SOURCE-GAP-EXECPLAN-04` remains open on the implementation side until `REM-P0.1.A-01` and `REM-P0.1.A-02` are AI-verified and human-approved and Capability Gate P0.1 is approved.**
+
+The next executable unit is `REM-P0.1.A-01` (`Execute REM-P0.1.A-01`), once the operator accepts v1.0.5. Implementation does **not** resume at `EXE-P0.2.B`.
+
+*The per-version surgical-correction self-checks below are historical records of each pass. Each one's own closing sentence (e.g. "ready to freeze") describes that pass only. The current readiness conclusion is the one above, restated in the v1.0.5 self-check.*
 
 **v1.0.1 surgical-correction self-check**, per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.1.md`: (1) the Sub-phase A/B shared-commit contradiction in Capability 1 (§18.4) is removed — every sub-phase across all six capabilities now has its own standalone commit and approval checkpoint, restated explicitly at §18.2. (2) All "parallel-capable"/"any order" wording (§18.3, §48, §H) is corrected to distinguish dependency independence from execution scheduling — Mode B remains strictly sequential everywhere, with no exception. (3) The Capability Gate → next-capability boundary now states its own separate commit/approval requirement explicitly (§18.10), so a closed gate is never itself sufficient authorization to proceed. (4) The six-capability P0 scope, the validated technology baseline and its classification, all three `SOURCE-GAP-EXECPLAN-01/02/03` entries, the proposed (not source-defined) package placements for Context Policy/Prompt Assembler/Output Controls, and Capability 2's two-distinct-items/one-foundation identity are all unchanged. (5) All six ADRs remain `PROPOSED`; no ADR was accepted or closed. (6) File-scope discipline was maintained — `git status --short`/`git diff --stat`/`git diff -- docs/execution-plan.md` confirm only this file changed. (7) No source code, and no file under `control_plane/`, was created or modified — this correction is planning-document-only, exactly as required.
 
@@ -968,4 +1600,27 @@ No blocking issue was found. This plan is ready for Mode B (gated implementation
 
 **v1.0.3 surgical-correction self-check**, per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.3.md`: (1) a new §18.11 "Claude Code Mode B Execution Command Protocol" was added immediately after §18.10 and before §19, with no renumbering needed elsewhere since it is a subsection insertion, not a new top-level section. (2) It establishes: user-command-only authorization (§18.11.1); the canonical `Execute EXE-P0.<n>.<letter>` syntax with the preserved `Execute P0.1` shorthand rule (§18.11.2); the exact per-unit execution lifecycle diagram (§18.11.3); the canonical `Approve EXE-P0.<n>.<letter>` / `Approve CAPABILITY-GATE P0.<n>` approval syntax (§18.11.4); the required per-unit response format, including the H-specific approval-checkpoint variant (§18.11.5); the Capability Gate's own command protocol, including its `PASS`/`BLOCKED` review report (§18.11.6); the complete six-capability copy/paste operator reference sequence, explicitly labeled a reference not a batch script (§18.11.7); a command-state table (§18.11.8); a prohibited-ambiguous-command list (§18.11.9); the restated 48+6=54 count (§18.11.10); the restated one-sub-phase-one-commit/no-gate-commit rule (§18.11.11); and a strong no-automatic-chaining rule (§18.11.12). (3) `Execute EXE-P0.1.A`, `Approve EXE-P0.1.A`, and `Approve CAPABILITY-GATE P0.1` all appear explicitly, as required. (4) The full operator reference sequence runs through `Approve CAPABILITY-GATE P0.6`. (5) The document still states 48 atomic execution units + 6 Capability Gates = 54 total gated checkpoints everywhere the count appears (§18.2, §18.11.10, §H) — no regression to "54 atomic units." (6) The Capability Gate still receives no implementation commit anywhere in the new section (§18.11.6, §18.11.11), consistent with the v1.0.2 correction. (7) No source code, and no file under `control_plane/`, was created or changed. (8) No upstream document was changed — `git status --short`/`git diff --stat`/`git diff -- docs/execution-plan.md` confirm only this file changed; all three correction-prompt files (v1.0.1–v1.0.3, all pre-existing and untracked) were read but not modified. (9) The six-capability P0 scope, the validated technology baseline, all three `SOURCE-GAP-EXECPLAN-01/02/03` entries, all six ADRs' `PROPOSED` status, Observability's exclusion, and P1–P5's non-atomized status are all unchanged from the v1.0.2 baseline. No blocking issue remains; this plan is ready to freeze.
 
-FINAL EXECUTION PLAN v1.0.3 CORRECTION COMPLETE — READY FOR FREEZE
+**v1.0.4 surgical-correction self-check**, per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.4.md` (its §27 completion list, in order): (1) **Correct shared-core ownership** — `core/interfaces`, `core/schemas`, `core/errors` explicitly owned by Capability 1 / `EXE-P0.1.A` (§18.4 Preconditions and A row, §18.13), with `ControlPlaneRequest`/`OptimizationPlan` (and `ControlPlaneError`) explicitly handled and their schemas deliberately *not* reproduced here — Claude Code must verify fields against the live `interfaces.md` (§18.13); consumers consume, never create (§18.5 B row, §18.6). (2) **Historical P0.1 reconciliation mechanism** — POST-HOC EXECUTION RECONCILIATION defined (§18.14), `EXE-P0.1.A` reconciled from repository evidence as `RECONCILED: GAP FOUND` without rewriting commit `a345742` (§18.14.1), closed by remediation units `REM-P0.1.A-01`/`-02` outside the 48/54 counts (§18.14.2); `EXE-P0.2.A` reconciled `PASS` with its sequencing irregularity recorded (§18.14.3); the prompt's own state summary omitted Capability 1's G commit (`95a1267`) — recorded accurately here rather than copied. (3) **P0.2.B prerequisite guard** — §18.15, the prompt's exact eight checks plus their concrete meaning, extended to `EXE-P0.3.B`. (4) **AI verification at every atomic step** — §18.12 (checklist A–J, the four verdicts, the mandatory report template), §18.11.3 lifecycle replaced, §18.11.5 response format extended. (5) **Human approval after AI verification** — `### AI VERIFIED — AWAITING HUMAN APPROVAL` checkpoints (§18.12.4), no approval request after a blocked verdict, AI verification never treated as approval (§18.12.2, §18.12.5 exact safety rules). (6) **AI Capability Gate verification** and (7) **Human Capability Gate approval** — three-stage Gate model (§18.10, §18.11.6), `AI CAPABILITY GATE VERIFICATION: PASS / BLOCKED`, `Approve CAPABILITY-GATE P0.n` valid only after an AI PASS; one small operational addition, `Review CAPABILITY-GATE P0.n`, a review-only resume trigger for a Gate review in a later session (no approval, no implementation authority). (8) **N/A handling** — §18.16, §18.2, §18.11.11: `AI VERIFICATION: NOT APPLICABLE`, human acknowledgment still required, no fake commit, 48 count unchanged. (9) **Out-of-band commit handling** — `c3d6ecf` and `.vscode/settings.json` recorded as non-implementation history, not counted, not evidence, not altered (§18.16). (10) **No-automatic-chaining rule** — §18.11.12 extended to AI PASS verdicts, §18.17 state model (no state bypasses AI verification), §18.12.6 command table (approval and next execution never combined). Also: execution state model (§18.17), revised examples including the blocked one (§18.12.7), updated sequence semantics and current position (§18.18), `PLAN READY` vs. `MODE B READY` (§52), `SOURCE-GAP-EXECPLAN-04` (§38), rollback (§37). Counts re-verified: **48** atomic `EXE-P0.<n>.<letter>` units + **6** Capability Gates = **54** total gated checkpoints, unchanged; §18.11 command protocol retained. No upstream architecture, requirements, ADR (all six remain `PROPOSED`), technology-baseline, P0 capability scope, or P1–P5 content changed; `SOURCE-GAP-EXECPLAN-01`–`03` unchanged. No source code, test, or `control_plane/` file was created or modified; `EXE-P0.2.B` was not executed. **File scope:** the correction prompt restricts changes to this file alone; the operator's own instruction for this pass explicitly additionally requested that the companion operator runbook `docs/execution-plan-p0-steps.md` be brought in line with v1.0.4, so exactly those two files changed — verified via `git status --short`/`git diff --stat`. No commit was created by this correction.
+
+**v1.0.5 surgical-correction self-check**, per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.5.md` (its §10 list, in order):
+1. The version is `1.0.5` in the header and the §1 Version row, and the correction history has a v1.0.4 → v1.0.5 entry. The v1.0.1–v1.0.4 history is preserved.
+2. §7 now states that every `EXE-P0.<n>.<letter>` unit maps 1:1 to one lifecycle sub-phase A–H. The former "A–H + Gate" wording is gone.
+3. The Capability Gate is explicitly separate: a post-lifecycle review/promotion checkpoint, not an `EXE-P0` unit and not a ninth sub-phase (§7, §18.2, §18.10).
+4. §18.2 now reads "eight lifecycle sub-phase entries A–H" plus a separate Gate. The former "nine" wording is gone.
+5. No active command rule uses history-dependent shorthand resolution. The former §18.11.2 shorthand rule and the §18.2 `Execute P0.1` sentence are removed. The shorthand survives only in a paragraph explicitly labeled historical and superseded, and `Execute P0.1` is now listed in §18.11.9's prohibited commands.
+6. The canonical syntax is `Execute EXE-P0.<n>.<letter>`, stated as mandatory, together with `Approve EXE-P0.<n>.<letter>`, `Review CAPABILITY-GATE P0.<n>` and `Approve CAPABILITY-GATE P0.<n>` (§18.11.2).
+7. The no-automatic-chaining rule (§18.11.12, §18.12.5, §18.17) was not weakened or removed.
+8. The count is unchanged: 48 atomic `EXE-P0` units + 6 Capability Gates = 54 gated checkpoints.
+9. AI Verification before human approval is unchanged (§18.12).
+10. Gate AI Verification before human Gate approval is unchanged (§18.10, §18.11.6).
+11. N/A handling is unchanged (§18.16).
+12. `REM-P0.1.A-01` and `REM-P0.1.A-02` remain outside the 48/54 counts (§18.14).
+13. `SOURCE-GAP-EXECPLAN-04` remains a blocking implementation-side gap until remediation closes it. Its §38 description and disposition are unchanged, and Summary K and U now distinguish it from the non-blocking 01–03.
+14. The final readiness conclusion no longer claims no blocking issue exists. The original v1.0.0 conclusion is labeled historical and superseded.
+15. The final readiness conclusion now separates `PLAN READY: YES` from `MODE B READY for EXE-P0.2.B: NO`, both there and in §52.
+16. No implementation code or unrelated file was modified: no source, test, `control_plane/`, `CLAUDE.md`, `.vscode/`, ADR, or upstream document. This was verified via `git status --short` and `git diff --stat`. Note that `CLAUDE.md` already carried uncommitted edits from an earlier, separate task in this session, which this pass did not touch.
+17. The companion runbook `docs/execution-plan-p0-steps.md` was aligned to v1.0.5. Its header, change summary, canonical commands, the full-ID instruction, Rule 7, current position, and next required command (`Execute REM-P0.1.A-01`) were updated. The two-stage checkpoint and separate-Gate models were preserved.
+
+No commit was created by this correction.
+
+FINAL EXECUTION PLAN v1.0.5 CORRECTION COMPLETE — PLAN READY FOR FREEZE; MODE B BLOCKED AT EXE-P0.2.B UNTIL REM-P0.1.A-01/-02 AND CAPABILITY GATE P0.1 ARE APPROVED — NEXT: Execute REM-P0.1.A-01
