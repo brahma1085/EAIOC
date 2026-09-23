@@ -444,7 +444,7 @@ Each is stated with a recommendation. `REM-P0.1.A-02` implements whichever optio
 - `task_id`, `request_type`, `quality_requirements`, `latency_requirements`, `security_classification`;
 - `user_input`, whenever `request_type != BATCH` (§2.3: "REQUIRED (non-batch)").
 
-`tenant_id` gets its own dedicated exception type (in `core/errors/`), matching the ledger's `MissingTenantIdException` semantics (root `CLAUDE.md` rule 4). None of these is ever silently defaulted. **Recommended as stated.** *Alternative:* enforce only `tenant_id`, and leave the rest to a future validation stage (T0 request normalization). That is weaker, because an unvalidated request could then reach a consumer.
+`tenant_id` gets its own dedicated exception type, `MissingTenantIdException`, in **`core/schemas/`** next to `ControlPlaneRequest` (amended — see §12), matching the ledger's `MissingTenantIdException` semantics (root `CLAUDE.md` rule 4). Every other REQUIRED-field violation throws the JDK's `IllegalArgumentException`. None of these is ever silently defaulted. **Recommended as stated.** *Alternative:* enforce only `tenant_id`, and leave the rest to a future validation stage (T0 request normalization). That is weaker, because an unvalidated request could then reach a consumer.
 
 **D5 — Error-code/class consistency.** `ControlPlaneError`'s constructor rejects an `error_code` that is not of the form `OPT-Nxxx`, or whose series digit disagrees with `error_class` under the §25.2 table (for example `OPT-4001` with `VALIDATION`). **Recommended.** The mapping is defined by the source, so enforcing it invents nothing.
 
@@ -461,8 +461,8 @@ Each is stated with a recommendation. `REM-P0.1.A-02` implements whichever optio
 | Leaf | Java package | Contents at P0 |
 |---|---|---|
 | `core/interfaces/` | `com.eaioc.controlplane.core.interfaces` | `package-info.java` only (D6) |
-| `core/schemas/` | `com.eaioc.controlplane.core.schemas` | `ControlPlaneRequest`, `RequestType`, `InstructionContext`, `QualityRequirements`, `LatencyRequirements`, `BudgetConstraints`, `SecurityClassification`, `FreshnessRequirements`, `AgentState`, `OptimizationPlan`, `OptimizationStage`, `SkippedStage`, `DecisionRationale`, `OperatingMode`, `DecisionOwnership`, plus each inline enum as a nested enum of its owning record, and `package-info.java` |
-| `core/errors/` | `com.eaioc.controlplane.core.errors` | `ControlPlaneError`, `ErrorClass`, the tenant-missing exception (D4), `package-info.java` |
+| `core/schemas/` | `com.eaioc.controlplane.core.schemas` | `ControlPlaneRequest`, `RequestType`, `InstructionContext`, `QualityRequirements`, `LatencyRequirements`, `BudgetConstraints`, `SecurityClassification`, `FreshnessRequirements`, `AgentState`, `OptimizationPlan`, `OptimizationStage`, `SkippedStage`, `DecisionRationale`, `OperatingMode`, `DecisionOwnership`, plus each inline enum as a nested enum of its owning record, `MissingTenantIdException` (D4, amended — §12), and `package-info.java` |
+| `core/errors/` | `com.eaioc.controlplane.core.errors` | `ControlPlaneError`, `ErrorClass`, `package-info.java` |
 
 **Type mapping** (following the existing ledger code):
 
@@ -498,7 +498,7 @@ Field names are the camelCase of the source snake_case names, with no renaming b
 
 - **Round-trip:** each realized record, constructed with all REQUIRED fields, returns them unchanged.
 - **Enum fidelity:** every enum's constant set equals the source's set exactly, including `SkippedStage.Reason.DO_NOT_OPTIMIZE`.
-- **Failure path:** a missing or blank `tenant_id` is rejected with the dedicated exception, and each other REQUIRED field (D4) is rejected, never defaulted. `user_input == null` is accepted only for `BATCH`.
+- **Failure path:** a missing or blank `tenant_id` is rejected with the dedicated `core.schemas.MissingTenantIdException`, and each other REQUIRED field (D4) is rejected with `IllegalArgumentException`, never defaulted. `user_input == null` is accepted only for `BATCH`.
 - **Defensive copies (D3):** mutating a caller's list or map after construction does not change the instance.
 - **`ControlPlaneError` (D5):** a matching code/class is accepted; a mismatched or malformed code is rejected.
 - **Existing suite:** `mvn test` passes the 19 existing Capability 1 tests plus the new ones.
@@ -516,3 +516,29 @@ Field names are the camelCase of the source snake_case names, with no renaming b
 - [x] Java package and type mapping, dependency rule, and required-field enforcement specified for `REM-P0.1.A-02`.
 - [x] Capability 1's existing exceptions explicitly not migrated (D7).
 - [x] No source code, no change to `accounting/`, `evaluation/`, `pom.xml`, or any doc.
+
+---
+
+## 12. Amendment 1 — D4 exception location (re-execution of `REM-P0.1.A-01`)
+
+**Why this amendment exists.** `REM-P0.1.A-02`'s first execution stopped with `AI VERIFICATION: BLOCKED` before any code was written. The note as first approved (commit `c05e3e7`) contradicted itself:
+- **D4** placed the dedicated tenant-missing exception in `core/errors/`.
+- **§9**, following `conventions.md` §2.2 ("`core/schemas/` depends only on `core/interfaces/`"), forbids `core/schemas/` from importing anything in `core/errors/`.
+
+`ControlPlaneRequest` lives in `core/schemas/` and must throw that exception, so it could not satisfy both. The error was in this note, not in the upstream corpus; `conventions.md` is consistent. Per `execution-plan.md` §18.17 (`AI VERIFICATION BLOCKED → REMEDIATION → RE-EXECUTE / RE-VERIFY`), the fix is a re-execution of this unit as a new commit. Commit `c05e3e7` and its approval are not rewritten.
+
+**Resolution (chosen by the operator):** `MissingTenantIdException` moves to `core/schemas/`, beside `ControlPlaneRequest`.
+- **Dependency rule:** the upstream rule in `conventions.md` §2.2 is untouched, so §9 stands exactly as written.
+- **Dedicated type:** there is still a dedicated exception with the ledger's semantics (root `CLAUDE.md` rule 4).
+- **`core/errors/` contents:** only `ControlPlaneError`, `ErrorClass` and `package-info.java`. This matches its `conventions.md` §2.1 role of holding the "ControlPlaneError taxonomy (INTF §25)"; a construction-time Java exception is not part of that taxonomy.
+- **Other REQUIRED fields:** violations throw `IllegalArgumentException`. The approved D4 text named no type for them; this makes it explicit.
+
+The rejected alternative was a plain `IllegalArgumentException` for `tenant_id` too, with no dedicated type.
+
+**Sections changed by this amendment:** D4 (§7), the package table (§8), the failure-path test line (§10), and this section. No other decision (D1–D3, D5–D7), field disposition, gap (`CORE-GAP-01`–`04`), or verbatim schema block changed.
+
+**Consistency re-check after the amendment:**
+- **Class placement:** every class the note assigns to a package can be implemented without breaking §9.
+- **`core/schemas/`:** imports nothing from `core/errors/`. `ControlPlaneRequest` and `MissingTenantIdException` are in the same package; all other schema types reference only `core/schemas/` types and the JDK.
+- **`core/errors/`:** `ControlPlaneError` references only `ErrorClass` (same package) and the JDK, which is allowed under §9's rule for `core/errors/`.
+- **`core/interfaces/`:** `package-info.java` only, with no dependencies.
