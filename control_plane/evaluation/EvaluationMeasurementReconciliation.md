@@ -1,96 +1,189 @@
-# `REM-P0.2.B-DESIGN-01` — Evaluation Measurement Acquisition & EvaluationRun Semantics
+# `REM-P0.2.B-01` — Evaluation Measurement Acquisition & EvaluationRun Semantics
 
-**Unit:** `REM-P0.2.B-DESIGN-01` (issued by the operator in session on 2026-09-24 as a contract/design remediation for `EXE-P0.2.B`; **not yet registered in `docs/execution-plan.md`** — `REM-P0.1.B-01` was assigned in the plan before execution — so this note is a pre-decision record, not an authoritative unit artifact, until a user-directed correction registers the unit; outside the 48/54 counts).
+**Unit:** `REM-P0.2.B-01` — Baseline Benchmark Harness + Quality Evaluation: Contract / Design Reconciliation (Remediation). Registered in `docs/execution-plan.md` v1.0.10 §18.14.7 (`877fecc`); it sits outside the 48/54 counts. It supersedes the pre-decision record committed in `8b68239` under the non-canonical name `REM-P0.2.B-DESIGN-01`, which had no status (§18.14.7).
 **Kind:** design artifact only — no contract, plan, code, or test change. Precedent: `control_plane/accounting/ledger/LedgerContractReconciliation.md` (`REM-P0.1.B-01`).
-**Status:** `EXE-P0.2.B` remains **BLOCKED**. This note records what the sources establish and the exact human decisions still required; it resolves nothing by invention.
-**Sources read (current):** `interfaces.md` v1.2.0 §18, §19.2, §25.2, §26.1, §28.1, §40.2, §43.14; `conventions.md` Rev 1.1.0 header, §2.1, §4.1–§4.5, §5.1–§5.4, §14.1, §22.1; `architecture.md` Rev 1.3 §27.1, §27.3, §32, §35; Problem Statement (baseline definition, cost formulas, PHASE 1 OBSERVE); Engineering Spec Rev 1.4 §23.2, OBJ-012, AC-015, AC-017; `eval.md` §4–§7, §13, §15–§16, §22, §24–§27, §37, §38, §43; `execution-plan.md` v1.0.9 §4, §11, §12, §14, §16–§17, §18.5, §18.8, §18.14.6, §18.15, §18.19, §38; `implementation-plan.md` §8.2; `implementation-readiness-gate.md` (`SOURCE-GAP-IRG-02`); `requirements-traceability.md` (OBJ-012, AC-015, AC-017 — document-level trace only); ADR index (no ADR governs evaluation measurement; all `PROPOSED`); `control_plane/evaluation/EvaluationFramework.md` (`EXE-P0.2.A`, historical, unchanged).
+**Status:** the human decisions D-A to D-D are recorded (§1). `SOURCE-GAP-EXECPLAN-07`/`-08` remain **OPEN** until a user-directed source-contract correction promotes these decisions (§9). `EXE-P0.2.B` remains **BLOCKED**.
+**Sources re-read for this unit (live):**
+- `interfaces.md` v1.2.0: §18 (INTF-030 and the P0 realization notes), §19.2, §24.1, §26.1, §28.1, §40.2, §43.14.
+- `conventions.md` Rev 1.1.0: §2.1, §2.2, §4.2, §13.2, §22.1.
+- `architecture.md`: §27.3, §32.2, §35, §36.
+- `eval.md`: §4, §5, §7, §13, §15, §16, §22–§25, §37, §38, §43.
+- `execution-plan.md` v1.0.10: §3, §12, §14, §16, §17, §18.5, §18.14.5–§18.14.7, §38.
+- `implementation-plan.md` §8.2 and `implementation-readiness-gate.md` (`SOURCE-GAP-IRG-02`).
+- `CostLedgerStore.java`: public API `write`, `read(tenantId, entryId)`.
 
-Labels: **SOURCE-DEFINED** (a source states it) · **SOURCE-GAP** (the corpus is silent) · **SOURCE-UNRESOLVED** (a candidate exists but no source establishes it) · **P0-UNAVAILABLE-BY-SCOPE** (the concept applies but the P0 slice excludes the producer) · **CONTRADICTION** · **HUMAN DECISION**.
+Labels:
+- **SOURCE-DEFINED** — a source states it.
+- **SOURCE-DERIVED** — a source derives it and labels it so.
+- **INFERRED** — reasoned here, not stated by any source.
+- **SOURCE-GAP** — the corpus is silent.
+- **SOURCE-UNRESOLVED** — a candidate exists, but no source establishes it.
+- **HUMAN DECISION** — decided by the operator in this unit.
+- **†** — an option or decision that revises an HQ decision (D-B is one; see §1).
 
 ---
 
-## 1. D-A — measurement acquisition at P0
+## 1. Human decisions recorded in this unit (2026-09-24)
 
-**Investigated direction: acquire baseline measurements from the baseline execution path itself.**
-- **SOURCE-DEFINED (intent):** Capability 2's Sub-phase B is to "wire a P0-only path that can run an unoptimized request and record its `EvaluationRun` baseline fields" (`execution-plan.md` §18.5 Objective; `implementation-plan.md` §8.2 B). A baseline is "original application behavior without optimization" (PS; SPEC §23.2; `architecture.md` §32.2), and PHASE 1 OBSERVE says "Record baseline token/cost/quality". `eval.md` §7 (EL-001) describes executing "the actual, user-facing baseline pipeline unmodified" and then calling `run_baseline()`.
-- **SOURCE-DEFINED (scope):** the model call is outside this P0 slice — "No live provider adapter is built in this slice" (`execution-plan.md` §14); Prompt Assembler is the "last request-path capability before the model call, which is out of scope" (§18.8). The proving-lab baseline, `Path A — Reference Application/Agent -> LLM`, runs outside EAIOC (§16). The Observability P0 item is outside the slice (`SOURCE-GAP-IRG-02`).
-- **Not a contradiction — a GAP plus an unowned deliverable (corrected after the Verifier's review).** The plan itself reconciles the two statements: §3 puts "the first proving-lab measurement slice (Path A baseline vs. Path B EAIOC)" **in scope**; §16 defines the baseline as `Path A — Reference Application/Agent -> LLM`, outside EAIOC; §17 says the measurements are "captured by Capability 1 (ledger) and Capability 2 (`EvaluationRun`) for both Path A and Path B"; PS PHASE 1 pairs "Record baseline token/cost/quality" with "Run in shadow mode". So the "unoptimized request" is Path A, executed outside EAIOC, and §14/§18.8 exclude only EAIOC's own adapter and model call. What is missing is (1) any contract by which Path A's measurements reach `run_baseline(request: ControlPlaneRequest)` — the registered `SOURCE-GAP-EXECPLAN-07` — and (2) any §18.4–§18.9 unit that builds the in-scope reference application / proving lab (**unregistered finding**; no ID assigned here). → **HUMAN DECISION** (D-A below).
+These decisions were made by the operator in-session, after the Architect assessment. They are operator decisions, not source-derived.
 
-**The four buckets you asked for:**
+**Relationship to HQ-1 to HQ-6 (F1, operator-confirmed after the Verifier review):**
+- **D-B † revises HQ-2** — specifically its closing clause "INTF-030 is not modified for P0 convenience" (`execution-plan.md` §18.14.6). The rest of HQ-2 stands: no `verified` field, no nullable change, no zero, placeholder or sentinel, and no projection of DB-1/HD-4. The follow-up correction must record this revision in §18.14.6.
+- **D-A does not revise HQ-1** (operator confirmation, not a source finding). The CostLedger (INTF-047) stays the only measurement source. The producer is the proving lab already in scope (plan §3, §16) feeding the ledger, not a new source. HQ-1's condition — an explicit mapping **and** a retrieval contract — is to be met by promoting both into the corpus.
+- D-C and D-D revise no HQ decision.
+
+| ID | Decision area | Decision | Effect |
+|---|---|---|---|
+| **D-A** | Baseline measurement acquisition and ownership | **Ledger mapping plus a producer.** Baseline measurements are acquired from the CostLedger (INTF-047) through declared field mappings and a request-to-entry retrieval contract. **Only entries with `verified = true` may be consumed.** Ownership is split: Capability 1 (`accounting/`) owns the retrieval contract's realization; a producer unit owns delivering Path A measurements into the ledger. Both units must be registered. | Uses the dependency that §40.2 already defines ("EL.x requires: CostLedger (INTF-047)"). Does not revise HQ-1 (operator-confirmed). Once promoted into the corpus, it meets HQ-1's "mapping **and** retrieval contract" condition. |
+| **D-B †** | BASELINE-only representation | **Separate baseline record.** `run_baseline()` returns a distinct, baseline-only record carrying identity and baseline-side fields only. `EvaluationRun` keeps comparison semantics. | INTF-030 change: a new schema and a changed `run_baseline()` return type. **Revises HQ-2's "INTF-030 is not modified" clause** (operator-confirmed). It adds no nullable field and no `verified` field, and invents no zero, so the rest of HQ-2 stands. |
+| **D-C** | Java realization and package ownership | **Segregated interfaces, split packages.** A narrow baseline interface is implemented at P0. A second interface declares `run_optimized()`/`compare()` with no P0 implementer. Interfaces and schemas live in `evaluation/`; the baseline runner/harness lives in `benchmarking/`. `report_regression()` is not declared (`SOURCE-GAP-EVAL-01`). | Honors HQ-3 (no stub or runtime behavior for `run_optimized()`) and HQ-5 (evaluation-owned schemas). Matches §18.5's two packages and `conventions.md` §2.1's separate `benchmarking/  # ARCH §32` entry. |
+| **D-D** | Remaining contract items | **Cache effects are not applicable to a pure BASELINE run** (HUMAN DECISION — `eval.md` §24 only forbids attributing provider-native cache savings to EAIOC; it does not itself make the fields inapplicable). The baseline record (D-B) therefore excludes `cache_hit_rate`/`tokens_avoided_by_cache`. The §40.2 "ALL requires: … Observability" line is recorded as a **slice-scope tension** under HQ-1, not a conflict. The missing quality/task-success producer and `SOURCE-GAP-EXECPLAN-09` are carried to the follow-up correction; no producer is invented. | See §7 and §10. |
+
+**Options not chosen:**
+- **D-A:** narrow `EXE-P0.2.B`; † caller-supplied input (would have revised HQ-1); leave unresolved.
+- **D-B:** not needed (depends on narrowing); † nullable on BASELINE and † `verification_status` (both would have revised other HQ-2 clauses).
+- **D-C:** segregated interfaces in `evaluation/` only; partial interface; leave unresolved.
+- **D-D:** cache effects apply; leave unresolved.
+
+## 2. D-A — measurement acquisition: source analysis
+
+- **SOURCE-DEFINED (intent):**
+  - Capability 2's B row: "wire a P0-only path that can run an unoptimized request and record its `EvaluationRun` baseline fields" (`execution-plan.md` §18.5; `implementation-plan.md` §8.2 B).
+  - A baseline is "original application behavior without optimization" (`architecture.md` §32.2).
+  - `eval.md` §7 (EL-001) executes the baseline pipeline, then calls `run_baseline()`.
+- **SOURCE-DEFINED (scope):**
+  - EAIOC makes no model call in P0: "No live provider adapter is built in this slice" (§14).
+  - The baseline is `Path A — Reference Application/Agent -> LLM`, which runs outside EAIOC (§16). Plan §3 puts the "first proving-lab measurement slice (Path A baseline vs. Path B EAIOC)" in scope.
+  - §17: measurements are "captured by Capability 1 (ledger) and Capability 2 (`EvaluationRun`) for both Path A and Path B".
+  - Observability is outside this slice (`SOURCE-GAP-IRG-02`).
+- **SOURCE-DEFINED (dependency) — narrows `SOURCE-GAP-EXECPLAN-07`:**
+  - `interfaces.md` §40.2: "EL.x requires: CostLedger (INTF-047), EvaluationRun (INTF-030)". The direction evaluation → accounting is established at source.
+  - Still undefined, and still the open part of -07: the field mapping and the request-to-entry retrieval contract.
+- **Verified-only condition (D-A, from the Architect assessment):**
+  - Implementation evidence, not a source statement: no P0 producer measures the §27.1 fields, so every real P0 ledger entry is `verified = false`, holding the DB-1 placeholders that `interfaces.md` §28.1 permits only in such entries (`CostLedgerEntry.unverifiedFallback()`). HQ-2 forbids projecting DB-1/HD-4 onto evaluation records.
+  - Mapping therefore consumes `verified = true` entries only, and **none exists at P0 until a producer yields verified measurements.** That is why D-A requires a producer unit.
+- **Unregistered deliverable, now owned by D-A:** no §18.4–§18.9 unit builds the proving lab or Path A. D-A requires the follow-up correction to register one. No ID is assigned here.
 
 | Bucket | Fields | Evidence |
 |---|---|---|
-| 1. Available directly from a P0 baseline execution | **None** of the measurement fields. Only identity fields (`run_id`, `request_id`, `run_type = BASELINE`, `timestamp`) | EAIOC executes no model call in this slice (§14, §18.8); the baseline (Path A) runs in the proving lab, and no unit builds it or delivers its measurements (§1) |
-| 2. Available from the existing CostLedger contract | **None by an established mapping.** Same-named fields exist — `CostLedgerEntry.baseline_cost` (INTF-047 retained), `tokens_avoided_by_cache` (retained), `cost.baseline_estimated`, `cache.*`, `perf.e2e_latency_ms` (§28.1) — but no source declares any equivalence to an `EvaluationRun` field, and `CostLedgerStore` exposes no request-to-entry retrieval (`write`, `read(tenantId, entryId)` only). The ledger itself forbids undeclared equivalence (D-2) | `SOURCE-GAP-EXECPLAN-07` |
-| 3. Requiring telemetry that is out of P0 scope | `latency_ms_baseline` if taken from Observability — `interfaces.md` §19.2 defines only emission of `control_plane.request.latency_ms`; no read contract; Observability item out of slice | `SOURCE-GAP-IRG-02`; HQ-1 (no Observability dependency) |
-| 4. No authoritative acquisition mechanism | `quality_score_baseline`, `task_success_baseline` (no evaluator or task verifier is defined for P0 — `execution-plan.md` §18.5 F row covers only QG gating); `cache_hit_rate`, `tokens_avoided_by_cache` (no definition, and whether they apply to a run "without optimization" is undefined — `eval.md` §24) | `SOURCE-GAP-EXECPLAN-07`/`-08` |
+| Available directly from a P0 baseline execution | None of the measurement fields. Only identity fields: `run_id`, `request_id`, `run_type = BASELINE`, `timestamp` | §14, §16; no producer unit exists |
+| Available from the CostLedger once mapped (D-A) | Candidates only, none adopted (§4) | §40.2 dependency; §28.1 fields; mapping undefined |
+| Would require telemetry out of scope | `latency_ms_baseline` if taken from Observability (§19.2 defines emission only, no read contract) | `SOURCE-GAP-IRG-02`; HQ-1; D-A routes latency through the ledger instead |
+| No authoritative producer anywhere | `quality_score_baseline`, `task_success_baseline` — no evaluator or task verifier producing them at P0 is defined in `quality-gates.md`, `observability.md`, `cache-strategy.md` or the ledger (§27.1 `quality.*` members are different measures) | SOURCE-GAP, carried to §10 |
 
-## 2. Field classification (`EvaluationRun`, INTF-030 — contract unchanged)
+## 3. Field classification (`EvaluationRun`, INTF-030 — contract unchanged in this unit)
 
-| Field | Classification | Source | Available at P0? | Honest on a BASELINE-only run? |
-|---|---|---|---|---|
-| `run_id`, `request_id`, `run_type`, `timestamp` | Identity (SOURCE-DEFINED) | INTF-030; §26.1 HQ-6 row | Yes | Yes |
-| `baseline_cost` | BASELINE_EXECUTION_MEASUREMENT | PS cost model; `architecture.md` §27.3, §32.2 | No (no producer in slice) | Yes, if measured |
-| `latency_ms_baseline` | BASELINE_EXECUTION_MEASUREMENT | `architecture.md` §32.2; `eval.md` §23 | No | Yes, if measured |
-| `quality_score_baseline` | SOURCE-GAP (under -07) — quality evaluation is itself a P0 item folded into this capability (`architecture.md` §36; `implementation-plan.md` §8.2); what is missing is a defined evaluator/mechanism, not scope | §32.2; plan §18.5 F row (QG gating N/A at P0) | No | — |
-| `task_success_baseline` | SOURCE-GAP (under -07) — no task verifier is defined for P0 | `eval.md` §25; plan F row | No | — |
-| `cache_hit_rate` | SOURCE-UNRESOLVED | no definition; baseline applicability undefined (`eval.md` §24) | No | Undefined |
-| `tokens_avoided_by_cache` | SOURCE-UNRESOLVED | same | No | Undefined |
-| `optimized_cost`, `quality_score_optimized`, `latency_ms_optimized`, `task_success_optimized` | OPTIMIZED_EXECUTION_MEASUREMENT | INTF-030 (`\| null`) | N/A | `null` by contract — not applicable |
-| `gross_savings`, `optimizer_overhead` | COMPARISON_DERIVED | `eval.md` §22 | No | No (non-nullable) |
-| `net_savings`, `net_savings_pct` | COMPARISON_DERIVED | PS cost model; `architecture.md` §27.3 | No | No (non-nullable) |
-| `quality_delta`, `latency_delta_ms` | COMPARISON_DERIVED | `eval.md` §23, §27, §37 | No | No (non-nullable) |
-| `regression_detected`, `regression_dimensions` | COMPARISON_DERIVED | `architecture.md` §35 | No | No (non-nullable) |
-
-## 3. Candidate mappings (none adopted)
-
-| EvaluationRun field | Candidate source | Candidate field | Semantic justification in the corpus | Type | Available at P0 | Status |
-|---|---|---|---|---|---|---|
-| `baseline_cost` | CostLedger (INTF-047) | `baseline_cost` (retained) or `cost.baseline_estimated` (§27.1) | None — identical name only; the ledger keeps its two candidates distinct (D-2) | float / float | No retrieval by request | SOURCE-UNRESOLVED |
-| `tokens_avoided_by_cache` | CostLedger | `tokens_avoided_by_cache` (retained) or `cache.reused_tokens` | None | integer / integer | No | SOURCE-UNRESOLVED |
-| `cache_hit_rate` | CostLedger | a formula over `cache.exact_hits`/`semantic_hits`/`misses` | None — no formula defined; `da003.map_cache_hit_rate` is a different metric | float | No | SOURCE-UNRESOLVED |
-| `latency_ms_baseline` | CostLedger or Observability | `performance.e2e_latency_ms` or `control_plane.request.latency_ms` | `eval.md` §23 maps the concept to §32.2, not to a producer | integer | No (ledger: no retrieval; Observability: out of slice) | SOURCE-UNRESOLVED |
-
-## 4. D-B — what a valid `EvaluationRun(BASELINE)` means at P0
-
-**SOURCE-DEFINED:** a BASELINE run records one baseline execution of one request (`architecture.md` §32.2; `eval.md` §7, §38 A); `request_id` names the request and `run_id` the execution, and runs are not idempotent by `request_id` (`interfaces.md` §26.1, HQ-6); a failed baseline yields no run (plan §18.5 B and H failure-path tests; `eval.md` §37 adds "re-run baseline"); runs are stored `tenant_id`-first (plan §12).
-
-**The governing rule for non-nullable fields** is `conventions.md` §4.2: "Every field marked as non-null … must be present in every production invocation." **No source defines how a non-nullable `EvaluationRun` field is represented when it cannot be measured.** HQ-2 (v1.0.8) forbids zeros, sentinels, a `verified` field, and a nullable change for P0 convenience. Under those constraints a BASELINE `EvaluationRun` cannot be constructed at P0 at all: fourteen of its eighteen non-identity fields are non-nullable, none has a measurement or representation, and the four nullable ones are the optimized side. → **SOURCE-GAP-EXECPLAN-08**, **HUMAN DECISION** (D-B).
-
-## 5. D-C — `run_optimized()` at P0
-
-**SOURCE-DEFINED:** `run_optimized()` "is a no-op until P1 ships" (`implementation-plan.md` §8.2; plan §11, §12, §18.5); HQ-3 (v1.0.8) records it as deferred forward contract with no runtime no-op, stub, or exception, and the v1.0.9 annotation reads the B row's "explicit" as satisfied by documentation. INTF-030's return type is non-null `EvaluationRun`. This establishes interpretation **B — unavailable/not applicable until an optimization capability exists**. A fake optimized run is excluded by HQ-2/HQ-3 and `CLAUDE.md` rule 5.
-
-**Consequence, recorded not decided:** a Java class must give every method of an interface it implements a body, so HQ-3's "no runtime behavior" rules out a P0 class that implements a full four-method interface. Two realizations honor it (INFERRED, Java semantics): (i) the P0 Java `EvaluationFramework` declares only `run_baseline()`, realizing INTF-030 partially — the `OptimizationPlan` "explicitly incomplete" precedent (`CoreFoundation.md`, CORE-GAP-03/04) needed operator approval; or (ii) a segregated realization — a narrow baseline interface implemented at P0, plus an interface declaring `run_optimized(ControlPlaneRequest, OptimizationPlan)` and `compare(...)` with no P0 implementer (both parameter/return types exist or are fully defined). Either way **`report_regression()` cannot be declared at all**, because its return type `RegressionReport` is undefined (`SOURCE-GAP-EVAL-01`). No preference is expressed here. → **HUMAN DECISION** (D-C).
-
-## 6. HQ-4, HQ-5, HQ-6
-
-- **HQ-4 (SOURCE-DEFINED + HQ-4 decision):** INTF-030 owns `compare()`/`report_regression()`; no sub-phase owns their implementation; neither is in `EXE-P0.2.B` (HQ-4). `EvaluationComparison` is fully defined; `RegressionReport` is not (`eval.md` §43) — **`SOURCE-GAP-EVAL-01` stays open**, and because `report_regression()` is out of B's scope it **does not block `EXE-P0.2.B`**.
-- **HQ-5 (SOURCE-DEFINED + HQ-5 decision):** `conventions.md` §2.1 lists `evaluation/  # ARCH §32; INTF §18`; `EvaluationRun`/`EvaluationComparison` are evaluation-owned (`interfaces.md` §18 notes). The concrete Java package follows the repository's existing realization of §2.1 (`com.eaioc.controlplane.<area>`, per `CoreFoundation.md` D6: "Placement of each interface is decided by the unit that implements it"). Sufficiently clear.
-- **HQ-6 (SOURCE-DEFINED):** `interfaces.md` §26.1 row: not idempotent by `request_id`; distinct `run_id` per execution; consistent with `eval.md` §37 ("re-run baseline") and §38 A ("most recent" BASELINE run). Defined.
-
-## 7. Human decisions still required
-
-| ID | Question | Options (those marked † would revise an existing operator decision) | Documents that would change |
+| Field | Classification | Source | In the D-B baseline record? |
 |---|---|---|---|
-| **D-A** | Close the gap (§1): how are baseline measurements acquired at P0, and who builds Path A? | (a) Keep the model call out of P0 and narrow `EXE-P0.2.B` so no measured `EvaluationRun` is produced at P0 (e.g. tenant-scoped store and type validation only), deferring baseline runs to the capability that brings an execution path — consequence: the B row's Definition of Done and the §18.5 H failure test lose their subject and must be rewritten, and P0's evidence for AC-015/AC-017 is postponed; (b)† define a measurement input — values supplied by the caller, including the §16/§17 proving-lab Path A as that caller (an INTF-030 change; revises HQ-1's "no new P0 measurement source"), or a declared CostLedger mapping plus a retrieval contract (a new unit for any `accounting/` change); (c) assign a unit that builds the already in-scope proving lab (§3, §16) and, with (b), delivers Path A's measurements | `execution-plan.md` §18.5 (and §14 for c); `interfaces.md` §18 for b |
-| **D-B** | How does a BASELINE run represent its 8 comparison-derived and 6 unavailable non-nullable fields? | (a)† nullable on BASELINE — MAJOR under `conventions.md` §22.1, and **supersedes HQ-2** ("no field is made nullable"); (b)† an availability representation (a `verified` flag or `verification_status`, cf. `NetOptimizationValue` §43.14) — **supersedes HQ-2** ("no `verified` field is added"); (c) `run_baseline()` returns a partial/different record — INTF-030 change; (d) none needed if D-A (a) is chosen, because no `EvaluationRun` is produced at P0 | `interfaces.md` §18; `eval.md` §16/§22 for a–c |
-| **D-C** | How does the P0 Java code realize INTF-030 while honoring HQ-3 ("no runtime behavior")? | (i) partial interface — `run_baseline()` only; (ii) segregated interfaces — baseline interface implemented, `run_optimized()`/`compare()` declared without a P0 implementer; in both, `report_regression()` is not declared (`SOURCE-GAP-EVAL-01`) | `execution-plan.md` §18.5 B row |
-| **D-D** | Do cache effects (`cache_hit_rate`, `tokens_avoided_by_cache`) apply to a BASELINE run ("without optimization"; provider-native caching may still occur, `eval.md` §24)? | applicable (then define the measurement) / not applicable (then D-B governs representation) | `interfaces.md` §18 notes |
+| `run_id`, `request_id`, `run_type`, `timestamp` | Identity (SOURCE-DEFINED) | INTF-030; §26.1 HQ-6 row | Yes (shape to be defined by the correction) |
+| `baseline_cost` | Baseline execution measurement | `architecture.md` §27.3, §32.2 | Yes — via D-A mapping (SOURCE-UNRESOLVED until promoted) |
+| `latency_ms_baseline` | Baseline execution measurement | §32.2; `eval.md` §23 | Yes — via D-A mapping (SOURCE-UNRESOLVED until promoted) |
+| `quality_score_baseline` | Baseline measurement — **SOURCE-GAP** (no producer) | §32.2; `eval.md` §21 | Open (§10, item 3) |
+| `task_success_baseline` | Baseline measurement — **SOURCE-GAP** (no producer) | `eval.md` §25 | Open (§10, item 3) |
+| `cache_hit_rate`, `tokens_avoided_by_cache` | Cache effect — **not applicable to BASELINE (D-D)** | `eval.md` §24 | No |
+| `optimized_cost`, `quality_score_optimized`, `latency_ms_optimized`, `task_success_optimized` | Optimized execution measurement (`\| null` in INTF-030) | INTF-030 | No |
+| `gross_savings`, `net_savings`, `net_savings_pct` | Comparison-derived | PS cost model; `architecture.md` §27.3; `eval.md` §22 | No |
+| `optimizer_overhead` | **Optimized-side derived** (SOURCE-DERIVED: `eval.md` §22 maps it to the Cache Read/Write, Compression and Routing/Cascade line items of Optimized Cost) | `eval.md` §22 | No |
+| `quality_delta`, `latency_delta_ms` | Comparison-derived | `eval.md` §23, §27, §37 | No |
+| `regression_detected`, `regression_dimensions` | Comparison-derived | `architecture.md` §35 | No |
 
-## 8. Unblocking checklist (`EXE-P0.2.B`)
+**Counts (re-verified against the live INTF-030):**
+- 22 fields in total; 4 identity fields; 18 non-identity fields.
+- Of the 18 non-identity fields, 14 are non-nullable. The 4 nullable ones are the `*_optimized` fields.
+- **Governing rule:** `conventions.md` §4.2 — "Every field marked as non-null … must be present in every production invocation."
+
+## 4. Candidate mappings (none adopted — the correction decides)
+
+The D-2 rule (`execution-plan.md` §18.14.4) applies: no equivalence is declared on name similarity.
+
+| Target field | Candidate ledger field(s) (§28.1) | Justification in corpus | Status |
+|---|---|---|---|
+| `baseline_cost` | retained `baseline_cost`, or `cost.baseline_estimated` | None beyond name; the ledger keeps the two distinct | SOURCE-UNRESOLVED — the correction must pick one or define a derivation, citing a source |
+| `latency_ms_baseline` | `performance.e2e_latency_ms` | `eval.md` §23 maps the concept to §32.2, not to a producer | SOURCE-UNRESOLVED |
+| `quality_score_baseline`, `task_success_baseline` | none | — | SOURCE-GAP (§10, item 3) |
+
+**Retrieval contract:** the ledger store's public API is `write` plus `read(tenantId, entryId)`, with no request-keyed lookup. The request-to-entry retrieval contract is SOURCE-UNRESOLVED, and its realization belongs to a new `accounting/` unit (D-A). It must be tenant-first (`conventions.md` §13.2) and must return only `verified = true` entries.
+
+## 5. D-B — the baseline record
+
+- **SOURCE-DEFINED:**
+  - A BASELINE run records one baseline execution of one request (`architecture.md` §32.2; `eval.md` §7).
+  - `request_id` names the request and `run_id` the execution, and runs are not idempotent by `request_id` (§26.1, HQ-6).
+  - A failed baseline must not produce a partial, malformed or false-positive record (plan §18.5 B and H failure-path tests), and a missing baseline withholds the comparison, failing closed on the evaluation verdict (`eval.md` §37).
+  - Records are stored tenant-first (plan §12).
+- **INFERRED:** an *unmeasurable* baseline therefore yields no record rather than a record with invented values. (`eval.md` §38 A's "most recent BASELINE run" selection is `PROPOSED METHODOLOGY`, not SOURCE-DEFINED.)
+- **Decision (D-B †, revises HQ-2's "INTF-030 is not modified" clause):**
+  - A distinct baseline-only record replaces the requirement to populate the eight comparison-derived fields and the four optimized fields on a BASELINE run.
+  - It adds no nullable field, `verified` field, placeholder, or structural zero (the rest of HQ-2; `CLAUDE.md` rule 5).
+  - `EvaluationRun` stays the comparison-bearing record, for runs of type `OPTIMIZED`/`SHADOW` and the `compare()` path, both deferred under HQ-3/HQ-4.
+- **Open, for the correction:**
+  - The new schema's name and exact field set.
+  - Whether `EvaluationComparison`/`compare()` take the baseline record as input.
+  - Whether `EvaluationRun`'s `run_type = BASELINE` value stays or is deprecated.
+  - Schema versioning. INFERRED: a return-type change is a breaking change under `conventions.md` §22.1 / `interfaces.md` §24.1 ("type change"). `EvaluationRun` carries no `schema_version` (§18.14.6), so versioning applies at the document level.
+- **Plan §17's "Path B overhead vs. Path A baseline" comparison — open, no decision taken.**
+  - INFERRED: a P0 Path-B run has no optimization stage, so recording it as `run_type = OPTIMIZED` would misclassify it.
+  - The correction must either define its representation or record it as deferred.
+
+## 6. D-C — Java realization
+
+- **SOURCE-DEFINED:**
+  - `run_optimized()` "is a no-op until P1 ships" (`implementation-plan.md` §8.2; plan §12, §18.5).
+  - HQ-3 forbids any runtime stub or exception, and plan v1.0.9 reads the B row's "explicit" as satisfied by documentation.
+  - INTF-030 declares four methods.
+- **Decision (D-C), segregated and split:**
+  - `evaluation/` holds the baseline interface (`run_baseline()`, returning the D-B record), a second interface declaring `run_optimized(ControlPlaneRequest, OptimizationPlan)` and `compare(...)` with **no P0 implementer**, and the evaluation-owned schemas (HQ-5).
+  - `benchmarking/` holds the P0 implementation of the baseline interface: the runner/harness.
+  - `report_regression()` is **not declared**, because `RegressionReport` is undefined (`SOURCE-GAP-EVAL-01`, which stays open).
+- **INFERRED dependency direction:**
+  - `benchmarking/` → `evaluation/` (implements its interface), and → the `accounting/` retrieval contract (D-A), in both cases through interface contracts only (`conventions.md` §2.2).
+  - `evaluation/` depends on neither `benchmarking/` nor `accounting/` internals.
+  - The correction must state this in §18.5.
+
+## 7. D-D — remaining contract items
+
+1. **Cache effects:** not applicable to BASELINE (HUMAN DECISION). They are measured only on optimized or shadow runs, with provider-native effects unattributed to EAIOC (`eval.md` §24; `CLAUDE.md` rule 5).
+2. **The §40.2 "ALL requires: … Observability (INTF-031–034)" line versus HQ-1** (INFERRED: tension, not a SOURCE-CONFLICT). HQ-1 is a slice-scope decision (plan §3 excludes the Observability P0 item), not a contract override. The correction records this beside §40.2 or in the §18 notes; no Observability read path is introduced.
+3. **Quality/task-success producer:** no source defines one (SOURCE-GAP). Carried to §10; none is invented.
+4. **`SOURCE-GAP-EXECPLAN-09`** (no `tenant_id` on `EvaluationRun`, plan §38; non-blocking). The D-B record and the D-A retrieval contract must both be tenant-first scoped (`conventions.md` §13.2). The correction decides whether the D-B record carries `tenant_id` or relies on store keying (plan §12).
+
+## 8. HQ-4, HQ-5, HQ-6 (unchanged)
+
+- **HQ-4:** `compare()` and `report_regression()` are not in `EXE-P0.2.B`. `SOURCE-GAP-EVAL-01` stays open and does not block B.
+- **HQ-5:** schemas are evaluation-owned. D-C adds only the runner's placement in `benchmarking/`.
+- **HQ-6:** runs are not idempotent by `request_id` (§26.1). This applies equally to the D-B record.
+
+## 9. Source-contract promotion required (DB-2 precedent — not performed by this unit)
+
+A separate user-directed source-contract correction (`execution-plan.md` §18.14.5 precedent; §18.14.7 sequence) must record these decisions:
+
+| Decision | Documents / sections to change |
+|---|---|
+| D-A | `interfaces.md` §18 (the P0 notes: mapping and retrieval contract, verified-only condition) and §28.1 (the ledger side of the mapping); `execution-plan.md` §18.5 B/H, §16/§17, §38 (`-07` closure or narrowing); registration of two new units — an `accounting/` retrieval unit and a proving-lab / Path A producer unit; the runbook |
+| D-B † | `execution-plan.md` §18.14.6 (record the HQ-2 revision); `interfaces.md` §18 (new baseline record schema; `run_baseline()` return type) and §24 (version); `eval.md` §16/§22 (and §37 if the failure disposition wording changes); `execution-plan.md` §18.5 B Definition of Done, §38 (`-08` closure) |
+| D-C | `execution-plan.md` §18.5 (package placement and dependency direction in the B row); `interfaces.md` §18 notes (the segregated realization; `report_regression()` undeclared) |
+| D-D | `interfaces.md` §18 notes (cache non-applicability to BASELINE; the §40.2 Observability tension); `eval.md` §24; `execution-plan.md` §38 (`-09` cross-reference) |
+
+## 10. Open items the correction must decide or record (none decided here)
+
+1. **Mapping choice:** `baseline_cost` ← which ledger field or derivation, and `latency_ms_baseline` ← `performance.e2e_latency_ms` or otherwise, each with a cited source (§4).
+2. **Retrieval contract:** its shape, request keying, tenant-first scoping, and the verified-only filter (§4).
+3. **Quality/task-success:** a producer for `quality_score_baseline`/`task_success_baseline`, or their exclusion from the P0 baseline record (§3, §7.3).
+4. **Baseline record:** name, field set, `tenant_id` (§7.4), versioning, and its relationship to `compare()` (§5).
+5. **Plan §17's overhead comparison:** representation, or explicit deferral (§5).
+6. **Unit registration:** IDs, scopes and sequence for the `accounting/` retrieval unit and the producer unit (D-A). Whether `EXE-P0.2.B`'s Definition of Done then requires a live verified entry, or only the contract and failure path, is part of this.
+
+## 11. Unblocking checklist (`EXE-P0.2.B`)
 
 | # | Condition | Status |
 |---|---|---|
-| 1 | D-A has an authoritative acquisition contract | **No** — gap -07; proving-lab deliverable unowned |
-| 2 | D-B has authoritative BASELINE semantics | **No** — gap (-08) |
-| 3 | D-C has authoritative `run_optimized()` semantics | Mostly — deferred (HQ-3); the Java realization (i or ii) needs a decision |
-| 4 | HQ-4 scope sufficient for B | Yes |
-| 5 | HQ-5 ownership sufficient | Yes |
-| 6 | HQ-6 identity defined | Yes |
-| 7 | No invented values or equivalences | Yes — none introduced |
-| 8 | `SOURCE-GAP-EVAL-01` closed or proven non-blocking | Proven non-blocking for B (open) |
-| 9 | No unresolved implementation-affecting contradiction | Yes — no contradiction (the D-A issue is a gap, §1) |
-| 10 | Plan/runbook agree with the contract | Yes for the recorded decisions; F1 annotated at v1.0.9 |
+| 1 | D-A acquisition contract authoritative | Decided (§1); **not yet promoted** — `-07` OPEN |
+| 2 | D-B baseline semantics authoritative | Decided (§1); **not yet promoted** — `-08` OPEN |
+| 3 | D-C Java realization defined | Decided (§1); to be recorded in §18.5 |
+| 4 | HQ-4/HQ-5/HQ-6 sufficient | Yes |
+| 5 | No invented values or equivalences | Yes — none introduced |
+| 6 | `SOURCE-GAP-EVAL-01` closed or non-blocking | Non-blocking for B (open) |
+| 7 | Producer and retrieval units registered and executed | No — they are required by D-A |
+| 8 | §10 open items decided | No |
 
-**Result: `EXE-P0.2.B` — BLOCKED** (conditions 1 and 2 unmet; 3 partial). Once D-A to D-D are decided, a user-directed correction (the v1.0.6/v1.0.7 DB-2 precedent) would record them in `interfaces.md` §18 and `execution-plan.md` §18.5/§18.14, register the unowned proving-lab deliverable, and close or narrow `SOURCE-GAP-EXECPLAN-07`/`-08`.
+**Result: `EXE-P0.2.B` remains BLOCKED.** It becomes eligible only after the §9 correction is committed, the D-A units it registers are complete, and `EXE-P0.2.B`'s own pre-flight passes.
