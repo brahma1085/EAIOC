@@ -90,4 +90,30 @@ public record CostLedgerEntry(
         // already-constructed, supposedly-immutable ledger entry after the fact.
         savingsByStage = savingsByStage == null ? Map.of() : Map.copyOf(savingsByStage);
     }
+
+    /**
+     * Constructs the recovery-path entry for {@code EXE-P0.1.H} (Failure/Recovery): when an
+     * upstream accounting computation fails partway — {@code SCN-AUDIT-003}'s own example is "the
+     * provider didn't return usage data" — the caller cannot honestly populate the token/cost
+     * fields. Root {@code CLAUDE.md} rule 5 forbids two wrong responses to that: silently dropping
+     * the record entirely (which would under-count activity without any trace) and guessing a
+     * plausible-looking value and marking it verified (fabrication). This factory is the third,
+     * correct option: every token/cost field is recorded as {@code 0} — never guessed — and
+     * {@link #verified()} is forced {@code false}, so the record is preserved (nothing is silently
+     * lost) while being structurally impossible to mistake for a real, countable figure.
+     *
+     * <p>The resulting entry still passes through {@link CostLedgerStore#write}'s normal append-only
+     * path — recovery from a computation failure is not a special write mode, only a specially
+     * constructed entry.
+     */
+    public static CostLedgerEntry unverifiedFallback(
+        String entryId, String requestId, String tenantId, String organizationId,
+        String taskId, Instant timestamp) {
+        return new CostLedgerEntry(
+            entryId, requestId, tenantId, organizationId, null, null, taskId, timestamp,
+            0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            Map.of(), "USD", "unknown", "unknown", "unknown",
+            false);
+    }
 }
