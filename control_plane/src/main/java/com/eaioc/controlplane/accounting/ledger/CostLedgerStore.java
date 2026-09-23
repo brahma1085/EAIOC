@@ -35,6 +35,10 @@ import org.springframework.stereotype.Component;
  * this store's own write/read path cannot itself become a cost-amplification surface. Enforcing a
  * per-tenant optimization-overhead *budget* is {@code OI-002}'s job (a P4 capability, out of this
  * slice's scope) — not re-derived or reimplemented here.
+ *
+ * <p><b>Observability, added in {@code EXE-P0.1.D}:</b> every successful write emits one structured
+ * log line via {@link LedgerObservability} — see that class's Javadoc for the interim-sink and
+ * metric-naming decisions this sub-phase made.
  */
 @Component
 public class CostLedgerStore {
@@ -62,6 +66,11 @@ public class CostLedgerStore {
                 "Ledger is append-only: entryId=" + entry.entryId()
                     + " already exists for tenantId=" + entry.tenantId());
         }
+
+        // EXE-P0.1.D (Observability): one structured log line per successful write, citing
+        // observability.md's already-named metrics — see LedgerObservability's own Javadoc for
+        // why this cites different literal names than EXE-P0.1.D's row examples.
+        LedgerObservability.logLedgerWrite(entry);
     }
 
     /**
