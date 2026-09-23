@@ -2,11 +2,11 @@
 
 **Document ID:** EAIOC-EXECPLAN-001
 **Status:** PRE-IMPLEMENTATION — Level 0 (RESEARCH). This document plans execution; it does not itself constitute implementation, and its existence does not change the repository's maturity level.
-**Version:** 1.0.5
+**Version:** 1.0.6
 **Generated:** 2026-09-23 (per repository date)
 **Generation prompt:** `docs/prompts/execute-p0-foundation.prompt.md` (Master Prompt — Execution Plan Generation + Gated Implementation Execution, Mode A)
 **Mode executed:** MODE A — Execution-Plan Generation. No source code was written in producing this document.
-**Correction history:** v1.0.0 → v1.0.1 — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.1.md`: removed a Sub-phase A/B shared-commit contradiction (§18.4) and all wording that could be misread as permitting parallel *execution* of Capabilities 1–3 in Mode B (§18.3, §48, §H below), while preserving the true dependency-independence fact those capabilities share. No requirement, scope, technology-baseline, or source-gap content was altered — see this document's own version-1.0.1 self-check at the end. **v1.0.1 → v1.0.2** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.2.md`: reclassified the Capability Gate as a post-lifecycle review/promotion checkpoint rather than a ninth implementation sub-phase (§18.10) — it receives its own explicit human approval but no implementation commit and no `EXE-P0.<n>.<letter>` ID — and corrected every dependent count reference from "54 atomic execution units" to "48 atomic `EXE-P0.<n>.<letter>` execution units + 6 Capability Gates = 54 total gated checkpoints" (§18.2, §H, and this header). No scope, technology-baseline, source-gap, or sequential-execution content was altered — see this document's own version-1.0.2 self-check at the end. **v1.0.2 → v1.0.3** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.3.md`: added a new §18.11 "Claude Code Mode B Execution Command Protocol" — the canonical `Execute EXE-P0.<n>.<letter>`/`Approve EXE-P0.<n>.<letter>`/`Approve CAPABILITY-GATE P0.<n>` command syntax, the required per-unit response/reporting format, a command-state table, a prohibited-ambiguous-command list, and the full six-capability copy/paste operator reference sequence. No scope, architecture, technology-baseline, requirements, source-gap, ADR, or sequencing content was changed — see this document's own version-1.0.3 self-check at the end. **v1.0.3 → v1.0.4** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.4.md`, addressing the shared-core-foundation ownership gap exposed by `EXE-P0.2.B` and strengthening Mode B approval into a mandatory two-stage control: Claude Code AI verification first, followed by explicit human approval. The correction assigns the shared `core/interfaces`, `core/schemas`, and `core/errors` foundation ownership to Capability 1 / `EXE-P0.1.A`, adds a post-hoc reconciliation mechanism for already-executed P0.1.A, adds explicit precondition guards for P0.2.B, defines AI verification checklists/reporting/state transitions, separates AI verification from human approval, adds AI Capability Gate verification before human Gate approval, clarifies N/A sub-phase handling, and records the historical `c3d6ecf` out-of-band documentation/editor-settings commit as non-implementation history. No upstream architecture, requirements, ADR, technology-baseline, or P0 capability scope is changed by this correction. New/changed sections: §18.2 (N/A commit exception), §18.4/§18.5/§18.6 (Preconditions and the affected A/B rows), §18.10 (two-layer Gate), §18.11.3/§18.11.5–§18.11.8/§18.11.11 (revised), new §18.12–§18.18, §37, §38 (`SOURCE-GAP-EXECPLAN-04`), §52, and this document's version-1.0.4 self-check at the end. **v1.0.4 → v1.0.5** — surgical correction per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.5.md`, to eliminate remaining internal inconsistencies after post-v1.0.4 verification. Corrected the architecture-to-implementation mapping so only A–H are lifecycle sub-phases; corrected the §18.2 field-compaction wording from nine entries to eight lifecycle entries plus a separate Gate; retired ambiguous capability-level shorthand execution semantics in favor of the mandatory canonical `Execute EXE-P0.<n>.<letter>` syntax; corrected final validation/readiness language to recognize `SOURCE-GAP-EXECPLAN-04` as the current implementation-side blocker; and aligned the companion operator runbook to v1.0.5. No scope, architecture, requirements, technology baseline, ADR status, P0 capability definition, execution counts, remediation mechanism, or implementation code was changed. Sections touched: §1 (Version row), §7, §18.2, §18.11.2, §18.11.9, §52, Summary K/U, Execution Plan Readiness, and the new version-1.0.5 self-check at the end.
+**Correction history:** v1.0.0 → v1.0.1 — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.1.md`: removed a Sub-phase A/B shared-commit contradiction (§18.4) and all wording that could be misread as permitting parallel *execution* of Capabilities 1–3 in Mode B (§18.3, §48, §H below), while preserving the true dependency-independence fact those capabilities share. No requirement, scope, technology-baseline, or source-gap content was altered — see this document's own version-1.0.1 self-check at the end. **v1.0.1 → v1.0.2** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.2.md`: reclassified the Capability Gate as a post-lifecycle review/promotion checkpoint rather than a ninth implementation sub-phase (§18.10) — it receives its own explicit human approval but no implementation commit and no `EXE-P0.<n>.<letter>` ID — and corrected every dependent count reference from "54 atomic execution units" to "48 atomic `EXE-P0.<n>.<letter>` execution units + 6 Capability Gates = 54 total gated checkpoints" (§18.2, §H, and this header). No scope, technology-baseline, source-gap, or sequential-execution content was altered — see this document's own version-1.0.2 self-check at the end. **v1.0.2 → v1.0.3** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.3.md`: added a new §18.11 "Claude Code Mode B Execution Command Protocol" — the canonical `Execute EXE-P0.<n>.<letter>`/`Approve EXE-P0.<n>.<letter>`/`Approve CAPABILITY-GATE P0.<n>` command syntax, the required per-unit response/reporting format, a command-state table, a prohibited-ambiguous-command list, and the full six-capability copy/paste operator reference sequence. No scope, architecture, technology-baseline, requirements, source-gap, ADR, or sequencing content was changed — see this document's own version-1.0.3 self-check at the end. **v1.0.3 → v1.0.4** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.4.md`, addressing the shared-core-foundation ownership gap exposed by `EXE-P0.2.B` and strengthening Mode B approval into a mandatory two-stage control: Claude Code AI verification first, followed by explicit human approval. The correction assigns the shared `core/interfaces`, `core/schemas`, and `core/errors` foundation ownership to Capability 1 / `EXE-P0.1.A`, adds a post-hoc reconciliation mechanism for already-executed P0.1.A, adds explicit precondition guards for P0.2.B, defines AI verification checklists/reporting/state transitions, separates AI verification from human approval, adds AI Capability Gate verification before human Gate approval, clarifies N/A sub-phase handling, and records the historical `c3d6ecf` out-of-band documentation/editor-settings commit as non-implementation history. No upstream architecture, requirements, ADR, technology-baseline, or P0 capability scope is changed by this correction. New/changed sections: §18.2 (N/A commit exception), §18.4/§18.5/§18.6 (Preconditions and the affected A/B rows), §18.10 (two-layer Gate), §18.11.3/§18.11.5–§18.11.8/§18.11.11 (revised), new §18.12–§18.18, §37, §38 (`SOURCE-GAP-EXECPLAN-04`), §52, and this document's version-1.0.4 self-check at the end. **v1.0.4 → v1.0.5** — surgical correction per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.5.md`, to eliminate remaining internal inconsistencies after post-v1.0.4 verification. Corrected the architecture-to-implementation mapping so only A–H are lifecycle sub-phases; corrected the §18.2 field-compaction wording from nine entries to eight lifecycle entries plus a separate Gate; retired ambiguous capability-level shorthand execution semantics in favor of the mandatory canonical `Execute EXE-P0.<n>.<letter>` syntax; corrected final validation/readiness language to recognize `SOURCE-GAP-EXECPLAN-04` as the current implementation-side blocker; and aligned the companion operator runbook to v1.0.5. No scope, architecture, requirements, technology baseline, ADR status, P0 capability definition, execution counts, remediation mechanism, or implementation code was changed. Sections touched: §1 (Version row), §7, §18.2, §18.11.2, §18.11.9, §52, Summary K/U, Execution Plan Readiness, and the new version-1.0.5 self-check at the end. **v1.0.5 → v1.0.6** — surgical source-and-plan correction per `docs/prompts/AC005-Contract-Correction-Prompt.md`, applying the human-approved AC-005 / `CostLedgerEntry` contract decisions D-1 to D-4. It records `CONTRA-EXECPLAN-01`: `INTF-047` did not represent the complete `architecture.md` §27.1 ledger model, a frozen-source contract inconsistency resolved by the documented precedence in `conventions.md`'s header. `interfaces.md` §28.1 and `conventions.md` §14.1 were corrected in the same pass. The plan now corrects Capability 1's Sub-phase B Definition of Done (§18.4) without claiming it was met historically by `e353dcf`; adds the reconciliation of `EXE-P0.1.B` (`RECONCILED: GAP FOUND`) and formally assigns the remediation units `REM-P0.1.B-01` (Contract / Design Reconciliation) and `REM-P0.1.B-02` (Minimal Implementation Remediation) in §18.14.4; and records the G/H approval-evidence finding (§18.14.3). It also refreshes the stale current position (§18.18, §52, Readiness) and adds `SOURCE-GAP-EXECPLAN-05`/`-06` (§38). No upstream scope, architecture, technology baseline, ADR status, P0 capability definition, execution counts, or implementation code changed.
 
 **Relationship to the documentation chain:** Not part of the originally-planned chain (2 authoritative sources + 5 baseline documents + 12 generated documents + ADR set + Implementation Readiness Gate). It is a downstream implementation-planning artifact consuming that completed chain — it does not replace `architecture.md`, `implementation-plan.md`, `requirements-traceability.md`, any ADR, `security.md`, `observability.md`, or any other approved authoritative source, and it does not modify any of them.
 
@@ -25,8 +25,8 @@
 | Document ID | `EAIOC-EXECPLAN-001` |
 | Title | Enterprise Agent & LLM Inference Optimization Control Plane — Execution Plan |
 | Level | LEVEL 0 — RESEARCH / PRE-IMPLEMENTATION |
-| Status | Mode A (planning) output. Mode B had not begun when this document was first generated; as of v1.0.4 it has begun under the gated protocol (§18.11) — Capability 1 A–E/G/H committed (F `NOT APPLICABLE`, no commit), `EXE-P0.2.A` committed, `EXE-P0.2.B` stopped on an unmet precondition (§18.13–§18.15) |
-| Version | 1.0.5 (surgical correction — see Correction History above) |
+| Status | Mode A (planning) output. Mode B had not begun when this document was first generated; as of v1.0.4 it has begun under the gated protocol (§18.11) — Capability 1 A–E/G/H committed (F `NOT APPLICABLE`, no commit), `EXE-P0.2.A` committed, `EXE-P0.2.B` stopped on an unmet precondition (§18.13–§18.15). **As of v1.0.6:** `REM-P0.1.A-01`/`-02` done and approved (`c05e3e7`, `93c1ba3`, `5e12148`); `EXE-P0.1.F` acknowledged as N/A; Capability Gate P0.1 **BLOCKED** on `CONTRA-EXECPLAN-01` (AC-005 / `INTF-047`), pending `REM-P0.1.B-01`/`-02` (§18.14.4, §18.18) |
+| Version | 1.0.6 (surgical correction — see Correction History above) |
 | Owning artifact class | Downstream implementation-planning document, outside the original chain, alongside the ADR set and the Implementation Readiness Gate |
 | File-scope this generation | Only `docs/execution-plan.md` created. No upstream, sibling, or ADR document modified. Verified via `git status --short`/`git diff --stat` (§52). |
 
@@ -263,7 +263,7 @@ Capabilities 1, 2, and 3 have no cross-capability *prerequisite* — this is a d
 | Sub-phase | Deliverable | Files/Modules | Tests | Failure-Path Test | Benchmark Requirement | Edge Cases | Definition of Done | Expected Evidence |
 |---|---|---|---|---|---|---|---|---|
 | **A — Contract & Design** | Consume §27.1's ledger field list and §27.3's cost model as-is. **v1.0.4 (§18.13):** additionally owns the shared-core-foundation contract — the design and minimal scaffolding definition of `control_plane/core/interfaces/`, `core/schemas/`, `core/errors/`, enumerating the minimum shared types P0 contracts reference (`ControlPlaneRequest` — `interfaces.md` §2.1; `OptimizationPlan` — §3.2; `ControlPlaneError` — §25.1) with every field re-verified against the live `interfaces.md` rather than this row's text | `control_plane/accounting/ledger/LedgerEntry` (schema note, not yet code); shared-core foundation design/scaffold definition under `control_plane/core/` | Schema-conformance review (ledger fields **and** shared-core types against `interfaces.md`) | N/A (design stage) | None yet | None directly | No new schema invented; every field traced to §27.1; shared-core ownership discharged — foundation contract defined, not deferred to a consumer capability | Design note citing §27.1/27.3 verbatim, committed on its own (`EXE-P0.1.A`, one sub-phase = one commit — §18.2, `EXE-P0.1.B` does not begin until this commit is AI-verified and explicitly approved). **Historical note:** the executed `EXE-P0.1.A` (commit `a345742`) predates this v1.0.4 requirement and did not produce the shared-core foundation — reconciled, not rewritten, per §18.14 |
-| **B — Minimal Implementation** | Per-request token/cost recording, tenant-scoped from the first write | `control_plane/accounting/ledger/` | Unit tests: write, read-back, tenant-scoping enforcement | Unit test: write with missing `tenant_id` is rejected, not silently defaulted | None yet | `EC-077` (adversarial optimization-cost input) — cross-cutting, cited not re-derived here | Ledger write/read round-trips correctly; every record has `tenant_id` as first namespace component | Passing unit-test suite; `git diff` scoped to `control_plane/accounting/` only |
+| **B — Minimal Implementation** | Per-request token/cost recording, tenant-scoped from the first write. **v1.0.6:** the recorded entry conforms to the corrected `INTF-047` contract (`interfaces.md` §28.1) — the 29 retained fields plus the nine nested canonical §27.1 groups | `control_plane/accounting/ledger/` | Unit tests: write, read-back, tenant-scoping enforcement. **v1.0.6:** contract tests proving the canonical nested ledger structure (all nine groups, all 58 §27.1 fields) | Unit test: write with missing `tenant_id` is rejected, not silently defaulted | None yet | `EC-077` (adversarial optimization-cost input) — cross-cutting, cited not re-derived here | Ledger write/read round-trips correctly; every record has `tenant_id` as first namespace component. **v1.0.6 additions** (`CONTRA-EXECPLAN-01`, §18.14.4): (1) conforms to corrected `INTF-047`; (2) represents all 58 §27.1 fields; (3) represents the six AC-005 categories distinctly (`interfaces.md` §28.1 coverage table); (4) tenant isolation preserved; (5) verified/unverified behavior preserved (`conventions.md` §14.1, §14.4); (6) contract tests prove the canonical structure; (7) no retained `INTF-047` field is aliased to a §27.1 field (D-2). **The historical `EXE-P0.1.B` (`e353dcf`) predates these requirements and does not satisfy (1)–(3), (6); it is reconciled, not rewritten (§18.14.4)** | Passing unit-test suite; `git diff` scoped to `control_plane/accounting/` only |
 | **C — Integration** | Wire the ledger as the substrate every T0–T3 stage/technique will eventually write to (no other in-scope capability's Sub-phase C depends on this yet, since none is a technique that spends tokens) | `control_plane/accounting/` public write API | Integration test: a second in-scope capability (once built) can call the write API | N/A | None yet | None | Write API is stable and documented for other capabilities to call | Integration test passing against at least a stub caller |
 | **D — Observability** | Cite `observability.md`'s already-named ledger-consuming metrics (`cost.net_savings`, `cost.baseline_estimated`, etc.) — do not invent a competing metric name | `control_plane/accounting/` emits structured log lines (interim sink, `SOURCE-GAP-EXECPLAN-01`, §38) | Log-output format check | N/A | None | None | Every ledger write emits one structured log line citing the existing metric names | Sample log output reviewed against `observability.md` §7's metric table |
 | **E — Security/Governance** | Tenant isolation enforced structurally, not by convention alone | Same as B | Unit test: cross-tenant read is rejected | Unit test: cross-tenant read attempt returns `NOT_FOUND`/`FORBIDDEN`, never another tenant's data | None | None | No code path can construct a cross-tenant read | Passing isolation test |
@@ -989,7 +989,7 @@ A blocked AI verification must not be followed by an approval request. An `Appro
 | Human approval | `Approve EXE-P0.n.X` | User |
 | Capability Gate review (resume trigger, §18.11.6) | `Review CAPABILITY-GATE P0.n` | User |
 | Capability Gate approval | `Approve CAPABILITY-GATE P0.n` | User |
-| Remediation (§18.14) | `Execute REM-P0.1.A-0N` / `Approve REM-P0.1.A-0N` | User |
+| Remediation (§18.14) | `Execute REM-P0.1.A-0N` / `Approve REM-P0.1.A-0N`; from v1.0.6 also `Execute REM-P0.1.B-0N` / `Approve REM-P0.1.B-0N` (§18.14.4) | User |
 | Next execution | `Execute EXE-P0.(n+1).A` (or the next letter) | User |
 
 Never combine the approval and next execution into one command.
@@ -1154,9 +1154,62 @@ Split into two units for the same reason every capability separates Sub-phase A 
 
 #### 18.14.3 Other already-executed units
 
-- **Capability 1, Sub-phases B–E, G, H** (`e353dcf`, `5d8640e`, `e1730ce`, `3987957`, `95a1267`, `0c18174`) — executed and approved under v1.0.3's single-stage model. Their requirements did not change in v1.0.4, so they are not individually reconciled or re-executed; the AI Gate Verification for Capability 1 (§18.11.6) re-examines their evidence as part of the Gate review, and any evidence that does not hold up is a Blocking Condition for the Gate, not a silent pass.
-- **Capability 1, Sub-phase F** — `NOT APPLICABLE` (§18.4 F row), no commit, correctly so (§18.16). If the operator's acknowledgment of that N/A disposition was not previously given, it is given now via `Execute EXE-P0.1.F` (Claude Code reports `AI VERIFICATION: NOT APPLICABLE`, no commit) followed by `Approve EXE-P0.1.F`, before the Capability 1 Gate.
+- **Capability 1, Sub-phases B–E, G, H** (`e353dcf`, `5d8640e`, `e1730ce`, `3987957`, `95a1267`, `0c18174`) — executed under v1.0.3's single-stage model. Their requirements did not change in v1.0.4, so they are not individually reconciled or re-executed; the AI Gate Verification for Capability 1 (§18.11.6) re-examines their evidence as part of the Gate review, and any evidence that does not hold up is a Blocking Condition for the Gate, not a silent pass. **v1.0.6:** Sub-phase B's requirements did change (§18.4 B row) — see §18.14.4.
+- **G/H approval evidence (v1.0.6):** the repository does not prove that `Approve EXE-P0.1.G` or `Approve EXE-P0.1.H` were ever issued. The only occurrences of those strings are syntax examples in `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.3.md`; no commit, note, or record evidences either approval. They are **not assumed**. Explicit human confirmation — or fresh `Approve EXE-P0.1.G` / `Approve EXE-P0.1.H` commands after the operator reviews the retrospective AI verification of those units — is required before the Capability 1 Gate may pass (§18.18).
+- **Capability 1, Sub-phase F** — `NOT APPLICABLE` (§18.4 F row), no commit, correctly so (§18.16). Acknowledged: `Execute EXE-P0.1.F` returned `AI VERIFICATION: NOT APPLICABLE` (verified against `quality-gates.md` §2, §3 and the QG-010 entry), and `Approve EXE-P0.1.F` was issued.
 - **Capability 2, Sub-phase A** (`0e92261`) — executed and approved. The repository contains no record of `Approve CAPABILITY-GATE P0.1` having been issued, so `EXE-P0.2.A` may have run before Capability 1's Gate closed, which §18.11.8 does not permit. Content reconciliation: **RECONCILED: PASS** — the design note is documentation-only, cites `INTF-030` verbatim (whitespace-insensitive diff against `interfaces.md` §18 shows no difference), and does not depend on the shared foundation existing. Its approval is preserved and it is not re-executed; the sequencing irregularity is instead neutralized by §18.15's guard, which requires the Capability 1 Gate to be approved before `EXE-P0.2.B` may proceed, and requires the remediated `ControlPlaneRequest`/`OptimizationPlan` types to match the parameter types that note cites.
+
+#### 18.14.4 Reconciliation of `EXE-P0.1.B` and the B remediation sequence (v1.0.6)
+
+**Source-contract resolution (recorded):**
+
+```
+AC-005 contract direction resolved.
+INTF-047 must represent the complete §27.1 standard ledger field model.
+Canonical representation: nested/category-preserving.
+Unsupported field equivalence is prohibited.
+Availability semantics are preserved.
+Unresolved types are explicitly identified rather than invented.
+```
+
+Basis:
+- **The requirement:** PS §8 ("Required fields include"), SPEC §18.1 ("Required Ledger Fields"), and `architecture.md` §27.1 (58 standard fields in nine groups).
+- **The binding to the record:** `conventions.md` §14.1 ("Every request must produce a `CostLedgerEntry` carrying all standard ledger fields defined in ARCH §27.1").
+- **Precedence:** `conventions.md`'s header — Problem Statement > Engineering Specification > Architecture > Interfaces.
+
+Human-approved decisions applied in `interfaces.md` §28.1 and `conventions.md` §14.1:
+- **D-1 — nested groups:** the nine §27.1 groups are nested and keep their categories.
+- **D-2 — no inferred equivalence:** no existing `INTF-047` field is aliased or declared equivalent to a §27.1 field; all 29 existing fields are retained.
+- **D-3 — availability:** "where available" members are `| null` per `conventions.md` §5.4; the availability/`unverified` interaction is an open decision (`SOURCE-GAP-EXECPLAN-06`).
+- **D-4 — types:** types are stated only where `conventions.md` §3.6 / §5.2 establish them; 22 members are typed `SOURCE-UNRESOLVED` (`SOURCE-GAP-EXECPLAN-05`).
+
+**Contradiction recorded — `CONTRA-EXECPLAN-01`:** `INTF-047` did not represent the full §27.1 ledger model. This is a frozen-source contract inconsistency between `interfaces.md` §28.1 and PS §8 / SPEC §18.1 / `architecture.md` §27.1 / `conventions.md` §14.1 — not merely an interface defect. It was resolved under the precedence documented in `conventions.md`'s header, by the v1.0.6 correction of `interfaces.md` §28.1 (§38).
+
+| Field | Finding |
+|---|---|
+| Unit | `EXE-P0.1.B` — Token Accounting and Cost Ledger, Minimal Implementation |
+| Historical commit | `e353dcf` — executed under v1.0.3; its evidence was re-examined retrospectively |
+| HISTORICAL EXECUTION RESULT | `CostLedgerEntry` implements the pre-correction `INTF-047` (29 fields + `verified`). Tenant scoping, append-only store, round-trip and missing-tenant failure path all hold (`CostLedgerStoreTest` 7/7) |
+| CORRECTED EXECUTION-PLAN REQUIREMENT | §18.4 B row v1.0.6 additions (1)–(7) |
+| Result | **RECONCILED: GAP FOUND** — no §27.1 canonical group is represented, so AC-005's compressed, retrieved and reused categories have no field at all |
+| Disposition | Historical commit and its evidence are preserved unchanged. The gap is closed only through the two remediation units below, before Capability 1's Gate. |
+
+**Formally assigned remediation units.** These IDs follow the `REM-P0.<n>.<letter>-<NN>` convention of `REM-P0.1.A-01`/`-02`. Any earlier mention of `REM-P0.1.B-01` had no status; the IDs exist from this revision onward. They are outside the 48/54 counts (§18.11.10).
+
+| Field | `REM-P0.1.B-01` — Contract / Design Reconciliation | `REM-P0.1.B-02` — Minimal Implementation Remediation |
+|---|---|---|
+| Commands | `Execute REM-P0.1.B-01` → AI Verification → `Approve REM-P0.1.B-01` | `Execute REM-P0.1.B-02` → AI Verification → `Approve REM-P0.1.B-02` |
+| Precondition | v1.0.6 of this plan accepted; corrected `interfaces.md` §28.1 and `conventions.md` §14.1 committed | `REM-P0.1.B-01` AI-verified **and** human-approved |
+| Deliverable | A design artifact based strictly on the corrected `INTF-047`. It specifies: the Java realization of the nine nested groups and all 58 members, with the 29 existing fields retained unchanged; how `verified`/`unverifiedFallback()` extend to the new groups without fabricating values; and the contract tests `REM-P0.1.B-02` must pass. **For each of the 22 `SOURCE-UNRESOLVED` members (`SOURCE-GAP-EXECPLAN-05`) and for `SOURCE-GAP-EXECPLAN-06`, it presents the open question for an explicit human decision and invents nothing.** Any type or behavior the human decides must also be applied to `interfaces.md` §28.1 through a user-directed source correction before `REM-P0.1.B-02` begins | Implement only the approved design: extend `CostLedgerEntry` with the nested groups; update every construction site; add the contract tests. Nothing beyond the approved design |
+| Files/Modules | Design note under `control_plane/accounting/ledger/` only | `control_plane/src/main/java/com/eaioc/controlplane/accounting/ledger/**` and `control_plane/src/test/java/com/eaioc/controlplane/accounting/ledger/**` only |
+| Tests | Contract-conformance review of every member against corrected `interfaces.md` §28.1 | `mvn test`: new contract tests (nine groups, 58 members, six AC-005 categories distinctly recorded, retained fields unchanged, no alias); all pre-existing tests pass |
+| Failure-Path Test | N/A (design stage) | A missing/blank `tenant_id` is still rejected; an accounting-computation failure still yields a `verified=false` fallback entry without fabricated values; a "where available" member left `null` is not converted to zero |
+| Blocking rule | `AI VERIFICATION: BLOCKED` if any `SOURCE-UNRESOLVED` type or `SOURCE-GAP-EXECPLAN-06` behavior would have to be assumed rather than decided | `AI VERIFICATION: BLOCKED` if the implementation departs from the approved design or the corrected contract |
+| Commit | One remediation commit: `P0-1.B-REM-01: Token Accounting and Cost Ledger — Contract / Design Reconciliation (Remediation)` | One remediation commit: `P0-1.B-REM-02: Token Accounting and Cost Ledger — Minimal Implementation (Remediation)` |
+
+No automatic chaining applies between these units, as everywhere (§18.11.12).
+
+**Gate prerequisites preserved:** Capability 1 Gate = **BLOCKED** and `EXE-P0.2.B` = **BLOCKED** until `REM-P0.1.B-01` and `REM-P0.1.B-02` are AI-verified and human-approved, the G/H approval evidence is resolved (§18.14.3), and the Capability 1 AI Gate Verification passes followed by `Approve CAPABILITY-GATE P0.1`.
 
 ### 18.15 `EXE-P0.2.B` Pre-Execution Guard (v1.0.4)
 
@@ -1288,18 +1341,31 @@ Next Capability A
 
 This is the authoritative operator model.
 
-**Current position in this repository (at v1.0.4 correction time).** Environment readiness passed (`docs/implementation-env-readiness-check-p0.md`). Capability 1: A–E, G, H committed and approved under v1.0.3; F `NOT APPLICABLE`, no commit; Gate P0.1 approval not recorded. Capability 2: A committed and approved; B **stopped — prerequisite missing** (no commit, no code). The authoritative remaining sequence up to `EXE-P0.2.B` is therefore:
+*Historical (at v1.0.4 correction time, superseded by the v1.0.6 position below):* Capability 1 A–E, G, H committed under v1.0.3; F `NOT APPLICABLE`; `REM-P0.1.A-01`/`-02` not started; `EXE-P0.2.B` stopped on a missing prerequisite.
+
+**Current position in this repository (at v1.0.6 correction time).**
+- **Environment readiness:** passed.
+- **Capability 1:**
+  - A–E, G, H committed under v1.0.3.
+  - F `NOT APPLICABLE`, acknowledged and approved.
+  - `REM-P0.1.A-01` (+ Amendment 1) and `REM-P0.1.A-02` committed and approved: `c05e3e7`, `93c1ba3`, `5e12148`. `SOURCE-GAP-EXECPLAN-04` is closed on the implementation side, with the Capability 1 Gate still to confirm it.
+  - `EXE-P0.1.B` reconciled `GAP FOUND` (`CONTRA-EXECPLAN-01`, §18.14.4); `REM-P0.1.B-01`/`-02` not started.
+  - G/H approvals not evidenced (§18.14.3).
+  - Gate P0.1 **BLOCKED**.
+- **Capability 2:** A committed and approved; B **blocked** by the §18.15 guard until Gate P0.1 is approved.
+
+The authoritative remaining sequence up to `EXE-P0.2.B` is:
 
 ```
-Execute REM-P0.1.A-01        → AI verification → Approve REM-P0.1.A-01
-Execute REM-P0.1.A-02        → AI verification → Approve REM-P0.1.A-02
-(only if F's N/A was never acknowledged)
-Execute EXE-P0.1.F           → AI VERIFICATION: NOT APPLICABLE → Approve EXE-P0.1.F
+Execute REM-P0.1.B-01        → AI verification → Approve REM-P0.1.B-01
+(user-directed interfaces.md §28.1 correction for any types/behavior decided in REM-P0.1.B-01)
+Execute REM-P0.1.B-02        → AI verification → Approve REM-P0.1.B-02
+(G/H evidence) confirm, or issue Approve EXE-P0.1.G / Approve EXE-P0.1.H after review
 Review CAPABILITY-GATE P0.1  → AI CAPABILITY GATE VERIFICATION → Approve CAPABILITY-GATE P0.1
 Execute EXE-P0.2.B           → §18.15 guard → AI verification → Approve EXE-P0.2.B
 ```
 
-each line issued one command at a time, with no automatic chaining between any of them. After `EXE-P0.2.B`, the idealized §18.11.7 sequence resumes unchanged from `Execute EXE-P0.2.C`.
+Each line is issued one command at a time, with no automatic chaining between any of them. After `EXE-P0.2.B`, the idealized §18.11.7 sequence resumes unchanged from `Execute EXE-P0.2.C`.
 
 ---
 
@@ -1390,7 +1456,15 @@ This document's own scoped gap series, `SOURCE-GAP-EXECPLAN-NN`, distinct from e
 | `SOURCE-GAP-EXECPLAN-01` | No interim telemetry sink is documented anywhere upstream for any capability's Sub-phase D beyond "cite `observability.md`'s already-named metrics" — this mirrors `SOURCE-GAP-IRG-02`'s finding for the Observability P0 item itself, but applies to all six in-scope capabilities' own Sub-phase D, not only the Observability item | This document's own re-verification while writing §18/§26 | Non-blocking — this document proposes a minimal structured-log interim sink (§26) as a reasonable, low-risk default, consistent with `ADR-0001`'s own "interim reference implementation" pattern | No |
 | `SOURCE-GAP-EXECPLAN-02` | Two of the six in-scope capabilities (Context Policy, Output Controls) have no exact package-leaf match in `conventions.md` §2.1's tree (§9) | This document's own module-boundary verification | Non-blocking — proposed placements given, explicitly flagged for confirmation at each capability's own Sub-phase A rather than assumed final | No |
 | `SOURCE-GAP-EXECPLAN-03` | No dedicated `SCN-*` scenario was found isolating Sanitizer, Context Policy, Prompt Assembler, or Output Controls specifically, beyond the cross-cutting `EC-077`/security-adjacent citations already recorded elsewhere in the corpus | This document's own targeted search while writing §18 | Non-blocking — recorded honestly per capability (§18.6–18.9's Sub-phase G entries), not force-fit to an adjacent scenario | No |
-| `SOURCE-GAP-EXECPLAN-04` | *(added v1.0.4)* Shared-core-foundation ownership gap: through v1.0.3, `core/interfaces/`/`core/schemas/`/`core/errors/` were assigned to Capability 1 only in a header Preconditions field, never in any executable unit row, while Capabilities 2 and 3 assumed they existed. No executed unit produced them, so `INTF-030`'s `ControlPlaneRequest`/`OptimizationPlan` parameter types had no realization when `EXE-P0.2.B` was invoked. This is an execution-plan ownership gap, not an upstream-corpus gap — `interfaces.md` defines all three types | Exposed by the first `Execute EXE-P0.2.B` (stopped on precondition, no code written) | **Plan side resolved in v1.0.4** — ownership assigned to `EXE-P0.1.A` (§18.13) and a hard guard added (§18.15). **Implementation side open** until remediation units `REM-P0.1.A-01`/`-02` (§18.14.2) are AI-verified and human-approved | **Yes** — for `EXE-P0.2.B` and `EXE-P0.3.B` only, until remediation closes; no other unit or capability gate is blocked by it beyond Capability 1's own Gate review, which must see the remediation complete |
+| `SOURCE-GAP-EXECPLAN-04` | *(added v1.0.4)* Shared-core-foundation ownership gap: through v1.0.3, `core/interfaces/`/`core/schemas/`/`core/errors/` were assigned to Capability 1 only in a header Preconditions field, never in any executable unit row, while Capabilities 2 and 3 assumed they existed. No executed unit produced them, so `INTF-030`'s `ControlPlaneRequest`/`OptimizationPlan` parameter types had no realization when `EXE-P0.2.B` was invoked. This is an execution-plan ownership gap, not an upstream-corpus gap — `interfaces.md` defines all three types | Exposed by the first `Execute EXE-P0.2.B` (stopped on precondition, no code written) | **Plan side resolved in v1.0.4** — ownership assigned to `EXE-P0.1.A` (§18.13) and a hard guard added (§18.15). **Implementation side open** until remediation units `REM-P0.1.A-01`/`-02` (§18.14.2) are AI-verified and human-approved | **Yes** — for `EXE-P0.2.B` and `EXE-P0.3.B` only, until remediation closes; no other unit or capability gate is blocked by it beyond Capability 1's own Gate review, which must see the remediation complete. *(v1.0.6 status: implementation side closed by `REM-P0.1.A-01`/`-02`, approved; final confirmation at the Capability 1 Gate)* |
+| `SOURCE-GAP-EXECPLAN-05` | *(added v1.0.6)* 22 canonical §27.1 members of `CostLedgerEntry` have no type established by any authoritative source (`interfaces.md` §28.1 OD-28.1-A): five `cache` counters, five `model` members, three `tools` call counters, all five `workflow` members, `performance.ttft_ms`, and three `quality` members. `conventions.md` §3.6/§5.2 cover only token counts, monetary/savings amounts, scores and `latency_ms` | Exposed by the AC-005 contract reconciliation (D-4) | Plan side resolved: typed `SOURCE-UNRESOLVED`, not invented. Each type needs an explicit human decision in `REM-P0.1.B-01`, followed by a user-directed `interfaces.md` correction | **Yes** — for `REM-P0.1.B-02` until decided |
+| `SOURCE-GAP-EXECPLAN-06` | *(added v1.0.6)* No authoritative source states whether a `null` "where available" value (`model.reasoning_tokens`, `cost.tool`; PS §8, SPEC §18.1) makes a ledger entry "incomplete" for `conventions.md` §14.1's `unverified` rule (`interfaces.md` §28.1 OD-28.1-B) | Exposed by the AC-005 contract reconciliation (D-3) | Recorded as an open decision; neither behavior may be assumed | **Yes** — for `REM-P0.1.B-02` until decided |
+
+**Contradiction register (v1.0.6):**
+
+| ID | Contradiction | Status |
+|---|---|---|
+| `CONTRA-EXECPLAN-01` | `interfaces.md` §28.1 `INTF-047 CostLedgerEntry` did not represent the full `architecture.md` §27.1 standard ledger model required by PS §8, SPEC §18.1 and `conventions.md` §14.1. This frozen-source inconsistency meant AC-005's compressed, retrieved and reused categories had no field at all | **Resolved at source** by the v1.0.6 correction of `interfaces.md` §28.1 (nested canonical groups) and `conventions.md` §14.1, under the precedence in `conventions.md`'s header. **Implementation remediation pending**: `REM-P0.1.B-01`/`-02` (§18.14.4) |
 
 **Disposition of gaps carried forward from other documents:** `SOURCE-GAP-IRG-02` (Observability interim path) — explicitly out of this slice's scope (§3), not resolved here. `SOURCE-GAP-OPTCAT-01`/`AGENTOPT-01` — not touched, since P1+ `DA-NNN`/session-phase content is out of scope.
 
@@ -1413,9 +1487,11 @@ None of the six in-scope P0 capabilities is blocked by any ADR (independently re
 
 Per `requirements-traceability.md` (cited, independently re-verified counts, not recomputed): of the 138 total requirement IDs, this execution slice's six capabilities directly touch `OBJ-011`, `AC-001`, `AC-002`, `AC-005` (Capability 1), `OBJ-012`, `AC-015`, `AC-017` (Capability 2), `TECH-001` (Capability 3, via `optimization-catalog.md`'s P0 disposition), `SEC-001` (Capability 5). None of these is `PARTIALLY TRACED`/`BLOCKED BY SOURCE GAP`/`BLOCKED BY ADR` in `requirements-traceability.md`'s own §6 — all are `FULLY TRACED`. This document does not replace `requirements-traceability.md`'s own forward-trace matrix; it only confirms this slice's specific requirement set is unblocked.
 
+**v1.0.6 clarification:** `FULLY TRACED` is a document-level trace in `requirements-traceability.md`'s controlled vocabulary (its line 21). It is **not** evidence of implementation. `AC-005` is traced to `architecture.md` §27.1, but the historical Capability 1 implementation did not satisfy it (`CONTRA-EXECPLAN-01`, §18.14.4). `AC-005` is satisfied only after `REM-P0.1.B-01`/`-02`.
+
 ## 41. Acceptance-Criteria Traceability
 
-`AC-001`, `AC-002`, `AC-005` (Capability 1, ledger); `AC-015`, `AC-017` (Capability 2, benchmarking) — all `FULLY TRACED` per `requirements-traceability.md` §6.5, independently re-confirmed there, not recomputed here. No in-scope capability touches a `PARTIALLY TRACED` AC (`AC-035`, `AC-041`, `AC-046`, `AC-049` are all P1+/P4-tier concerns, outside this slice).
+`AC-001`, `AC-002`, `AC-005` (Capability 1, ledger); `AC-015`, `AC-017` (Capability 2, benchmarking) — all `FULLY TRACED` per `requirements-traceability.md` §6.5, independently re-confirmed there, not recomputed here. That is a document-level trace, not implementation evidence: `AC-005` remains unmet by the implementation until `REM-P0.1.B-02` (§40, §18.14.4). No in-scope capability touches a `PARTIALLY TRACED` AC (`AC-035`, `AC-041`, `AC-046`, `AC-049` are all P1+/P4-tier concerns, outside this slice).
 
 ## 42. Edge-Case Coverage
 
@@ -1482,16 +1558,16 @@ ENTERPRISE SCALE READY — not reached; explicitly out of scope (§45)
 **v1.0.4 — PLAN READY vs. MODE B READY (distinct, not conflated).** `PLAN READY` means the command and verification protocol is defined (§18.11–§18.18). `MODE B READY` means all of the following hold for the next executable unit: environment readiness has passed; the current execution-plan version is accepted; the AI verification protocol is active; the human approval protocol is active; shared-foundation ownership is resolved; and no known blocking prerequisite remains for the next executable unit. Status at v1.0.4 correction time:
 
 ```
-PLAN READY            — YES, after the v1.0.5 correction (pending the operator's acceptance of this version)
-MODE B READY          — for REM-P0.1.A-01: yes, once v1.0.5 is accepted
-                        for EXE-P0.2.B: NO — SOURCE-GAP-EXECPLAN-04's implementation side is open
-                        (REM-P0.1.A-01/-02 not yet AI-verified and human-approved; Capability 1 Gate
-                        approval not recorded — §18.15, §18.18)
+PLAN READY            — YES, after the v1.0.6 correction (pending the operator's acceptance of this version)
+MODE B READY          — for REM-P0.1.B-01: yes, once v1.0.6 is accepted
+                        for EXE-P0.2.B: NO — Capability Gate P0.1 is BLOCKED on CONTRA-EXECPLAN-01
+                        (REM-P0.1.B-01/-02 not yet executed/approved; G/H approvals not evidenced;
+                        Gate P0.1 not approved — §18.14.4, §18.15, §18.18)
 CODE COMPLETE         — not reached
 BENCHMARK VALIDATED   — not reached
 ```
 
-Neither `CODE COMPLETE` nor `BENCHMARK VALIDATED` is stated or implied by v1.0.5.
+*(The v1.0.5 status — `MODE B READY` for `REM-P0.1.A-01` — is superseded: `REM-P0.1.A-01`/`-02` are done and approved.)* Neither `CODE COMPLETE` nor `BENCHMARK VALIDATED` is stated or implied by v1.0.6.
 
 P0 completion, once Mode B finishes all six Capability Gates, does **not** automatically imply: production readiness, enterprise-scale readiness, P1–P5 readiness, any ADR's acceptance, final infrastructure selection, or proven business savings — restated verbatim from the generation prompt's own §37, since this is the single most consequential boundary statement in the entire execution-planning exercise.
 
@@ -1530,7 +1606,7 @@ Docker Compose reference environment; Path A (baseline) vs. Path B (through the 
 Zero of six ADRs block any in-scope capability; two (0004, 0005) are loosely touched via interim/moot dispositions — §39.
 
 ### K. Source-Gap Implementation Register
-Four `SOURCE-GAP-EXECPLAN-NN` entries — §38: `SOURCE-GAP-EXECPLAN-01` — non-blocking; `SOURCE-GAP-EXECPLAN-02` — non-blocking; `SOURCE-GAP-EXECPLAN-03` — non-blocking; `SOURCE-GAP-EXECPLAN-04` (shared-core ownership, added v1.0.4) — **blocking implementation-side gap until remediation**: plan side resolved; implementation side open until remediation completes, blocking `EXE-P0.2.B`/`EXE-P0.3.B` — §18.13–§18.15.
+Four `SOURCE-GAP-EXECPLAN-NN` entries — §38: `SOURCE-GAP-EXECPLAN-01` — non-blocking; `SOURCE-GAP-EXECPLAN-02` — non-blocking; `SOURCE-GAP-EXECPLAN-03` — non-blocking; `SOURCE-GAP-EXECPLAN-04` (shared-core ownership, added v1.0.4) — **blocking implementation-side gap until remediation**: plan side resolved; implementation side open until remediation completes, blocking `EXE-P0.2.B`/`EXE-P0.3.B` — §18.13–§18.15. **v1.0.6:** `-04`'s implementation side is now closed by the approved `REM-P0.1.A-01`/`-02`. It adds `SOURCE-GAP-EXECPLAN-05` (22 `SOURCE-UNRESOLVED` ledger types) and `-06` (availability vs. `unverified`), both blocking `REM-P0.1.B-02` until decided, and the contradiction `CONTRA-EXECPLAN-01` (`INTF-047` vs §27.1; resolved at source, implementation remediation pending).
 
 ### L. Requirement Coverage Summary
 Nine distinct requirement IDs directly touched (`OBJ-011/012`, `AC-001/002/005/015/017`, `SEC-001`, `TECH-001`), all `FULLY TRACED` per `requirements-traceability.md` — §40.
@@ -1560,7 +1636,7 @@ Five ADRs; exact package placement for two capabilities; P1–P5 atomic decompos
 Four risks recorded with mitigations, none blocking — §49.
 
 ### U. Final Validation
-Zero conflicts between the technology baseline and the frozen architecture; zero ADR blockers; zero requirement-traceability blockers for this slice's own requirement set; four execution-plan source gaps recorded, not silently omitted — `SOURCE-GAP-EXECPLAN-01`, `-02`, `-03` non-blocking; `SOURCE-GAP-EXECPLAN-04` a **blocking implementation-side gap until remediation** (plan side resolved; implementation side open until remediation completes), and the current blocker for `EXE-P0.2.B`.
+Zero conflicts between the technology baseline and the frozen architecture; zero ADR blockers; zero requirement-traceability blockers for this slice's own requirement set; four execution-plan source gaps recorded, not silently omitted — `SOURCE-GAP-EXECPLAN-01`, `-02`, `-03` non-blocking; `SOURCE-GAP-EXECPLAN-04` a **blocking implementation-side gap until remediation** (plan side resolved; implementation side open until remediation completes), and the current blocker for `EXE-P0.2.B`. **v1.0.6:** `-04` closed on the implementation side by the approved A remediation. `-05` and `-06` block `REM-P0.1.B-02` until decided. `CONTRA-EXECPLAN-01` is resolved at source, with its implementation remediation pending; it is the current Capability 1 Gate blocker.
 
 ### V. Readiness Boundary
 PLAN READY (this document) ≠ IMPLEMENTATION READY (already true per `implementation-readiness-gate.md`, independently) ≠ CODE COMPLETE / TEST COMPLETE / BENCHMARK VALIDATED / PRODUCTION READY / ENTERPRISE SCALE READY (none reached, none implied) — §52.
@@ -1573,24 +1649,26 @@ Per this document's own required self-check: (1) the technology baseline was val
 
 *The paragraph above is the original v1.0.0 generation self-check, retained as history.* Its original closing conclusion — which found no blocking issue and declared the plan ready for Mode B — held at generation time, when no unit had yet run. It is **superseded** by the current readiness conclusion below and must not be read as current guidance.
 
-**Current readiness conclusion (v1.0.5).**
+**Current readiness conclusion (v1.0.6).** *(Supersedes the v1.0.5 wording of items 8 and 9 and of the readiness statement; items 1–7 and 10 are unchanged in substance.)*
 
 1. **Technology baseline:** its validation is unchanged (§6): zero conflicts, and all six ADRs remain `PROPOSED`.
-2. **Counts:** P0 contains **48** atomic `EXE-P0.<n>.<letter>` execution units (8 lifecycle sub-phases A–H × 6 capabilities) plus **6** Capability Gates, for **54** gated checkpoints. The history-specific remediation units `REM-P0.1.A-01`/`-02` sit outside these counts.
+2. **Counts:** P0 contains **48** atomic `EXE-P0.<n>.<letter>` execution units (8 lifecycle sub-phases A–H × 6 capabilities) plus **6** Capability Gates, for **54** gated checkpoints. The history-specific remediation units `REM-P0.1.A-01`/`-02` and `REM-P0.1.B-01`/`-02` sit outside these counts.
 3. **Gate:** the Capability Gate is separate from A–H — a post-lifecycle review/promotion checkpoint with no `EXE-P0` ID and no implementation commit.
 4. **Sequencing:** strict sequential execution is unchanged — one capability and one unit at a time.
 5. **AI verification first:** AI Verification precedes human approval for every unit (§18.12). AI Gate Verification precedes human Gate approval (§18.11.6).
 6. **Human approval:** it is always explicit (`Approve …`) and never simulated.
 7. **No automatic chaining:** no test result, commit, AI PASS, or closed Gate authorizes the next unit (§18.11.12).
-8. **Current blocker:** `SOURCE-GAP-EXECPLAN-04` is the current implementation blocker. Its plan side is resolved; its implementation side stays open until remediation completes (§38).
-9. **Repository position:** preserved as recorded in §18.18. Capability 1 A–E, G, H are historically executed, and F is `NOT APPLICABLE` with no commit. `REM-P0.1.A-01` and `REM-P0.1.A-02` are not started. Capability Gate P0.1 approval is not recorded. `EXE-P0.2.A` is executed and approved. `EXE-P0.2.B` is blocked on the shared-core prerequisite.
+8. **Current blocker:** `CONTRA-EXECPLAN-01` — `CostLedgerEntry` does not yet implement the corrected `INTF-047` (§27.1 canonical groups, AC-005). It is resolved at source in v1.0.6; implementation remediation is pending via `REM-P0.1.B-01`/`-02` (§18.14.4). `SOURCE-GAP-EXECPLAN-05`/`-06` must be decided within `REM-P0.1.B-01`. `SOURCE-GAP-EXECPLAN-04` is closed on the implementation side.
+9. **Repository position:** as recorded in §18.18.
+   - Capability 1: A–E, G, H historically executed; F acknowledged as `NOT APPLICABLE`; `REM-P0.1.A-01`/`-02` done and approved; `REM-P0.1.B-01`/`-02` not started; G/H approvals not evidenced; Gate P0.1 BLOCKED.
+   - Capability 2: `EXE-P0.2.A` executed and approved; `EXE-P0.2.B` blocked.
 10. **Scope of this correction:** documentation-only. No source code, test, or `control_plane/` file changed.
 
-> **PLAN READY: YES — after this v1.0.5 correction.**
+> **PLAN READY: YES — after this v1.0.6 correction.**
 >
-> **MODE B READY for `EXE-P0.2.B`: NO — `SOURCE-GAP-EXECPLAN-04` remains open on the implementation side until `REM-P0.1.A-01` and `REM-P0.1.A-02` are AI-verified and human-approved and Capability Gate P0.1 is approved.**
+> **MODE B READY for `EXE-P0.2.B`: NO — Capability Gate P0.1 is BLOCKED until `REM-P0.1.B-01` and `REM-P0.1.B-02` are AI-verified and human-approved, the G/H approval evidence is resolved, and Capability Gate P0.1 is approved.**
 
-The next executable unit is `REM-P0.1.A-01` (`Execute REM-P0.1.A-01`), once the operator accepts v1.0.5. Implementation does **not** resume at `EXE-P0.2.B`.
+The next executable unit is `REM-P0.1.B-01` (`Execute REM-P0.1.B-01`), once the operator accepts v1.0.6. Implementation does **not** resume at `EXE-P0.2.B`.
 
 *The per-version surgical-correction self-checks below are historical records of each pass. Each one's own closing sentence (e.g. "ready to freeze") describes that pass only. The current readiness conclusion is the one above, restated in the v1.0.5 self-check.*
 
@@ -1623,4 +1701,17 @@ The next executable unit is `REM-P0.1.A-01` (`Execute REM-P0.1.A-01`), once the 
 
 No commit was created by this correction.
 
-FINAL EXECUTION PLAN v1.0.5 CORRECTION COMPLETE — PLAN READY FOR FREEZE; MODE B BLOCKED AT EXE-P0.2.B UNTIL REM-P0.1.A-01/-02 AND CAPABILITY GATE P0.1 ARE APPROVED — NEXT: Execute REM-P0.1.A-01
+**v1.0.6 surgical-correction self-check**, per `docs/prompts/AC005-Contract-Correction-Prompt.md`:
+1. The version is `1.0.6`, and a v1.0.5 → v1.0.6 history entry was added; the v1.0.1–v1.0.5 history is preserved.
+2. The source-contract resolution is recorded verbatim (§18.14.4).
+3. `CONTRA-EXECPLAN-01` is recorded as a frozen-source contract inconsistency resolved by the documented precedence, not as an interface bug (§18.14.4, §38).
+4. Capability 1's B Definition of Done now requires items (1)–(7) (§18.4). It explicitly does not claim `e353dcf` satisfied them, and the historical execution is unchanged.
+5. The B remediation sequence is formally assigned, with unique IDs `REM-P0.1.B-01` (Contract / Design Reconciliation) and `REM-P0.1.B-02` (Minimal Implementation Remediation). Each is `Execute` → AI Verification → Human Approval, with no automatic chaining. Both sit outside the 48/54 counts, which are unchanged.
+6. The gate prerequisites are preserved: Capability 1 Gate = BLOCKED and `EXE-P0.2.B` = BLOCKED until the B remediation completes and the Gate passes.
+7. The G/H approval evidence is recorded as not established and not assumed (§18.14.3).
+8. The stale current position is corrected (§18.18, §52, Readiness), with the v1.0.4/v1.0.5 positions labeled historical.
+9. `SOURCE-GAP-EXECPLAN-05`/`-06` are added for the D-4/D-3 open items.
+10. `a764689` remains non-implementation history (§18.16), unchanged.
+11. No source code, test, or `control_plane/` file changed. The files changed in this pass are exactly the ones the correction prompt authorizes: `docs/interfaces.md`, `docs/conventions.md`, `docs/execution-plan.md`, `docs/execution-plan-p0-steps.md`, `CLAUDE.md`. This was verified via `git status --short`.
+
+FINAL EXECUTION PLAN v1.0.6 CORRECTION COMPLETE — PLAN READY FOR FREEZE; CAPABILITY GATE P0.1 BLOCKED ON CONTRA-EXECPLAN-01 UNTIL REM-P0.1.B-01/-02 ARE APPROVED; EXE-P0.2.B BLOCKED — NEXT: Execute REM-P0.1.B-01

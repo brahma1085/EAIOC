@@ -1026,13 +1026,29 @@ The designated-action list requiring human approval is a policy decision, config
 
 Every request must produce a `CostLedgerEntry` carrying all standard ledger fields defined in ARCH §27.1. Incomplete ledger entries are marked `unverified`. Never fabricate savings figures.
 
-**Mandatory input fields:** `tokens.raw_input`, `tokens.sanitized`, `tokens.query_compressed`, `tokens.context`, `tokens.retrieved`, `tokens.pruned`, `tokens.deduplicated`, `tokens.context_compressed`, `tokens.cached_input`, `tokens.uncached_input`
+The nine ARCH §27.1 groups below **collectively constitute the complete standard ledger contract**: all 58 fields, as required by PS §8 ("Required fields include") and SPEC §18.1 ("Required Ledger Fields"). No group is optional, and no list below narrows the sentence above. INTF §28.1 carries these fields as nested groups (`input`, `output`, `cache`, `model`, `tools`, `workflow`, `cost`, `performance`, `quality`).
 
-**Mandatory output fields:** `tokens.raw_output`, `tokens.optimized_output`, `tokens.truncated`, `tokens.expanded_retry`
+*(Corrected 2026-09-23: this section previously gave explicit "Mandatory" lists for only the INPUT, OUTPUT, COST and PERFORMANCE groups — 29 of 58 fields — which contradicted its own "all standard ledger fields" requirement. The lists now cover all nine groups. No requirement was weakened.)*
 
-**Mandatory cost fields:** `cost.input`, `cost.output`, `cost.cache`, `cost.compression`, `cost.tool`, `cost.total_optimized`, `cost.baseline_estimated`, `cost.net_savings`, `cost.savings_pct`
+**INPUT fields:** `tokens.raw_input`, `tokens.sanitized`, `tokens.query_compressed`, `tokens.context`, `tokens.retrieved`, `tokens.pruned`, `tokens.deduplicated`, `tokens.context_compressed`, `tokens.cached_input`, `tokens.uncached_input`
 
-**Mandatory performance fields:** `perf.e2e_latency_ms`, `perf.ttft_ms`, `perf.model_latency_ms`, `perf.compression_latency_ms`, `perf.cache_latency_ms`, `perf.tool_latency_ms`
+**OUTPUT fields:** `tokens.raw_output`, `tokens.optimized_output`, `tokens.truncated`, `tokens.expanded_retry`
+
+**CACHE fields:** `cache.exact_hits`, `cache.semantic_hits`, `cache.misses`, `cache.writes`, `cache.reads`, `cache.cacheable_tokens`, `cache.reused_tokens`
+
+**MODEL fields:** `model.selected`, `model.candidate`, `model.routing_decision`, `model.escalation`, `model.reasoning_budget`, `model.reasoning_tokens` — reasoning tokens **where available** (PS §8; SPEC §18.1)
+
+**TOOLS fields:** `tools.calls_attempted`, `tools.calls_avoided`, `tools.output_tokens`, `tools.filtered_tokens`, `tools.cached_calls`
+
+**WORKFLOW fields:** `workflow.steps_planned`, `workflow.steps_executed`, `workflow.steps_skipped`, `workflow.early_exits`, `workflow.retries`
+
+**COST fields:** `cost.input`, `cost.output`, `cost.cache`, `cost.compression`, `cost.tool`, `cost.total_optimized`, `cost.baseline_estimated`, `cost.net_savings`, `cost.savings_pct` — tool cost **where available** (PS §8; SPEC §18.1)
+
+**PERFORMANCE fields:** `perf.e2e_latency_ms`, `perf.ttft_ms`, `perf.model_latency_ms`, `perf.compression_latency_ms`, `perf.cache_latency_ms`, `perf.tool_latency_ms`
+
+**QUALITY fields:** `quality.correctness_score`, `quality.relevance_score`, `quality.schema_compliance`, `quality.semantic_preservation`, `quality.user_task_score`, `quality.safety_validation`
+
+**Availability:** a "where available" field that has no value is represented as `null` (§5.4: applicable, no value in this context). It is never fabricated or converted to zero. Whether such a `null` makes an entry "incomplete" for the `unverified` rule above is not established by any authoritative source. It is recorded as an open decision (INTF §28.1, OD-28.1-B) and must not be assumed either way.
 
 ### 14.2 Net Savings Formula (Canonical)
 

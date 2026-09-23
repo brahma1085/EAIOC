@@ -2618,9 +2618,15 @@ The following operations are **unconditionally prohibited** at the interface lev
 
 ## 28. Cost Accounting Interface
 
-*Traceability: PS §11 (AC-001–022); ARCH §32; OBJ-009*
+*Traceability: PS §8 (Token and Cost Accounting); PS §11 (AC-001–022, incl. AC-005); ARCH §27, §27.1; ARCH §32; CONV §14.1; OBJ-009; OBJ-011*
 
 ### 28.1 CostLedgerEntry
+
+> **Correction (2026-09-23, AC-005 contract reconciliation):** `CostLedgerEntry` previously did not represent the complete ARCH §27.1 Standard Ledger Field model that PS §8 ("Required fields include"), SPEC §18.1 ("Required Ledger Fields") and CONV §14.1 ("carrying all standard ledger fields defined in ARCH §27.1") require. This was a frozen-source contract inconsistency, resolved by the documented precedence in CONV's header (Problem Statement > Engineering Specification > Architecture > Interfaces). The correction is additive:
+> - **Canonical ledger representation:** the nine nested groups below (`input` … `quality`) are the canonical representation of the 58 ARCH §27.1 Standard Ledger Fields. Each group corresponds to one §27.1 group (INPUT, OUTPUT, CACHE, MODEL, TOOLS, WORKFLOW, COST, PERFORMANCE, QUALITY). Each member is the lower_snake_case suffix of its §27.1 `category.field` identifier; the logical §27.1 name is recorded beside every member.
+> - **Existing fields retained unchanged:** all 29 pre-existing fields (identity, TOKEN ECONOMY, COST, ATTRIBUTION) are retained for interface compatibility. **None of them is declared equivalent to, an alias of, or a replacement for any §27.1 field**, because no authoritative source establishes such a correspondence. Similar names (e.g. `net_savings` / `cost.net_savings`) and ARCH §27.3 formula terms do not establish equivalence.
+> - **Types:** a type is stated only where the authoritative corpus establishes it: CONV §3.6 (token counts `integer`; monetary amounts `float` in `currency`) and CONV §5.2 (`tokens_*` → `integer`; `cost_*`/`*_cost`/`*_savings` → `float` with `currency` context; `score` → `float` in `[0.0, 1.0]`; `latency_ms` → `integer` milliseconds). §5.2's rules are applied to the §27.1 logical name; the `latency_ms` rule is read as applying to fields whose name ends in `latency_ms`. Every other member is typed `SOURCE-UNRESOLVED` (see the open decisions below). No enum, object, or domain type is invented.
+> - **Availability:** PS §8 and SPEC §18.1 qualify two fields as "where available": "Reasoning tokens where available" and "Tool cost where available". Those members are nullable (`| null`), per CONV §5.4 ("`null` means the field is applicable but has no value in this context"). An unavailable value is never fabricated, converted to zero, or declared invalid.
 
 ```
 CostLedgerEntry {
@@ -2659,8 +2665,119 @@ CostLedgerEntry {
   pricing_version:  string
   model_id:         string
   provider_id:      string
+
+  // ---- CANONICAL ARCH §27.1 STANDARD LEDGER FIELDS (nested, category-preserving) ----
+  // Member name = lower_snake_case suffix of the §27.1 identifier shown in each comment.
+
+  input: {                                   // §27.1 INPUT
+    raw_input:          integer              // tokens.raw_input
+    sanitized:          integer              // tokens.sanitized
+    query_compressed:   integer              // tokens.query_compressed      (AC-005: compressed)
+    context:            integer              // tokens.context
+    retrieved:          integer              // tokens.retrieved             (AC-005: retrieved)
+    pruned:             integer              // tokens.pruned
+    deduplicated:       integer              // tokens.deduplicated
+    context_compressed: integer              // tokens.context_compressed    (AC-005: compressed)
+    cached_input:       integer              // tokens.cached_input          (AC-005: cached)
+    uncached_input:     integer              // tokens.uncached_input
+  }
+
+  output: {                                  // §27.1 OUTPUT
+    raw_output:         integer              // tokens.raw_output
+    optimized_output:   integer              // tokens.optimized_output
+    truncated:          integer              // tokens.truncated
+    expanded_retry:     integer              // tokens.expanded_retry
+  }
+
+  cache: {                                   // §27.1 CACHE
+    exact_hits:         SOURCE-UNRESOLVED    // cache.exact_hits
+    semantic_hits:      SOURCE-UNRESOLVED    // cache.semantic_hits
+    misses:             SOURCE-UNRESOLVED    // cache.misses
+    writes:             SOURCE-UNRESOLVED    // cache.writes
+    reads:              SOURCE-UNRESOLVED    // cache.reads
+    cacheable_tokens:   integer              // cache.cacheable_tokens
+    reused_tokens:      integer              // cache.reused_tokens          (AC-005: reused)
+  }
+
+  model: {                                   // §27.1 MODEL
+    selected:           SOURCE-UNRESOLVED    // model.selected
+    candidate:          SOURCE-UNRESOLVED    // model.candidate
+    routing_decision:   SOURCE-UNRESOLVED    // model.routing_decision
+    escalation:         SOURCE-UNRESOLVED    // model.escalation
+    reasoning_budget:   SOURCE-UNRESOLVED    // model.reasoning_budget
+    reasoning_tokens:   integer | null       // model.reasoning_tokens       (PS §8: "where available")
+  }
+
+  tools: {                                   // §27.1 TOOLS
+    calls_attempted:    SOURCE-UNRESOLVED    // tools.calls_attempted
+    calls_avoided:      SOURCE-UNRESOLVED    // tools.calls_avoided
+    output_tokens:      integer              // tools.output_tokens
+    filtered_tokens:    integer              // tools.filtered_tokens
+    cached_calls:       SOURCE-UNRESOLVED    // tools.cached_calls
+  }
+
+  workflow: {                                // §27.1 WORKFLOW
+    steps_planned:      SOURCE-UNRESOLVED    // workflow.steps_planned
+    steps_executed:     SOURCE-UNRESOLVED    // workflow.steps_executed
+    steps_skipped:      SOURCE-UNRESOLVED    // workflow.steps_skipped
+    early_exits:        SOURCE-UNRESOLVED    // workflow.early_exits
+    retries:            SOURCE-UNRESOLVED    // workflow.retries
+  }
+
+  cost: {                                    // §27.1 COST  (float amounts in `currency`, CONV §3.6/§5.2)
+    input:              float                // cost.input
+    output:             float                // cost.output
+    cache:              float                // cost.cache
+    compression:        float                // cost.compression
+    tool:               float | null         // cost.tool                    (PS §8: "where available")
+    total_optimized:    float                // cost.total_optimized
+    baseline_estimated: float                // cost.baseline_estimated
+    net_savings:        float                // cost.net_savings
+    savings_pct:        float                // cost.savings_pct  (ARCH §27.3: Net Savings / Baseline Cost x 100 — a percentage, no currency)
+  }
+
+  performance: {                             // §27.1 PERFORMANCE
+    e2e_latency_ms:         integer          // perf.e2e_latency_ms
+    ttft_ms:                SOURCE-UNRESOLVED // perf.ttft_ms
+    model_latency_ms:       integer          // perf.model_latency_ms
+    compression_latency_ms: integer          // perf.compression_latency_ms
+    cache_latency_ms:       integer          // perf.cache_latency_ms
+    tool_latency_ms:        integer          // perf.tool_latency_ms
+  }
+
+  quality: {                                 // §27.1 QUALITY
+    correctness_score:      float            // quality.correctness_score    ([0.0, 1.0], CONV §5.2)
+    relevance_score:        float            // quality.relevance_score      ([0.0, 1.0], CONV §5.2)
+    schema_compliance:      SOURCE-UNRESOLVED // quality.schema_compliance
+    semantic_preservation:  SOURCE-UNRESOLVED // quality.semantic_preservation
+    user_task_score:        float            // quality.user_task_score      ([0.0, 1.0], CONV §5.2)
+    safety_validation:      SOURCE-UNRESOLVED // quality.safety_validation
+  }
 }
 ```
+
+**AC-005 coverage:** every AC-005 category is distinctly representable through the canonical groups.
+
+| AC-005 category | Representation | Basis |
+|---|---|---|
+| cached | `input.cached_input` | Explicit — §27.1 `tokens.cached_input` |
+| compressed | `input.query_compressed`, `input.context_compressed` | Explicit — §27.1 names contain "compressed" |
+| retrieved | `input.retrieved` | Explicit — §27.1 `tokens.retrieved` |
+| reused | `cache.reused_tokens` | Explicit — §27.1 `cache.reused_tokens` |
+| removed | `input.pruned`, `input.deduplicated`, `output.truncated` | Semantic — no §27.1 field is named "removed" |
+| generated | `output.raw_output`, `output.optimized_output` | Semantic — no §27.1 field is named "generated" |
+
+**Open decisions (recorded, not resolved here):**
+- **OD-28.1-A — unresolved types.** No authoritative source establishes a type for 22 members:
+  - `cache`: `exact_hits`, `semantic_hits`, `misses`, `writes`, `reads`
+  - `model`: `selected`, `candidate`, `routing_decision`, `escalation`, `reasoning_budget`
+  - `tools`: `calls_attempted`, `calls_avoided`, `cached_calls`
+  - `workflow`: all five members
+  - `performance`: `ttft_ms`
+  - `quality`: `schema_compliance`, `semantic_preservation`, `safety_validation`
+
+  CONV §3.6 and §5.2 cover only token counts, monetary/savings amounts, scores and `latency_ms`. Same-named fields in other schemas (e.g. `OptimizationPlan.reasoning_budget`, `LatencyRequirements.max_ttft_ms`) are **not** taken as establishing these types. Each type must be decided through a controlled correction before it is implemented.
+- **OD-28.1-B — availability vs. `unverified`.** CONV §14.1 marks incomplete ledger entries `unverified`, and CONV §14.4 requires `unverified` when token accounting fails. No authoritative source states whether a `null` "where available" value (`model.reasoning_tokens`, `cost.tool`) makes an entry incomplete. Until decided, implementations must neither treat such a `null` as a failure nor fabricate a value for it.
 
 ### 28.2 Cost Reporting Interface
 
