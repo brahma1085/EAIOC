@@ -1,5 +1,7 @@
 package com.eaioc.controlplane.accounting.ledger;
 
+import static com.eaioc.controlplane.accounting.ledger.LedgerFixtures.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import ch.qos.logback.classic.Level;
@@ -58,6 +60,7 @@ class LedgerObservabilityTest {
             "v1",
             "model-x",
             "provider-x",
+            INPUT, OUTPUT, CACHE, MODEL, TOOLS, WORKFLOW, COST, PERFORMANCE, QUALITY,
             true);
 
         store.write(entry);
@@ -102,6 +105,7 @@ class LedgerObservabilityTest {
             "v1",
             "model-x",
             "provider-x",
+            INPUT, OUTPUT, CACHE, MODEL, TOOLS, WORKFLOW, COST, PERFORMANCE, QUALITY,
             false); // verified = false — root CLAUDE.md rule 5: never fabricate savings
 
         store.write(unverifiedEntry);

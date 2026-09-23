@@ -1,5 +1,7 @@
 package com.eaioc.controlplane.accounting.ledger;
 
+import static com.eaioc.controlplane.accounting.ledger.LedgerFixtures.*;
+
 import java.time.Instant;
 import java.util.Map;
 
@@ -44,6 +46,7 @@ class StubPipelineStageCaller {
             "v1",
             "model-stub",
             "provider-stub",
+            INPUT, OUTPUT, CACHE, MODEL, TOOLS, WORKFLOW, COST, PERFORMANCE, QUALITY,
             true));
     }
 }

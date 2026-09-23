@@ -1,5 +1,7 @@
 package com.eaioc.controlplane.accounting.ledger;
 
+import static com.eaioc.controlplane.accounting.ledger.LedgerFixtures.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
@@ -67,6 +69,7 @@ class CostLedgerFailureRecoveryTest {
             1000L, 200L, 800L, 200L, 0L, 100L, 0L, 0L, 0L,
             0.10, 0.08, 0.0, 0.0, 0.02, 0.02, 20.0,
             java.util.Map.of(), "USD", "v1", "model-x", "provider-x",
+            INPUT, OUTPUT, CACHE, MODEL, TOOLS, WORKFLOW, COST, PERFORMANCE, QUALITY,
             true);
 
         CostLedgerEntry fallback = CostLedgerEntry.unverifiedFallback(

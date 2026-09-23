@@ -1,5 +1,7 @@
 package com.eaioc.controlplane.accounting.ledger;
 
+import static com.eaioc.controlplane.accounting.ledger.LedgerFixtures.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -94,6 +96,7 @@ class CostLedgerStoreTest {
             "v1",
             "model-x",
             "provider-x",
+            INPUT, OUTPUT, CACHE, MODEL, TOOLS, WORKFLOW, COST, PERFORMANCE, QUALITY,
             true);
     }
 
@@ -118,6 +121,7 @@ class CostLedgerStoreTest {
             "v1",
             "model-x",
             "provider-x",
+            INPUT, OUTPUT, CACHE, MODEL, TOOLS, WORKFLOW, COST, PERFORMANCE, QUALITY,
             true);
     }
 }
