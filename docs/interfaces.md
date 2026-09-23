@@ -2070,6 +2070,13 @@ EvaluationComparison {
 }
 ```
 
+> **P0 realization notes** *(2026-09-24; explicit human-operator decisions HQ-1 to HQ-6 recorded in `execution-plan.md` v1.0.8 §18.14.6).* The contract text above is **unchanged**. These notes record how P0 realizes it and which gaps remain open.
+> - **Forward contract (HQ-3, HQ-4).** P0 has no optimization stage. `run_optimized()` and `compare()` remain part of this contract but are deferred: the P0 baseline path does not operationally exercise them, and no stub or invented runtime behavior stands in for them. They become active when a later capability provides an optimized execution path and both BASELINE and OPTIMIZED runs exist. `report_regression()` is deferred; `RegressionReport` remains undefined (`SOURCE-GAP-EVAL-01`, `eval.md` §43).
+> - **Measurement sources (HQ-1).** A baseline field may be populated from an existing authoritative measurement only where this corpus defines **both** an explicit field mapping to that `EvaluationRun` field **and** a request-to-measurement retrieval contract. Neither exists today: no mapping from `CostLedgerEntry` (INTF-047, §28.1) or from the Observability contracts (INTF-031–034) to any `EvaluationRun` field is defined, and a same-looking field name is not a mapping. Recorded as `SOURCE-GAP-EXECPLAN-07`.
+> - **BASELINE-only runs (HQ-2).** Only the four `*_optimized` fields are nullable. No value is defined for a BASELINE-only run of the non-nullable comparison-dependent fields (`gross_savings`, `optimizer_overhead`, `net_savings`, `net_savings_pct`, `quality_delta`, `latency_delta_ms`, `regression_detected`, `regression_dimensions`), nor — while `SOURCE-GAP-EXECPLAN-07` is open — of the non-nullable baseline measurement fields. `EvaluationRun` has no `verified` representation, so §28.1's DB-1/HD-4 placeholder policy does not apply to it. No zero, placeholder, or sentinel may represent an unavailable value. Recorded as `SOURCE-GAP-EXECPLAN-08`.
+> - **Ownership (HQ-5).** `EvaluationRun` and `EvaluationComparison` are evaluation-owned schemas (`control_plane/evaluation/`, matching `conventions.md` §2.1's `evaluation/  # ARCH §32; INTF §18` entry). This is a narrow clarification, not a change to §2.1's layout for any other schema.
+> - **Idempotency (HQ-6).** `run_baseline()` is not idempotent by `request_id` — see §26.1.
+
 
 ---
 
@@ -2564,6 +2571,7 @@ PartialSuccess {
 | `SubAgentSpawnRequest` | `spawn_id` | Duplicate spawn ignored |
 | `MemoryEntry` write | `entry_id` | Upsert semantics |
 | `OptimizationDecisionRequest` | `request_id` + `plan_id` | Same input = same plan |
+| `EvaluationFramework.run_baseline` (INTF-030) | none — `run_id` identifies each execution | Not idempotent by `request_id`: `request_id` identifies the evaluated request, and multiple BASELINE runs for one `request_id` are permitted, each with a distinct `run_id` (HQ-6, `execution-plan.md` v1.0.8 §18.14.6). The `ControlPlaneRequest` row governs request processing, not evaluation runs |
 
 ### 26.2 Retry Policy
 

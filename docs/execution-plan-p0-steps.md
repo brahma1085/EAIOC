@@ -1,6 +1,6 @@
 # EAIOC — P0 Step-by-Step Claude Code Execution Runbook
 
-**Based on:** `docs/execution-plan.md` v1.0.7 (aligned with the v1.0.7 DB-2 decision-promotion correction; first reworked for the v1.0.4 correction)  
+**Based on:** `docs/execution-plan.md` v1.0.8 (aligned with the v1.0.8 HQ-decision and gate-sync correction; first reworked for the v1.0.4 correction)  
 **Purpose:** Human/operator runbook for executing EAIOC P0 implementation one atomic step at a time.  
 **Scope:** P0 only — 6 capabilities, 48 atomic execution units, 6 Capability Gates (54 gated checkpoints), plus the history-specific remediation units `REM-P0.1.A-01`/`-02` and `REM-P0.1.B-01`/`-02` (outside those counts).  
 **Execution model:** One command at a time. Every atomic unit is first **AI-verified by Claude Code** and only then presented for **explicit human approval** — both are required, neither substitutes for the other (`execution-plan.md` §18.12).  
@@ -42,7 +42,18 @@
 - **Status.**
   - `REM-P0.1.B-02` is **not executed**. It is eligible once this correction is committed.
   - Capability 1 Gate and `EXE-P0.2.B` remain **BLOCKED**.
-- **Next required command** (after this correction is committed and verified): `Execute REM-P0.1.B-02`.
+- *(Historical: at v1.0.7 the next command was `Execute REM-P0.1.B-02`; it was executed and approved — `c378dc9`.)*
+
+**What changed in v1.0.8 (summary):** `EXE-P0.2.B` design-gap decisions and gate-state sync, documentation only.
+- **Gate state synchronized.** On 2026-09-23 you approved `REM-P0.1.B-02`, `EXE-P0.1.G`, `EXE-P0.1.H` and Capability Gate P0.1 (after its AI PASS). Capability 1 is **closed**.
+- **Your decisions HQ-1 to HQ-6** are recorded in `execution-plan.md` §18.14.6 and, for the contract, as notes in `interfaces.md` §18 and a row in §26.1 (INTF-030 text unchanged):
+  - HQ-1: no new measurement source; a baseline field needs an existing mapping **and** a retrieval contract. Observability is not a `EXE-P0.2.B` dependency.
+  - HQ-2: no `verified` field, no nullable change, no zeros or sentinels for unavailable values.
+  - HQ-3/HQ-4: `run_optimized()`, `compare()` and `report_regression()` are deferred forward contract; no stub; `RegressionReport` not invented.
+  - HQ-5: `EvaluationRun`/`EvaluationComparison` live in `control_plane/evaluation/`.
+  - HQ-6: `run_baseline()` is not idempotent by `request_id`.
+- **New gaps.** `SOURCE-GAP-EXECPLAN-07` (no mapping/retrieval contract for any baseline measurement) and `-08` (no BASELINE-only representation for the non-nullable comparison fields) are **blocking**; `-09` (tenant check inside `compare()`) is not.
+- **Status.** `EXE-P0.2.B` is **BLOCKED** and not executed. No unit is executable until a source-contract correction closes `-07`/`-08`.
 
 ---
 
@@ -683,6 +694,8 @@ Approve REM-P0.1.B-02
 
 ### G/H approval evidence (v1.0.6)
 
+*v1.0.8: resolved — you issued `Approve EXE-P0.1.G` and `Approve EXE-P0.1.H` on 2026-09-23. The text below is kept as history.*
+
 The repository does not show that `Approve EXE-P0.1.G` or `Approve EXE-P0.1.H` was ever issued. Before the Gate review, either confirm explicitly that you approved them earlier, or review their retrospective AI verification and send:
 
 ```text
@@ -760,6 +773,8 @@ Capability 2.A has been approved
 ```
 
 If any check fails → `AI VERIFICATION: BLOCKED`, no code, no commit, and it names exactly what is missing. If it passes, `run_baseline()` is built against the shared `ControlPlaneRequest` from `core/schemas/` (never a harness-local stand-in); `run_optimized()` is an explicit no-op.
+
+**v1.0.8 — currently blocked.** The guard passes, but `SOURCE-GAP-EXECPLAN-07`/`-08` (`execution-plan.md` §18.14.6) mean an honest `EvaluationRun` can't be built yet. Only the baseline path is in scope; `run_optimized()`, `compare()` and `report_regression()` are deferred with no stub. Don't send this command until a source-contract correction has closed `-07`/`-08`.
 
 Then:
 
@@ -1849,9 +1864,9 @@ Any AI VERIFICATION BLOCKED → no approval → remediation → re-Execute
 
 ---
 
-# 20. Current Position (governing baseline: `execution-plan.md` v1.0.7)
+# 20. Current Position (governing baseline: `execution-plan.md` v1.0.8)
 
-Taken from the git history and `execution-plan.md` §18.14 / §18.18 (v1.0.7). Check `git log --oneline` for anything newer.
+Taken from the git history and `execution-plan.md` §18.14 / §18.18 (v1.0.8). Check `git log --oneline` for anything newer.
 
 ```text
 EXE-P0.1.A–H:
@@ -1872,71 +1887,65 @@ HD-1 through HD-4:
 DECIDED (by the operator in REM-P0.1.B-01)
 
 Source-contract promotion (DB-2, execution-plan v1.0.7):
-CURRENT DOCUMENTATION CORRECTION
+COMMITTED (197da0a)
 
 REM-P0.1.B-02:
-NOT EXECUTED — BLOCKED until the DB-2 correction is committed
+DONE + AI VERIFIED + HUMAN APPROVED (c378dc9)
 
 EXE-P0.1.G / EXE-P0.1.H approvals:
-NOT EVIDENCED — explicit human confirmation required
+APPROVED (2026-09-23)
 
 Capability Gate P0.1:
-BLOCKED (AC-005 / CONTRA-EXECPLAN-01)
+AI GATE VERIFICATION PASS + APPROVED (2026-09-23) — Capability 1 CLOSED
 
 EXE-P0.2.A:
 EXECUTED + APPROVED
 
 EXE-P0.2.B:
-BLOCKED — requires Capability Gate P0.1 approval (§18.15 guard)
+BLOCKED — §18.15 guard passes; SOURCE-GAP-EXECPLAN-07/-08 open (§18.14.6).
+Not executed; no code.
 ```
 
 ```text
-NEXT REQUIRED COMMAND (only after the DB-2 correction is committed and verified)
+NEXT REQUIRED STEP
 
-Execute REM-P0.1.B-02
+No unit is executable yet. First: a user-directed source-contract correction
+that closes SOURCE-GAP-EXECPLAN-07/-08. Then: Execute EXE-P0.2.B
 ```
 
-Do **not** restart `EXE-P0.1.A` or `EXE-P0.1.B`. Do **not** execute `EXE-P0.2.B` before `REM-P0.1.B-02` is approved and `Approve CAPABILITY-GATE P0.1` has been given.
+Do **not** restart `EXE-P0.1.A` or `EXE-P0.1.B`, and do **not** re-send `Execute EXE-P0.2.B` before that correction is committed.
 
 Detail per unit:
 
 | Unit | Commit | Status |
 |---|---|---|
 | `EXE-P0.1.A` | `a345742` | Executed + approved (v1.0.3). Reconciled **GAP FOUND** (shared `core/`), closed by the REM-A units |
-| `EXE-P0.1.B` | `e353dcf` | Executed + approved (v1.0.3). Reconciled **GAP FOUND** (AC-005 / `INTF-047`, `CONTRA-EXECPLAN-01`); to be closed by the REM-B units |
+| `EXE-P0.1.B` | `e353dcf` | Executed + approved (v1.0.3). Reconciled **GAP FOUND** (AC-005 / `INTF-047`, `CONTRA-EXECPLAN-01`); closed by the REM-B units |
 | `EXE-P0.1.C` | `5d8640e` | Executed + approved (v1.0.3) |
 | `EXE-P0.1.D` | `e1730ce` | Executed + approved (v1.0.3) |
 | `EXE-P0.1.E` | `3987957` | Executed + approved (v1.0.3) |
 | `EXE-P0.1.F` | — (none, correct) | `NOT APPLICABLE` — acknowledged and approved |
-| `EXE-P0.1.G` | `95a1267` | Executed (v1.0.3). **Approval not evidenced** |
-| `EXE-P0.1.H` | `0c18174` | Executed (v1.0.3). **Approval not evidenced** |
+| `EXE-P0.1.G` | `95a1267` | Executed (v1.0.3). Approved 2026-09-23 |
+| `EXE-P0.1.H` | `0c18174` | Executed (v1.0.3). Approved 2026-09-23 |
 | `REM-P0.1.A-01` | `c05e3e7`, `93c1ba3` | Done + approved (design + Amendment 1) |
 | `REM-P0.1.A-02` | `5e12148` | Done + approved (shared `core/` types) |
 | `REM-P0.1.B-01` | `34dd1f1` | Done + AI verified + human approved (Contract / Design Reconciliation; HD-1 to HD-4) |
-| DB-2 (plan v1.0.7) | — (this correction) | HD-1 to HD-4 promoted into `interfaces.md` §28.1 / `conventions.md` §14.1 |
-| `REM-P0.1.B-02` | — | **Not executed — next, once DB-2 is committed** (Minimal Implementation Remediation) |
-| Capability Gate P0.1 | — (never a commit) | **BLOCKED** |
+| DB-2 (plan v1.0.7) | `197da0a` | HD-1 to HD-4 promoted into `interfaces.md` §28.1 / `conventions.md` §14.1 |
+| `REM-P0.1.B-02` | `c378dc9` | Done + AI verified + human approved (Minimal Implementation Remediation) |
+| Capability Gate P0.1 | — (never a commit) | AI PASS + **approved** 2026-09-23 — Capability 1 closed |
 | `EXE-P0.2.A` | `0e92261` | Executed + approved. Reconciled: **PASS** |
-| `EXE-P0.2.B` | — | Blocked — needs Gate P0.1 approval |
+| `EXE-P0.2.B` | — | **Blocked** — `SOURCE-GAP-EXECPLAN-07`/`-08` (plan v1.0.8 §18.14.6); not executed |
 | `c3d6ecf`, `a764689` | — | Not implementation commits (`CLAUDE.md` / `.vscode/`) — not counted |
 
 **Remaining sequence up to `EXE-P0.2.B`** — one line at a time, with Claude Code stopping after every step:
 
 ```text
-(commit the DB-2 / v1.0.7 documentation correction)
-
-Execute REM-P0.1.B-02
-Approve REM-P0.1.B-02
-
-(G/H evidence) confirm the earlier approvals explicitly, or issue after review:
-Approve EXE-P0.1.G
-Approve EXE-P0.1.H
-
-Review CAPABILITY-GATE P0.1
-Approve CAPABILITY-GATE P0.1
+(needed) user-directed source-contract correction closing SOURCE-GAP-EXECPLAN-07/-08
 
 Execute EXE-P0.2.B
 Approve EXE-P0.2.B
 ```
+
+*(Historical v1.0.7 sequence — `REM-P0.1.B-02`, the G/H approvals and the Capability 1 Gate — is complete: all issued and approved on 2026-09-23.)*
 
 After `EXE-P0.2.B`, continue with §8's Capability 2 steps from `Execute EXE-P0.2.C`.
