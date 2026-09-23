@@ -1,6 +1,6 @@
 # EAIOC — P0 Step-by-Step Claude Code Execution Runbook
 
-**Based on:** `docs/execution-plan.md` v1.0.6 (aligned with the v1.0.6 AC-005 source-and-plan correction; first reworked for the v1.0.4 correction)  
+**Based on:** `docs/execution-plan.md` v1.0.7 (aligned with the v1.0.7 DB-2 decision-promotion correction; first reworked for the v1.0.4 correction)  
 **Purpose:** Human/operator runbook for executing EAIOC P0 implementation one atomic step at a time.  
 **Scope:** P0 only — 6 capabilities, 48 atomic execution units, 6 Capability Gates (54 gated checkpoints), plus the history-specific remediation units `REM-P0.1.A-01`/`-02` and `REM-P0.1.B-01`/`-02` (outside those counts).  
 **Execution model:** One command at a time. Every atomic unit is first **AI-verified by Claude Code** and only then presented for **explicit human approval** — both are required, neither substitutes for the other (`execution-plan.md` §18.12).  
@@ -28,7 +28,21 @@
 - **New remediation units.** `REM-P0.1.B-01` (Contract / Design Reconciliation) and `REM-P0.1.B-02` (Minimal Implementation Remediation) are formally authorized — see §7b and §20.
 - **G/H approvals.** `Approve EXE-P0.1.G` / `Approve EXE-P0.1.H` are **not evidenced** in the repository; explicit confirmation is required before the Capability 1 Gate.
 - **Status.** Capability 1 Gate: **BLOCKED**. `EXE-P0.2.B`: **BLOCKED**.
-- **Next required command: `Execute REM-P0.1.B-01`** (see §20).
+- *(Historical: at v1.0.6 the next command was `Execute REM-P0.1.B-01`; it is now done and approved — `34dd1f1`.)*
+
+**What changed in v1.0.7 (summary):** DB-2 decision promotion, documentation only.
+- **Decisions promoted into the contract.** Your `REM-P0.1.B-01` decisions HD-1 to HD-4 are now written into `interfaces.md` §28.1 and `conventions.md` §14.1:
+  - 13 counters are `integer`;
+  - the `model` strings, plus `escalation` as a boolean;
+  - `ttft_ms` is `integer`, `semantic_preservation` a `float` score, `schema_compliance` and `safety_validation` booleans;
+  - only `reasoning_tokens` and `cost.tool` are nullable, and a null there does not make an entry `unverified`;
+  - a required field that can't be measured makes the entry `unverified`.
+- **Gaps closed.** `SOURCE-GAP-EXECPLAN-05`/`-06` are resolved.
+- **Placeholder rule unchanged.** DB-1 is as approved: placeholders only in `verified=false` entries, never counted as measured values.
+- **Status.**
+  - `REM-P0.1.B-02` is **not executed**. It is eligible once this correction is committed.
+  - Capability 1 Gate and `EXE-P0.2.B` remain **BLOCKED**.
+- **Next required command** (after this correction is committed and verified): `Execute REM-P0.1.B-02`.
 
 ---
 
@@ -646,6 +660,8 @@ Approve REM-P0.1.B-01
 ```
 
 Then, if you decided any types or behavior, those must also be written into `interfaces.md` §28.1 through a correction you direct, before Remediation 2.
+
+*(Status v1.0.7: `REM-P0.1.B-01` is done, AI-verified and human-approved (`34dd1f1`). Its decisions HD-1 to HD-4 are promoted into the contract by the DB-2 correction, `execution-plan.md` §18.14.5.)*
 
 **Remediation 2 — Minimal Implementation Remediation**
 
@@ -1777,10 +1793,10 @@ For a brand-new run of this plan from scratch, the first command is:
 Execute EXE-P0.1.A
 ```
 
-**For this repository, the next command is not `EXE-P0.1.A`** — do not restart it: Capability 1 is already largely executed. Once you have reviewed and accepted `execution-plan.md` v1.0.6, the next required command is:
+**For this repository, the next command is not `EXE-P0.1.A`** — do not restart it: Capability 1 is already largely executed. Once the v1.0.7 DB-2 correction is committed and you have accepted it, the next required command is:
 
 ```text
-Execute REM-P0.1.B-01
+Execute REM-P0.1.B-02
 ```
 
 See §20 for the full remaining sequence.
@@ -1833,9 +1849,9 @@ Any AI VERIFICATION BLOCKED → no approval → remediation → re-Execute
 
 ---
 
-# 20. Current Position (governing baseline: `execution-plan.md` v1.0.6)
+# 20. Current Position (governing baseline: `execution-plan.md` v1.0.7)
 
-Taken from the git history and `execution-plan.md` §18.14 / §18.18 (v1.0.6). Check `git log --oneline` for anything newer.
+Taken from the git history and `execution-plan.md` §18.14 / §18.18 (v1.0.7). Check `git log --oneline` for anything newer.
 
 ```text
 EXE-P0.1.A–H:
@@ -1850,10 +1866,16 @@ REM-P0.1.A-02:
 DONE + APPROVED (5e12148)
 
 REM-P0.1.B-01:
-NOT STARTED — authorized by execution-plan v1.0.6
+DONE + AI VERIFIED + HUMAN APPROVED (34dd1f1)
+
+HD-1 through HD-4:
+DECIDED (by the operator in REM-P0.1.B-01)
+
+Source-contract promotion (DB-2, execution-plan v1.0.7):
+CURRENT DOCUMENTATION CORRECTION
 
 REM-P0.1.B-02:
-NOT STARTED — authorized by execution-plan v1.0.6
+NOT EXECUTED — BLOCKED until the DB-2 correction is committed
 
 EXE-P0.1.G / EXE-P0.1.H approvals:
 NOT EVIDENCED — explicit human confirmation required
@@ -1869,12 +1891,12 @@ BLOCKED — requires Capability Gate P0.1 approval (§18.15 guard)
 ```
 
 ```text
-NEXT REQUIRED COMMAND
+NEXT REQUIRED COMMAND (only after the DB-2 correction is committed and verified)
 
-Execute REM-P0.1.B-01
+Execute REM-P0.1.B-02
 ```
 
-Do **not** restart `EXE-P0.1.A` or `EXE-P0.1.B`. Do **not** execute `EXE-P0.2.B` before the B remediation units are approved and `Approve CAPABILITY-GATE P0.1` has been given.
+Do **not** restart `EXE-P0.1.A` or `EXE-P0.1.B`. Do **not** execute `EXE-P0.2.B` before `REM-P0.1.B-02` is approved and `Approve CAPABILITY-GATE P0.1` has been given.
 
 Detail per unit:
 
@@ -1890,8 +1912,9 @@ Detail per unit:
 | `EXE-P0.1.H` | `0c18174` | Executed (v1.0.3). **Approval not evidenced** |
 | `REM-P0.1.A-01` | `c05e3e7`, `93c1ba3` | Done + approved (design + Amendment 1) |
 | `REM-P0.1.A-02` | `5e12148` | Done + approved (shared `core/` types) |
-| `REM-P0.1.B-01` | — | **Not started — next** (Contract / Design Reconciliation) |
-| `REM-P0.1.B-02` | — | Not started (Minimal Implementation Remediation) |
+| `REM-P0.1.B-01` | `34dd1f1` | Done + AI verified + human approved (Contract / Design Reconciliation; HD-1 to HD-4) |
+| DB-2 (plan v1.0.7) | — (this correction) | HD-1 to HD-4 promoted into `interfaces.md` §28.1 / `conventions.md` §14.1 |
+| `REM-P0.1.B-02` | — | **Not executed — next, once DB-2 is committed** (Minimal Implementation Remediation) |
 | Capability Gate P0.1 | — (never a commit) | **BLOCKED** |
 | `EXE-P0.2.A` | `0e92261` | Executed + approved. Reconciled: **PASS** |
 | `EXE-P0.2.B` | — | Blocked — needs Gate P0.1 approval |
@@ -1900,10 +1923,7 @@ Detail per unit:
 **Remaining sequence up to `EXE-P0.2.B`** — one line at a time, with Claude Code stopping after every step:
 
 ```text
-Execute REM-P0.1.B-01
-Approve REM-P0.1.B-01
-
-(user-directed interfaces.md §28.1 correction for any types / availability behavior decided in REM-P0.1.B-01)
+(commit the DB-2 / v1.0.7 documentation correction)
 
 Execute REM-P0.1.B-02
 Approve REM-P0.1.B-02
@@ -1918,7 +1938,5 @@ Approve CAPABILITY-GATE P0.1
 Execute EXE-P0.2.B
 Approve EXE-P0.2.B
 ```
-
-`REM-P0.1.B-01` must put the 22 `SOURCE-UNRESOLVED` ledger types (`SOURCE-GAP-EXECPLAN-05`) and the availability-vs-`unverified` question (`SOURCE-GAP-EXECPLAN-06`) to you for an explicit decision. Expect those questions in its report; it will not invent answers.
 
 After `EXE-P0.2.B`, continue with §8's Capability 2 steps from `Execute EXE-P0.2.C`.

@@ -2625,8 +2625,8 @@ The following operations are **unconditionally prohibited** at the interface lev
 > **Correction (2026-09-23, AC-005 contract reconciliation):** `CostLedgerEntry` previously did not represent the complete ARCH §27.1 Standard Ledger Field model that PS §8 ("Required fields include"), SPEC §18.1 ("Required Ledger Fields") and CONV §14.1 ("carrying all standard ledger fields defined in ARCH §27.1") require. This was a frozen-source contract inconsistency, resolved by the documented precedence in CONV's header (Problem Statement > Engineering Specification > Architecture > Interfaces). The correction is additive:
 > - **Canonical ledger representation:** the nine nested groups below (`input` … `quality`) are the canonical representation of the 58 ARCH §27.1 Standard Ledger Fields. Each group corresponds to one §27.1 group (INPUT, OUTPUT, CACHE, MODEL, TOOLS, WORKFLOW, COST, PERFORMANCE, QUALITY). Each member is the lower_snake_case suffix of its §27.1 `category.field` identifier; the logical §27.1 name is recorded beside every member.
 > - **Existing fields retained unchanged:** all 29 pre-existing fields (identity, TOKEN ECONOMY, COST, ATTRIBUTION) are retained for interface compatibility. **None of them is declared equivalent to, an alias of, or a replacement for any §27.1 field**, because no authoritative source establishes such a correspondence. Similar names (e.g. `net_savings` / `cost.net_savings`) and ARCH §27.3 formula terms do not establish equivalence.
-> - **Types:** a type is stated only where the authoritative corpus establishes it: CONV §3.6 (token counts `integer`; monetary amounts `float` in `currency`) and CONV §5.2 (`tokens_*` → `integer`; `cost_*`/`*_cost`/`*_savings` → `float` with `currency` context; `score` → `float` in `[0.0, 1.0]`; `latency_ms` → `integer` milliseconds). §5.2's rules are applied to the §27.1 logical name; the `latency_ms` rule is read as applying to fields whose name ends in `latency_ms`. Every other member is typed `SOURCE-UNRESOLVED` (see the open decisions below). No enum, object, or domain type is invented.
-> - **Availability:** PS §8 and SPEC §18.1 qualify two fields as "where available": "Reasoning tokens where available" and "Tool cost where available". Those members are nullable (`| null`), per CONV §5.4 ("`null` means the field is applicable but has no value in this context"). An unavailable value is never fabricated, converted to zero, or declared invalid.
+> - **Types:** CONV §3.6 (token counts `integer`; monetary amounts `float` in `currency`) and CONV §5.2 (`tokens_*` → `integer`; `cost_*`/`*_cost`/`*_savings` → `float` with `currency` context; `score` → `float` in `[0.0, 1.0]`; `latency_ms` → `integer` milliseconds) type 36 members. §5.2's rules are applied to the §27.1 logical name, and the `latency_ms` rule is read as applying to fields whose name ends in `latency_ms`. The other 22 members, originally `SOURCE-UNRESOLVED`, are typed by explicit human operator decisions **HD-1 to HD-3** (marked `[HD-n]` in the schema; see "Resolved decisions" below). No enum, object, or domain type is invented; in particular, `model.reasoning_budget` is a `string` and does **not** reuse `OptimizationPlan.reasoning_budget`'s enum.
+> - **Availability and `unverified` (HD-4):** PS §8 and SPEC §18.1 qualify two fields as "where available": "Reasoning tokens where available" and "Tool cost where available". **Only** those two members, `model.reasoning_tokens` and `cost.tool`, are nullable (`| null`, per CONV §5.4: "`null` means the field is applicable but has no value in this context"). A `null` in either of them does **not**, by itself, make the entry `unverified`. Every other member is non-nullable and must carry a measured value. A non-nullable member that cannot be measured is a **measurement verification failure**: the entry is marked `unverified` (`verified = false`), alongside accounting failures under CONV §14.4. An unavailable measurement is never presented or counted as a measured value.
 
 ```
 CostLedgerEntry {
@@ -2690,38 +2690,38 @@ CostLedgerEntry {
   }
 
   cache: {                                   // §27.1 CACHE
-    exact_hits:         SOURCE-UNRESOLVED    // cache.exact_hits
-    semantic_hits:      SOURCE-UNRESOLVED    // cache.semantic_hits
-    misses:             SOURCE-UNRESOLVED    // cache.misses
-    writes:             SOURCE-UNRESOLVED    // cache.writes
-    reads:              SOURCE-UNRESOLVED    // cache.reads
+    exact_hits:         integer              // cache.exact_hits  [HD-1]
+    semantic_hits:      integer              // cache.semantic_hits  [HD-1]
+    misses:             integer              // cache.misses  [HD-1]
+    writes:             integer              // cache.writes  [HD-1]
+    reads:              integer              // cache.reads  [HD-1]
     cacheable_tokens:   integer              // cache.cacheable_tokens
     reused_tokens:      integer              // cache.reused_tokens          (AC-005: reused)
   }
 
   model: {                                   // §27.1 MODEL
-    selected:           SOURCE-UNRESOLVED    // model.selected
-    candidate:          SOURCE-UNRESOLVED    // model.candidate
-    routing_decision:   SOURCE-UNRESOLVED    // model.routing_decision
-    escalation:         SOURCE-UNRESOLVED    // model.escalation
-    reasoning_budget:   SOURCE-UNRESOLVED    // model.reasoning_budget
+    selected:           string               // model.selected  [HD-2]
+    candidate:          string               // model.candidate  [HD-2]
+    routing_decision:   string               // model.routing_decision  [HD-2]
+    escalation:         boolean              // model.escalation  [HD-2]
+    reasoning_budget:   string               // model.reasoning_budget  [HD-2]
     reasoning_tokens:   integer | null       // model.reasoning_tokens       (PS §8: "where available")
   }
 
   tools: {                                   // §27.1 TOOLS
-    calls_attempted:    SOURCE-UNRESOLVED    // tools.calls_attempted
-    calls_avoided:      SOURCE-UNRESOLVED    // tools.calls_avoided
+    calls_attempted:    integer              // tools.calls_attempted  [HD-1]
+    calls_avoided:      integer              // tools.calls_avoided  [HD-1]
     output_tokens:      integer              // tools.output_tokens
     filtered_tokens:    integer              // tools.filtered_tokens
-    cached_calls:       SOURCE-UNRESOLVED    // tools.cached_calls
+    cached_calls:       integer              // tools.cached_calls  [HD-1]
   }
 
   workflow: {                                // §27.1 WORKFLOW
-    steps_planned:      SOURCE-UNRESOLVED    // workflow.steps_planned
-    steps_executed:     SOURCE-UNRESOLVED    // workflow.steps_executed
-    steps_skipped:      SOURCE-UNRESOLVED    // workflow.steps_skipped
-    early_exits:        SOURCE-UNRESOLVED    // workflow.early_exits
-    retries:            SOURCE-UNRESOLVED    // workflow.retries
+    steps_planned:      integer              // workflow.steps_planned  [HD-1]
+    steps_executed:     integer              // workflow.steps_executed  [HD-1]
+    steps_skipped:      integer              // workflow.steps_skipped  [HD-1]
+    early_exits:        integer              // workflow.early_exits  [HD-1]
+    retries:            integer              // workflow.retries  [HD-1]
   }
 
   cost: {                                    // §27.1 COST  (float amounts in `currency`, CONV §3.6/§5.2)
@@ -2738,7 +2738,7 @@ CostLedgerEntry {
 
   performance: {                             // §27.1 PERFORMANCE
     e2e_latency_ms:         integer          // perf.e2e_latency_ms
-    ttft_ms:                SOURCE-UNRESOLVED // perf.ttft_ms
+    ttft_ms:                integer           // perf.ttft_ms  (milliseconds)  [HD-3]
     model_latency_ms:       integer          // perf.model_latency_ms
     compression_latency_ms: integer          // perf.compression_latency_ms
     cache_latency_ms:       integer          // perf.cache_latency_ms
@@ -2748,10 +2748,10 @@ CostLedgerEntry {
   quality: {                                 // §27.1 QUALITY
     correctness_score:      float            // quality.correctness_score    ([0.0, 1.0], CONV §5.2)
     relevance_score:        float            // quality.relevance_score      ([0.0, 1.0], CONV §5.2)
-    schema_compliance:      SOURCE-UNRESOLVED // quality.schema_compliance
-    semantic_preservation:  SOURCE-UNRESOLVED // quality.semantic_preservation
+    schema_compliance:      boolean           // quality.schema_compliance  [HD-3]
+    semantic_preservation:  float             // quality.semantic_preservation  ([0.0, 1.0])  [HD-3]
     user_task_score:        float            // quality.user_task_score      ([0.0, 1.0], CONV §5.2)
-    safety_validation:      SOURCE-UNRESOLVED // quality.safety_validation
+    safety_validation:      boolean           // quality.safety_validation  [HD-3]
   }
 }
 ```
@@ -2767,17 +2767,13 @@ CostLedgerEntry {
 | removed | `input.pruned`, `input.deduplicated`, `output.truncated` | Semantic — no §27.1 field is named "removed" |
 | generated | `output.raw_output`, `output.optimized_output` | Semantic — no §27.1 field is named "generated" |
 
-**Open decisions (recorded, not resolved here):**
-- **OD-28.1-A — unresolved types.** No authoritative source establishes a type for 22 members:
-  - `cache`: `exact_hits`, `semantic_hits`, `misses`, `writes`, `reads`
-  - `model`: `selected`, `candidate`, `routing_decision`, `escalation`, `reasoning_budget`
-  - `tools`: `calls_attempted`, `calls_avoided`, `cached_calls`
-  - `workflow`: all five members
-  - `performance`: `ttft_ms`
-  - `quality`: `schema_compliance`, `semantic_preservation`, `safety_validation`
-
-  CONV §3.6 and §5.2 cover only token counts, monetary/savings amounts, scores and `latency_ms`. Same-named fields in other schemas (e.g. `OptimizationPlan.reasoning_budget`, `LatencyRequirements.max_ttft_ms`) are **not** taken as establishing these types. Each type must be decided through a controlled correction before it is implemented.
-- **OD-28.1-B — availability vs. `unverified`.** CONV §14.1 marks incomplete ledger entries `unverified`, and CONV §14.4 requires `unverified` when token accounting fails. No authoritative source states whether a `null` "where available" value (`model.reasoning_tokens`, `cost.tool`) makes an entry incomplete. Until decided, implementations must neither treat such a `null` as a failure nor fabricate a value for it.
+**Resolved decisions** *(originally recorded as open decisions; resolved 2026-09-23 by explicit human operator decisions HD-1 to HD-4 during `REM-P0.1.B-01`, promoted into this contract as DB-2)*:
+- **OD-28.1-A — unresolved types → CLOSED.** The 22 members no authoritative source typed are now typed as follows. CONV §3.6/§5.2 still cover only token counts, monetary/savings amounts, scores and `latency_ms`, and same-named fields in other schemas were not used as type evidence.
+  - **HD-1:** the 13 counters are `integer` non-negative event/step counts — `cache`: `exact_hits`, `semantic_hits`, `misses`, `writes`, `reads`; `tools`: `calls_attempted`, `calls_avoided`, `cached_calls`; `workflow`: `steps_planned`, `steps_executed`, `steps_skipped`, `early_exits`, `retries`. A measured zero is a legitimate measured value.
+  - **HD-2:** `model.selected`, `model.candidate`, `model.routing_decision` (a provider/model-neutral decision label; no routing enum) and `model.reasoning_budget` are `string`; `model.escalation` is `boolean` (whether escalation occurred). The `OptimizationPlan.reasoning_budget` enum `{LOW, MEDIUM, HIGH, MAX}` is **not** reused.
+  - **HD-3:** `performance.ttft_ms` is `integer` milliseconds; `quality.semantic_preservation` is a `float` score in `[0.0, 1.0]`; `quality.schema_compliance` and `quality.safety_validation` are `boolean` validation outcomes, not scores.
+- **OD-28.1-B — availability vs. `unverified` → CLOSED (HD-4).** Only `model.reasoning_tokens` and `cost.tool` are nullable, and a `null` there does not by itself make the entry `unverified` ("measurement not available for a where-available field" ≠ "accounting verification failed"). `unverified` / `verified = false` is reserved for an actual accounting failure (CONV §14.4) or a measurement verification failure, meaning a non-nullable member that cannot be measured.
+- **Unmeasurable non-nullable members (DB-1, the approved `REM-P0.1.B-01` design).** Such a member may hold a placeholder (`0` / `0.0` / `false` / `"unknown"`) **only** in an entry marked `verified = false`. The placeholder is never presented, reported, or counted as a measured value (root rule 5; CONV §14.4).
 
 ### 28.2 Cost Reporting Interface
 

@@ -1048,7 +1048,14 @@ The nine ARCH §27.1 groups below **collectively constitute the complete standar
 
 **QUALITY fields:** `quality.correctness_score`, `quality.relevance_score`, `quality.schema_compliance`, `quality.semantic_preservation`, `quality.user_task_score`, `quality.safety_validation`
 
-**Availability:** a "where available" field that has no value is represented as `null` (§5.4: applicable, no value in this context). It is never fabricated or converted to zero. Whether such a `null` makes an entry "incomplete" for the `unverified` rule above is not established by any authoritative source. It is recorded as an open decision (INTF §28.1, OD-28.1-B) and must not be assumed either way.
+**Availability, null and `unverified` (HD-4; INTF §28.1 OD-28.1-B, closed 2026-09-23):** these rules apply across the whole canonical ledger contract.
+
+1. `model.reasoning_tokens` may be `null` when it is unavailable, and `cost.tool` may be `null` when it is unavailable ("where available", PS §8 / SPEC §18.1; `null` per §5.4). These are the **only** nullable canonical members.
+2. Such a `null` does **not**, by itself, make the ledger entry `unverified`.
+3. `unverified` remains tied to a verification failure: either an accounting failure (§14.4) or a measurement verification failure, meaning a non-nullable canonical member that cannot be measured.
+4. A missing or unavailable measurement is never presented, reported, or counted as a measured value. Where a non-nullable member cannot be measured, any placeholder it holds (INTF §28.1, DB-1) appears only in an entry marked `unverified`, and is excluded from all savings and measured-value reporting, as the "Never fabricate" rule above requires.
+
+*(Corrected 2026-09-23: this paragraph previously recorded the null/`unverified` interaction as an unresolved open decision.)*
 
 ### 14.2 Net Savings Formula (Canonical)
 
