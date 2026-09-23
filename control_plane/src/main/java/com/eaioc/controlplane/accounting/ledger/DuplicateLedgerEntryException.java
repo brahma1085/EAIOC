@@ -10,6 +10,8 @@ package com.eaioc.controlplane.accounting.ledger;
  */
 public final class DuplicateLedgerEntryException extends IllegalStateException {
 
+    private static final long serialVersionUID = 1L;
+
     public DuplicateLedgerEntryException(String message) {
         super(message);
     }

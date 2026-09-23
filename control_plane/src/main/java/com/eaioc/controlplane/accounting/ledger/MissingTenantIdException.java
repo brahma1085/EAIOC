@@ -13,6 +13,8 @@ package com.eaioc.controlplane.accounting.ledger;
  */
 public final class MissingTenantIdException extends IllegalArgumentException {
 
+    private static final long serialVersionUID = 1L;
+
     public MissingTenantIdException(String message) {
         super(message);
     }
