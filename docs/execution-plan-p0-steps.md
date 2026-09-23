@@ -1,6 +1,6 @@
 # EAIOC — P0 Step-by-Step Claude Code Execution Runbook
 
-**Based on:** `docs/execution-plan.md` v1.0.8 (aligned with the v1.0.8 HQ-decision and gate-sync correction; first reworked for the v1.0.4 correction)  
+**Based on:** `docs/execution-plan.md` v1.0.9 (aligned with the v1.0.9 execution-assistance correction; first reworked for the v1.0.4 correction)  
 **Purpose:** Human/operator runbook for executing EAIOC P0 implementation one atomic step at a time.  
 **Scope:** P0 only — 6 capabilities, 48 atomic execution units, 6 Capability Gates (54 gated checkpoints), plus the history-specific remediation units `REM-P0.1.A-01`/`-02` and `REM-P0.1.B-01`/`-02` (outside those counts).  
 **Execution model:** One command at a time. Every atomic unit is first **AI-verified by Claude Code** and only then presented for **explicit human approval** — both are required, neither substitutes for the other (`execution-plan.md` §18.12).  
@@ -54,6 +54,11 @@
   - HQ-6: `run_baseline()` is not idempotent by `request_id`.
 - **New gaps.** `SOURCE-GAP-EXECPLAN-07` (no mapping/retrieval contract for any baseline measurement) and `-08` (no BASELINE-only representation for the non-nullable comparison fields) are **blocking**; `-09` (tenant check inside `compare()`) is not.
 - **Status.** `EXE-P0.2.B` is **BLOCKED** and not executed. No unit is executable until a source-contract correction closes `-07`/`-08`.
+
+**What changed in v1.0.9 (summary):** execution assistance, documentation only.
+- Claude Code now routes the repository's own skills and subagents inside the unit you authorized — see **Execution Assistance — Automatic Routing** below. You don't run them yourself.
+- The AI Verification report gains line 10, *Execution-Assistance Verification*.
+- Nothing else changes: same commands, same one-unit-at-a-time rule, same approvals, same counts. `EXE-P0.2.B` stays **BLOCKED** — assistance does not resolve source-contract gaps.
 
 ---
 
@@ -276,6 +281,19 @@ The shared `core/interfaces`, `core/schemas`, `core/errors` packages belong to C
 ## Rule 10 — No out-of-band files in unit commits (v1.0.4)
 
 Editor settings, `CLAUDE.md`, and status/progress docs stay out of `EXE-P0` commits. Commit `c3d6ecf` is recorded history, not an implementation commit, and not evidence that any unit was completed.
+
+## Execution Assistance — Automatic Routing (v1.0.9)
+
+You keep using only the canonical commands: `Execute EXE-P0.n.X`, then (after the AI Verification report) `Approve EXE-P0.n.X`; `Review CAPABILITY-GATE P0.n`, then `Approve CAPABILITY-GATE P0.n`. **You never need to type "run skill X" or "verify with agent Y".**
+
+Inside the unit you authorized, Claude Code decides which repository-defined assistance applies (`execution-plan.md` §18.19), using the `eaioc-agent-orchestration` skill:
+
+- **`eaioc-code-architect`** — design check, usually before code (design units, new packages/contracts).
+- **`eaioc-code-reviewer`** and **`eaioc-code-verifier`** — review of the actual change and requirement-by-requirement conformance, before the verdict. At a Capability Gate the Verifier always checks the whole capability.
+- All three are read-only; they can't change files, commit, or approve.
+- **`eaioc-guide`** (Q&A, publishes an HTML report) and **`eaioc-dashboard`** (charts for such reports) are *not* used automatically inside a unit — ask a question when you want them.
+
+The report says which assistance was used and which was not applicable, and why (line 10). Agent results are evidence only: an agent PASS never overrides a failed test, a missing prerequisite, or an open source gap, and nothing an agent says counts as your approval. If a prerequisite or contract is missing, Claude Code stops before writing code and reports `AI VERIFICATION: BLOCKED`.
 
 ---
 
@@ -1808,11 +1826,13 @@ For a brand-new run of this plan from scratch, the first command is:
 Execute EXE-P0.1.A
 ```
 
-**For this repository, the next command is not `EXE-P0.1.A`** — do not restart it: Capability 1 is already largely executed. Once the v1.0.7 DB-2 correction is committed and you have accepted it, the next required command is:
+**For this repository, the next command is not `EXE-P0.1.A`** — do not restart it: Capability 1 is closed (Gate P0.1 approved 2026-09-23). **No unit is executable right now:** `EXE-P0.2.B` is blocked on `SOURCE-GAP-EXECPLAN-07`/`-08`. The next step is a source-contract correction you direct; after it is committed:
 
 ```text
-Execute REM-P0.1.B-02
+Execute EXE-P0.2.B
 ```
+
+*(Historical: at v1.0.7 this section named `Execute REM-P0.1.B-02`, since executed and approved — `c378dc9`.)*
 
 See §20 for the full remaining sequence.
 
@@ -1864,9 +1884,9 @@ Any AI VERIFICATION BLOCKED → no approval → remediation → re-Execute
 
 ---
 
-# 20. Current Position (governing baseline: `execution-plan.md` v1.0.8)
+# 20. Current Position (governing baseline: `execution-plan.md` v1.0.9)
 
-Taken from the git history and `execution-plan.md` §18.14 / §18.18 (v1.0.8). Check `git log --oneline` for anything newer.
+Taken from the git history and `execution-plan.md` §18.14 / §18.18 (v1.0.9; the position is unchanged from v1.0.8). Check `git log --oneline` for anything newer.
 
 ```text
 EXE-P0.1.A–H:
