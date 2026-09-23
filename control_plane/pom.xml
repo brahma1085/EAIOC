@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  EAIOC Control Plane — Maven project root.
+
+  Established in EXE-P0.1.B (Capability 1 — Token Accounting and Cost Ledger,
+  Sub-phase B — Minimal Implementation), per docs/execution-plan.md §18.4 and
+  its capability-header Precondition: "core/interfaces/ / core/schemas/ /
+  core/errors/ scaffolded (this capability is the first consumer...)".
+  EXE-P0.1.A deliberately deferred this scaffolding decision to this sub-phase
+  (see control_plane/accounting/ledger/LedgerEntry.md §5) rather than deciding
+  it silently in the design-only commit.
+
+  Technology baseline: Java 25 / Spring Boot 4.1.x / Maven, validated against
+  the frozen architecture with zero conflicts in docs/execution-plan.md §6,
+  and confirmed resolvable from this environment in
+  docs/implementation-env-readiness-check-p0.md (Spring Boot 4.1.0 resolution: PASS).
+
+  groupId/artifactId (`com.eaioc` / `control-plane`) are not specified by any
+  upstream document — PROPOSED DEFAULT, not an ADR-level decision, flagged in
+  this sub-phase's completion report for confirmation.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.1.0</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.eaioc</groupId>
+  <artifactId>control-plane</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>EAIOC Control Plane</name>
+  <description>
+    Enterprise Agent &amp; LLM Inference Optimization Control Plane — P0 Foundation
+    reference implementation. See docs/execution-plan.md and root CLAUDE.md.
+  </description>
+
+  <properties>
+    <java.version>25</java.version>
+    <maven.compiler.release>25</maven.compiler.release>
+  </properties>
+
+  <dependencies>
+    <!-- Spring core (IoC) only — no web/API surface at P0 scope, per
+         docs/execution-plan.md §13: "No external-facing API is built in
+         this slice." -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>
