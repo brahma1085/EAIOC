@@ -3,9 +3,17 @@ package com.eaioc.controlplane.accounting.ledger;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.stereotype.Component;
 
 /**
  * Tenant-scoped, in-memory reference store for {@link CostLedgerEntry} records.
+ *
+ * <p><b>{@code @Component}, added in {@code EXE-P0.1.C}:</b> registers this store in the Spring
+ * application context so any future T0–T3 pipeline stage or technique (none exist yet in this
+ * execution slice) can receive it via constructor injection without this class needing to grow an
+ * ever-longer explicit registration list. This is what "wire the ledger as the substrate" means
+ * concretely for this sub-phase ({@code docs/execution-plan.md} §18.4's {@code EXE-P0.1.C} row) —
+ * the class's own read/write behavior, already built in {@code EXE-P0.1.B}, is unchanged.
  *
  * <p><b>In-memory only, deliberately:</b> {@code docs/execution-plan.md} §12 classifies the
  * token/cost ledger as an "in-memory reference store for P0; durable store gated by
@@ -28,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * per-tenant optimization-overhead *budget* is {@code OI-002}'s job (a P4 capability, out of this
  * slice's scope) — not re-derived or reimplemented here.
  */
+@Component
 public class CostLedgerStore {
 
     private final ConcurrentHashMap<String, ConcurrentHashMap<String, CostLedgerEntry>> byTenant =
