@@ -1,0 +1,241 @@
+# EAIOC agent-governance matrix — machine-readable companion to SKILL.md (same skill directory).
+# SKILL.md §3–§5 is the human-readable summary of this file; the two must stay consistent.
+# Values (quoted strings): "yes" | "no" | "cond" | "cap"  (cap = deferred to the Capability Gate review)
+# Levels: STEP | CAPABILITY
+version: 1
+agents:
+  architect: eaioc-code-architect
+  reviewer: eaioc-code-reviewer
+  verifier: eaioc-code-verifier
+
+impact_levels: [NONE, LOW, MODERATE, HIGH, ARCHITECTURAL]   # ascending; highest matching rule wins
+
+statuses: [PASS, FAIL, BLOCKED, NOT_REQUIRED, ESCALATED, PENDING]
+consolidation:                         # evaluated top to bottom, first match wins
+  - {if_any: BLOCKED, result: BLOCKED}
+  - {if_any: FAIL, result: FAIL}
+  - {if_any: [PENDING, ESCALATED], result: PENDING}
+  - {otherwise: PASS}
+unit_verdict_mapping:                  # consolidated governance -> ceiling on the §18.12 verdict
+  BLOCKED: "AI VERIFICATION: BLOCKED"
+  FAIL: "AI VERIFICATION: BLOCKED"
+  PENDING: "AI VERIFICATION: BLOCKED"
+  PASS_WITH_RECORDED_GAPS: "AI VERIFICATION: PASS WITH DOCUMENTED NON-BLOCKING GAP"
+  PASS: "main session's own verdict (may still be BLOCKED)"
+
+architect_cond_triggers:
+  - new package, module, or component
+  - new public type or public/package-visible signature
+  - new cross-package dependency or dependency-direction change
+  - new third-party dependency, plugin, or platform
+  - provider, model, or agent-framework name in core code
+  - change to fail-open/fail-closed behavior or tenant-isolation mechanism
+  - new metric name, log field contract, telemetry sink, or audit behavior
+  - persistence, key-layout, retention, or deletion change
+  - plan row marks the deliverable as design or contract
+  - any decision that would need an ADR (all ADRs are PROPOSED)
+
+triviality_test:                       # ALL must hold for impact NONE
+  - only whitespace/formatting, comment/Javadoc prose, import order, or typos in non-authoritative prose
+  - no public/package-visible signature, type, field, enum constant, annotation, or serialized name change
+  - no runtime-read configuration value change
+  - no test assertion, assertion input, or test-selection change
+  - no authoritative-document change
+  - build compiles and full test-suite result unchanged
+
+classes:
+  TRIVIAL_MECHANICAL:
+    impact: NONE
+    architect: "no"
+    reviewer: "cap"
+    verifier: "cap"
+    level: CAPABILITY
+    evidence: [diff showing only trivial edits, triviality test answered item by item, test result unchanged]
+  DOCUMENTATION_ONLY:
+    patterns: ["*.md", "*.txt", "docs/**/*.html", "comments"]
+    excludes: authoritative_documents
+    impact: [NONE, LOW]
+    architect: "no"
+    reviewer: "no"
+    verifier: "cap"
+    level: CAPABILITY
+    evidence: [diff, confirmation the file is not in the authoritative set]
+  AUTHORITATIVE_DOC:
+    patterns: [authoritative_documents]
+    impact: [HIGH, ARCHITECTURAL]
+    architect: "yes"
+    reviewer: "cond"            # only if implementation changes in the same unit
+    verifier: "yes"
+    level: STEP
+    evidence: [quoted before/after text, precedence rule cited, dependent code/tests identified, correction prompt or human decision that authorized it]
+  TEST_ONLY_FIXTURE:
+    patterns: ["**/src/test/**", "**/test/**", "**/tests/**", "*Test.*", "*Tests.*", "test_*.py", "*_test.py", "*_test.go", "*.spec.ts", "*.test.ts", "*.spec.js", "*.test.js"]
+    impact: LOW
+    architect: "no"
+    reviewer: "yes"
+    verifier: "yes"
+    level: STEP
+    evidence: [diff, assertions unaffected, test run result]
+  TEST_ONLY_ASSERTIONS:
+    patterns_same_as: TEST_ONLY_FIXTURE
+    subtypes: [unit, integration, contract, end_to_end, performance, security, ui, fixture, test_configuration]
+    impact: MODERATE
+    architect: "cond"          # when the test establishes or exposes a contract/design
+    reviewer: "yes"            # tests validate the intended behavior
+    verifier: "yes"            # documented requirements actually covered
+    level: STEP
+    evidence: [test run result line, requirement IDs each new test covers, failure-path test present]
+  PRODUCTION_CODE:
+    patterns: ["*.java", "*.kt", "*.py", "*.go", "*.js", "*.mjs", "*.ts", "*.cs", "*.rs", "*.rb", "*.scala", "*.sh", "*.ps1"]
+    excludes: test_trees
+    impact: MODERATE
+    architect: "cond"
+    reviewer: "yes"
+    verifier: "yes"
+    level: STEP
+    evidence: [diff, full test run result, traceability rows for the unit's requirements]
+  UI_CODE:
+    patterns: ["*.html", "*.css", "*.scss", "*.less", "*.jsx", "*.tsx", "*.vue", "*.svelte", "frontend routing/state/API-client modules"]
+    excludes: docs_and_scratch_html
+    impact: MODERATE
+    architect: "cond"          # component/routing/state architecture or API-integration pattern
+    reviewer: "yes"            # incl. accessibility, API integration, UI tests
+    verifier: "yes"
+    level: STEP
+    evidence: [diff, UI test result or NOT VERIFIED, API contract references]
+  CONFIGURATION_BEHAVIORAL:
+    patterns: ["application*.yml", "application*.yaml", "application*.properties", "*.toml", "*.env", "runtime-read *.json/*.yaml"]
+    impact: MODERATE
+    architect: "cond"
+    reviewer: "yes"
+    verifier: "yes"
+    level: STEP
+    evidence: [diff, code path that reads the value, test result]
+  CONFIGURATION_NON_BEHAVIORAL:
+    patterns: [".vscode/**", ".editorconfig", "IDE settings"]
+    impact: NONE
+    architect: "no"
+    reviewer: "cap"
+    verifier: "cap"
+    level: CAPABILITY
+    evidence: [confirmation nothing at build or run time reads it]
+    note: editor settings are normally outside any unit and committed separately as out-of-band
+  INFRASTRUCTURE:
+    patterns: ["Dockerfile*", "docker-compose*.yml", "compose*.yaml", "k8s/**", "*.tf", "helm/**", "Pulumi.*", "*.bicep"]
+    impact: MODERATE
+    architect: "cond"          # topology or ADR-governed choice => yes
+    reviewer: "yes"
+    verifier: "yes"
+    level: STEP
+    evidence: [diff, ADR status cited, validation command output or NOT VERIFIED]
+  SECURITY:
+    signals: [tenant_id handling, authz/authn, fail-closed path, PII/sensitive fields, secrets, "governance/** (SGE/DGE/TMG/HAG/CIS)"]
+    impact: HIGH
+    architect: "cond"          # security architecture changed => yes
+    reviewer: "yes"
+    verifier: "yes"
+    level: STEP
+    evidence: [negative/failure-path test result, conventions.md §13/§16.2 rules cited]
+  OBSERVABILITY:
+    signals: [logging, metrics, tracing, audit emission, metric names, telemetry sinks]
+    impact: MODERATE
+    architect: "cond"          # new metric name, log contract, or sink => yes
+    reviewer: "yes"
+    verifier: "yes"
+    level: STEP
+    evidence: [emitted sample, metric names matched to observability.md §7 / interfaces.md §19]
+  API_INTERFACE_CONTRACT:
+    signals: [public types/signatures, schemas, DTOs, enums, error taxonomy, "core/interfaces|schemas|errors", "docs/interfaces.md"]
+    impact: HIGH
+    architect: "yes"
+    reviewer: "cond"           # yes when code changes
+    verifier: "yes"
+    level: STEP
+    evidence: [field-by-field comparison to interfaces.md, compatibility statement, contract test result]
+  ARCHITECTURAL:
+    signals: [new package/module/component, dependency direction, cross-component flow, pipeline stage order, technology choice]
+    impact: ARCHITECTURAL
+    architect: "yes"
+    reviewer: "cond"           # yes when code changes
+    verifier: "yes"
+    level: STEP
+    evidence: [architecture assessment, conventions.md §2.1/§2.2 check, ADR status]
+  DATA_PERSISTENCE:
+    patterns: ["*.sql", "**/migrations/**", "**/db/**", "store/repository implementations", "key layouts"]
+    impact: HIGH
+    architect: "yes"
+    reviewer: "yes"
+    verifier: "yes"
+    level: STEP
+    evidence: [schema/key diff, tenant-first key check, migration/rollback note, ADR-0001/0002 status]
+  BUILD_CI_CD:
+    patterns: ["pom.xml", "build.gradle*", "settings.gradle*", "package.json", "*lock*", "go.mod", "go.sum", "pyproject.toml", "requirements*.txt", ".github/workflows/**", "Jenkinsfile", ".gitlab-ci.yml"]
+    impact: MODERATE
+    architect: "cond"          # new dependency, plugin, or CI platform (ADR-0003) => yes
+    reviewer: "yes"
+    verifier: "yes"
+    level: STEP
+    evidence: [dependency diff, provider-neutrality check, build + test result]
+  GENERATED_ARTIFACT:
+    patterns: ["generated sources", "compiled assets", "regenerated lockfiles"]
+    never_committed: ["control_plane/target/**", "build/**", "dist/**"]
+    impact: MODERATE
+    architect: "cond"
+    reviewer: "yes"            # reviews the generator/source, not the output line by line
+    verifier: "yes"            # reproducibility and contract conformance
+    level: STEP
+    evidence: [generator command, source of generation, reproducibility check]
+  MIXED:
+    rule: union of the requirements of every constituent class; one Reviewer pass and one Verifier pass across the complete change
+    level: highest of the constituents
+
+authoritative_documents:               # re-verify against governance skill §1 every run
+  - docs/Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt
+  - docs/Ent_Agent_LLM_Inference_Opt_Control_Plane_Engineering_Spec.md
+  - docs/architecture.md
+  - docs/interfaces.md
+  - docs/conventions.md
+  - docs/edge-cases.md
+  - docs/scenario-matrix.md
+  - docs/adr/**
+  - docs/execution-plan.md
+  - docs/implementation-plan.md
+  - docs/implementation-readiness-gate.md
+  - docs/requirements-traceability.md
+  - docs/quality-gates.md
+  - docs/security.md
+  - docs/observability.md
+  - docs/optimization-catalog.md
+  - docs/provider-matrix.md
+  - docs/cache-strategy.md
+  - docs/agent-optimization.md
+  - docs/inference-optimization.md
+  - docs/eval.md
+  - docs/SCALING.md
+  - "control_plane/**/*.md unit design notes that define a contract (Sub-phase A deliverables, REM design notes)"
+
+sub_phase_defaults:                    # starting point only; the actual diff decides
+  A: [AUTHORITATIVE_DOC]
+  B: [PRODUCTION_CODE, API_INTERFACE_CONTRACT, TEST_ONLY_ASSERTIONS]
+  C: [PRODUCTION_CODE, ARCHITECTURAL]
+  D: [OBSERVABILITY, TEST_ONLY_ASSERTIONS]
+  E: [SECURITY, TEST_ONLY_ASSERTIONS]
+  F: [NOT_APPLICABLE_OR_QUALITY]      # NOT APPLICABLE -> all agents NOT_REQUIRED with N/A evidence
+  G: [TEST_ONLY_ASSERTIONS]
+  H: [PRODUCTION_CODE, TEST_ONLY_ASSERTIONS]
+
+capability_gate:
+  verifier: always                     # complete capability, independent
+  reviewer: deferred_changes_and_multi_unit_files
+  architect: only_if_escalated_or_drift
+  any_blocked_or_fail: "AI CAPABILITY GATE VERIFICATION: BLOCKED"
+
+escalation:                            # one-way; never de-escalate within a unit
+  - {trigger: trivial change fails triviality test, add: [reviewer, verifier], level: STEP}
+  - {trigger: public API/schema/enum/error/serialized name changed, add: [architect]}
+  - {trigger: authoritative document changed or contradicted, add: [architect, verifier], note: contract change -> STOP, user-directed doc correction only}
+  - {trigger: security mechanism changed, add: [architect]}
+  - {trigger: new metric/log field/sink/audit behavior, add: [architect]}
+  - {trigger: new dependency/store/key layout/technology/cross-package import, add: [architect]}
+  - {trigger: test reveals requirement or design gap, add: [verifier], cond_add: [architect]}
+  - {trigger: agent reports source conflict, result: BLOCKED}
