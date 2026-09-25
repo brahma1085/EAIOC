@@ -145,6 +145,7 @@ Tenant identity (root CLAUDE.md rule 4, cross-cutting, not tiered)
 
 - **A. Contract & Design:** cite `eval.md`'s `EvaluationFramework` (`run_baseline`/`run_optimized`/`compare`) and `quality-gates.md`'s `QG-NNN` methodology — this capability is the first *consumer* of both interfaces, not a redefinition of either.
 - **B. Minimal Implementation:** wire a P0-only path that can run an unoptimized request and record its `EvaluationRun` baseline fields; no optimization stage exists yet to compare against, so `run_optimized()` is a no-op until P1 ships.
+  - **Correction (2026-09-25, execution-plan v1.0.11 / DB-3):** the P0 baseline result is a `BaselineEvaluationRecord` built from a verified ledger measurement of a baseline run that executes outside EAIOC (`interfaces.md` §18; `execution-plan.md` §18.5, §18.14.8), not an `EvaluationRun`; the wording "run an unoptimized request" is read accordingly (no provider adapter at P0, `execution-plan.md` §14, §16). `run_optimized()` is deferred forward contract with no P0 code. Sequencing (this section) is otherwise unchanged.
 - **C. Integration:** every P1–P4 technique's own validation-matrix gate (§9–§12) calls into this harness; it is the shared substrate, built once.
 - **D. Observability:** cite `observability.md`.
 - **E. Security/Governance:** the harness must run under the same tenant-isolation and authorization rules as a live request (root `CLAUDE.md` rules 2/4) — a benchmark is not an exemption from governance.

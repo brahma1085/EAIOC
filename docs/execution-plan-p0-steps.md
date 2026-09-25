@@ -1,8 +1,8 @@
 # EAIOC — P0 Step-by-Step Claude Code Execution Runbook
 
-**Based on:** `docs/execution-plan.md` v1.0.10 (aligned with the v1.0.10 remediation-registration correction; first reworked for the v1.0.4 correction)  
+**Based on:** `docs/execution-plan.md` v1.0.11 (aligned with the v1.0.11 source-contract correction (DB-3); first reworked for the v1.0.4 correction)  
 **Purpose:** Human/operator runbook for executing EAIOC P0 implementation one atomic step at a time.  
-**Scope:** P0 only — 6 capabilities, 48 atomic execution units, 6 Capability Gates (54 gated checkpoints), plus the remediation units `REM-P0.1.A-01`/`-02`, `REM-P0.1.B-01`/`-02` and `REM-P0.2.B-01` (outside those counts).  
+**Scope:** P0 only — 6 capabilities, 48 atomic execution units, 6 Capability Gates (54 gated checkpoints), plus the remediation units `REM-P0.1.A-01`/`-02`, `REM-P0.1.B-01`/`-02`, `REM-P0.2.B-01`, `REM-P0.2.B-02` and `REM-P0.2.B-03` (outside those counts).  
 **Execution model:** One command at a time. Every atomic unit is first **AI-verified by Claude Code** and only then presented for **explicit human approval** — both are required, neither substitutes for the other (`execution-plan.md` §18.12).  
 **Important:** This file is an operator runbook. It does not replace or modify `docs/execution-plan.md`; where the two ever differ, `execution-plan.md` wins.
 
@@ -62,9 +62,16 @@
 
 **What changed in v1.0.10 (summary):** remediation registration, documentation only.
 - **New remediation unit `REM-P0.2.B-01`** (Baseline Benchmark Harness + Quality Evaluation — Contract / Design Reconciliation), registered in `execution-plan.md` §18.14.7. It investigates decision areas D-A to D-D for `SOURCE-GAP-EXECPLAN-07`/`-08` and brings every open question to you. It decides nothing itself and changes no contract or code.
-- **The session name `REM-P0.2.B-DESIGN-01` is not a valid command.** Use `Execute REM-P0.2.B-01`.
+- **The session name `REM-P0.2.B-DESIGN-01` is not a valid command.** Use `Execute REM-P0.2.B-01`. *(v1.0.11: that unit has since been executed and approved; do not send it again.)*
 - **Status.** `REM-P0.2.B-01` is **registered / not started**. It is eligible once this correction is committed. `SOURCE-GAP-EXECPLAN-07`/`-08` stay **OPEN**, and `EXE-P0.2.B` stays **BLOCKED**.
 - **Your approval of `REM-P0.2.B-01` does not unblock `EXE-P0.2.B`.** A separate source-contract correction that you direct must still promote your decisions and close `-07`/`-08`. See §8 Step 1a and §20.
+
+**What changed in v1.0.11 (summary):** promotion of your `REM-P0.2.B-01` decisions and registration of two units, documentation and contract text only. Where this runbook and `execution-plan.md` differ, the plan wins.
+- **`REM-P0.2.B-01` is done.** Executed (`e4cf1f5`), AI-verified and approved by you on 2026-09-24; the plan now records it. Do not send `Execute REM-P0.2.B-01` again.
+- **Your decisions are promoted** into `interfaces.md` §18 (new `BaselineEvaluationRecord`, field mappings, and the retrieval rule: all matching entries for a tenant and request are counted first, exactly one is required, and it must then be verified) with notes in `eval.md` and `implementation-plan.md` (plan §18.14.8, label DB-3). `SOURCE-GAP-EXECPLAN-07`/`-08` are resolved at source (additive status updates in the plan's §38); `-09` is narrowed; `-10` to `-15` are new gaps. Six contract decisions of 2026-09-25 are recorded as human contract decisions, not source-derived: `schema_version` `1.0.0`, `source_entry_id`, the carrying of `run_type`, the count-all-then-verify count basis, `run_baseline()` failing without a result when no valid measurement exists, and the retention of the `interfaces.md` document Version 1.2.0 with an amendment-history entry.
+- **Two units are registered, not executed:** `REM-P0.2.B-02` (accounting retrieval; **must be approved before `EXE-P0.2.B`**) and `REM-P0.2.B-03` (Path A producer design; **not** a prerequisite).
+- **`EXE-P0.2.B` is now contract-level.** It uses a labelled test-fixture entry and claims no live measurement; live Path A measurement is explicitly deferred at Capability Gate P0.2 (plan §18.10).
+- **Status.** `EXE-P0.2.B` is not yet executable: it needs `REM-P0.2.B-02` first. Each unit needs its own explicit `Execute` and `Approve`; nothing in this runbook authorizes or chains any of them.
 
 ---
 
@@ -163,11 +170,20 @@ Execute REM-P0.1.B-02
 Approve REM-P0.1.B-02
 ```
 
-From v1.0.10 (`execution-plan.md` §18.14.7):
+From v1.0.10 (`execution-plan.md` §18.14.7): *(v1.0.11: both commands below were executed and approved — `e4cf1f5` — and must not be sent again; retained as history.)*
 
 ```text
 Execute REM-P0.2.B-01
 Approve REM-P0.2.B-01
+```
+
+From v1.0.11 (`execution-plan.md` §18.14.8; registered, **not executed**; send a command only when you decide to run that unit):
+
+```text
+Execute REM-P0.2.B-02
+Approve REM-P0.2.B-02
+Execute REM-P0.2.B-03
+Approve REM-P0.2.B-03
 ```
 
 Same two-stage checkpoint as any `EXE-P0` unit. Not counted among the 48 units or 54 checkpoints (`execution-plan.md` §18.14).
@@ -786,7 +802,7 @@ Approve EXE-P0.2.A
 
 ### Step 1a — Evaluation Measurement Contract Remediation (v1.0.10)
 
-**Unit:** `REM-P0.2.B-01` (`execution-plan.md` §18.14.7). It is a remediation unit, outside the 48 units and 54 checkpoints, and runs before `EXE-P0.2.B`. Status: **registered / not started**.
+**Unit:** `REM-P0.2.B-01` (`execution-plan.md` §18.14.7). It is a remediation unit, outside the 48 units and 54 checkpoints, and runs before `EXE-P0.2.B`. Status: **registered / not started** (v1.0.10); **v1.0.11: executed (`e4cf1f5`), AI-verified and human-approved (2026-09-24); done.** This step is complete: do not send the `Execute`/`Approve REM-P0.2.B-01` commands shown below again; they are retained as history.
 
 ```text
 Execute REM-P0.2.B-01
@@ -807,6 +823,35 @@ Approve REM-P0.2.B-01
 ```
 
 This approves the remediation only. It does **not** unblock `EXE-P0.2.B`. Next, you direct a source-contract correction that writes your decisions into the contract and closes `SOURCE-GAP-EXECPLAN-07`/`-08`. Only after that is committed may `Execute EXE-P0.2.B` be sent.
+
+*(v1.0.11: that source-contract correction is DB-3, `execution-plan.md` §18.14.8. The next step is Step 1b.)*
+
+### Step 1b — Retrieval Realization (v1.0.11)
+
+**Unit:** `REM-P0.2.B-02` (`execution-plan.md` §18.14.8). Remediation unit, outside the 48 units and 54 checkpoints. Status: **registered / not executed**. **A prerequisite of `EXE-P0.2.B`.**
+
+```text
+Execute REM-P0.2.B-02
+```
+
+What Claude Code does: implements only the `get_request_cost` subset in `control_plane/accounting/` — exactly one matching ledger entry per tenant and request, counted over all matching entries and consumed only when `verified`, is a measurement; none or several (including a verified entry plus an unverified one) is no measurement — and runs the Architect, Reviewer and Verifier agents. It changes nothing in `evaluation/`, `benchmarking/`, `core/` or any document.
+
+Then, after reviewing:
+
+```text
+Approve REM-P0.2.B-02
+```
+
+This approves the remediation only; it does not itself authorize `EXE-P0.2.B`.
+
+### Step 1c — Path A Producer Design (v1.0.11, optional; not a prerequisite)
+
+**Unit:** `REM-P0.2.B-03` (`execution-plan.md` §18.14.8). Registered, **not executed**. **Not** a prerequisite of `EXE-P0.2.B`; not required before Capability Gate P0.2, where live Path A measurement is explicitly deferred (plan §18.10). Run it only when you decide to.
+
+```text
+Execute REM-P0.2.B-03
+Approve REM-P0.2.B-03
+```
 
 ### Step 2 — Minimal Implementation
 
@@ -832,6 +877,8 @@ If any check fails → `AI VERIFICATION: BLOCKED`, no code, no commit, and it na
 **v1.0.8 — currently blocked.** The guard passes, but `SOURCE-GAP-EXECPLAN-07`/`-08` (`execution-plan.md` §18.14.6) mean an honest `EvaluationRun` can't be built yet. Only the baseline path is in scope; `run_optimized()`, `compare()` and `report_regression()` are deferred with no stub. Don't send this command until a source-contract correction has closed `-07`/`-08`.
 
 **v1.0.10.** The remediation that prepares that correction is `REM-P0.2.B-01` (Step 1a above). This step stays blocked until `REM-P0.2.B-01` is approved **and** the follow-up source-contract correction closes `-07`/`-08`.
+
+**v1.0.11.** The source-contract correction is done (DB-3): `-07`/`-08` are resolved at source. This step is now conditioned on `REM-P0.2.B-02` being executed, AI-verified and approved (Step 1b), then pre-flight, the §18.15 guard (with its v1.0.11 addition) and a Code Architect re-assessment. It is contract-level and fixture-based (a labelled test-fixture ledger entry) and claims no live Path A measurement. `Execute REM-P0.2.B-03` is not needed first.
 
 Then:
 
@@ -914,6 +961,8 @@ Approve EXE-P0.2.H
 ```
 
 ### Capability 2 Gate
+
+**v1.0.11 — explicit deferral.** The Gate P0.2 review and its AI Gate Verification must state: "Live Path A end-to-end baseline measurement: NOT DEMONSTRATED — explicitly deferred (§18.14.8)." (`execution-plan.md` §18.10). A passing `EXE-P0.2.B` or Gate P0.2 is not evidence of a live measurement; your Gate approval approves the contract-level substrate only.
 
 After `Approve EXE-P0.2.H`, Claude Code performs the Gate review and AI Gate Verification (in a new session, trigger it with `Review CAPABILITY-GATE P0.2`). Only after `AI CAPABILITY GATE VERIFICATION: PASS`:
 
@@ -1683,6 +1732,10 @@ Use this section as a manual checklist. From v1.0.4 each unit has three ticks: e
 [ ] REM-P0.2.B-01 AI verified (verdict: ______)
 [ ] REM-P0.2.B-01 approved
 [ ] Source-contract correction closing SOURCE-GAP-EXECPLAN-07/-08 committed
+[ ] REM-P0.2.B-02 executed
+[ ] REM-P0.2.B-02 AI verified (verdict: ______)
+[ ] REM-P0.2.B-02 approved
+[ ] REM-P0.2.B-03 (registered, not executed; not a prerequisite; run when directed) executed / AI verified / approved
 [ ] EXE-P0.2.B executed
 [ ] EXE-P0.2.B AI verified (verdict: ______)
 [ ] EXE-P0.2.B approved
@@ -1869,7 +1922,13 @@ For a brand-new run of this plan from scratch, the first command is:
 Execute EXE-P0.1.A
 ```
 
-**For this repository, the next command is not `EXE-P0.1.A`** — do not restart it: Capability 1 is closed (Gate P0.1 approved 2026-09-23). `EXE-P0.2.B` is blocked on `SOURCE-GAP-EXECPLAN-07`/`-08`. Once the v1.0.10 correction is committed, the next command is:
+**For this repository, the next command is not `EXE-P0.1.A`** — do not restart it: Capability 1 is closed (Gate P0.1 approved 2026-09-23). `EXE-P0.2.B` is not yet executable: it needs `REM-P0.2.B-02` first. Once the v1.0.11 correction is committed, the next command — sent only when you choose to proceed — is:
+
+```text
+Execute REM-P0.2.B-02
+```
+
+*(Historical, v1.0.10: the next command was `Execute REM-P0.2.B-01`, shown in the block below; it has since been executed and approved — `e4cf1f5` — and must not be sent again.)*
 
 ```text
 Execute REM-P0.2.B-01
@@ -1925,13 +1984,34 @@ P0 execution sequence complete
 Any AI VERIFICATION BLOCKED → no approval → remediation → re-Execute
 ```
 
-**Total:** 48 atomic execution units + 6 Capability Gates = 54 gated checkpoints (remediation units `REM-P0.1.A-01`/`-02`, `REM-P0.1.B-01`/`-02` and `REM-P0.2.B-01` are extra and not counted).
+**Total:** 48 atomic execution units + 6 Capability Gates = 54 gated checkpoints (remediation units `REM-P0.1.A-01`/`-02`, `REM-P0.1.B-01`/`-02`, `REM-P0.2.B-01`, `REM-P0.2.B-02` and `REM-P0.2.B-03` are extra and not counted).
 
 ---
 
-# 20. Current Position (governing baseline: `execution-plan.md` v1.0.10)
+# 20. Current Position (governing baseline: `execution-plan.md` v1.0.11)
 
-Taken from the git history and `execution-plan.md` §18.14 / §18.18 (v1.0.10). Check `git log --oneline` for anything newer.
+Taken from the git history and `execution-plan.md` §18.14 / §18.18 (v1.0.11). Check `git log --oneline` for anything newer. Where this runbook and the plan differ, the plan wins.
+
+```text
+v1.0.11 position (updates the v1.0.10 block below):
+REM-P0.2.B-01:            DONE + AI VERIFIED + HUMAN APPROVED (e4cf1f5; approved 2026-09-24)
+DB-3 (plan v1.0.11):      promotion of the REM-P0.2.B-01 decisions — to be committed
+SOURCE-GAP-EXECPLAN-07/-08: RESOLVED AT SOURCE;  -09 NARROWED;  -10..-15 registered
+REM-P0.2.B-02:            REGISTERED / NOT EXECUTED — prerequisite of EXE-P0.2.B
+REM-P0.2.B-03:            REGISTERED / NOT EXECUTED — NOT a prerequisite
+EXE-P0.2.B:               NOT YET EXECUTABLE — needs REM-P0.2.B-02 approved; contract-level, fixture-based;
+                          live Path A end-to-end baseline measurement: NOT DEMONSTRATED — explicitly deferred (Gate P0.2)
+SOURCE-GAP-EVAL-01, SOURCE-GAP-IRG-02: OPEN (unchanged)
+```
+
+```text
+NEXT STEP (sent only when you choose to proceed)
+
+First: commit the v1.0.11 correction.
+Then: Execute REM-P0.2.B-02
+```
+
+*(The status block, the "NEXT REQUIRED STEP" block and the "Do **not** restart ..." paragraph below are the v1.0.10 position, retained as history; the v1.0.11 position above governs.)*
 
 ```text
 EXE-P0.1.A–H:
@@ -2005,12 +2085,28 @@ Detail per unit:
 | `REM-P0.1.B-02` | `c378dc9` | Done + AI verified + human approved (Minimal Implementation Remediation) |
 | Capability Gate P0.1 | — (never a commit) | AI PASS + **approved** 2026-09-23 — Capability 1 closed |
 | `EXE-P0.2.A` | `0e92261` | Executed + approved. Reconciled: **PASS** |
-| `EXE-P0.2.B` | — | **Blocked** — `SOURCE-GAP-EXECPLAN-07`/`-08` (plan v1.0.8 §18.14.6); not executed |
+| `EXE-P0.2.B` | — | **Not yet executable** — needs `REM-P0.2.B-02` approved (plan v1.0.11 §18.14.8, §18.15); not executed |
 | `8b68239` | — | Pre-decision record `EvaluationMeasurementReconciliation.md` (`docs:` commit) — not unit evidence, not approved |
-| `REM-P0.2.B-01` | — | **Registered / not started** (plan v1.0.10 §18.14.7) |
+| `REM-P0.2.B-01` | `e4cf1f5` | Done + AI verified + human approved (2026-09-24; plan §18.14.7, §18.14.8) |
+| `REM-P0.2.B-02` | — | **Registered / not executed** (plan v1.0.11 §18.14.8) — prerequisite of `EXE-P0.2.B` |
+| `REM-P0.2.B-03` | — | **Registered / not executed** (plan v1.0.11 §18.14.8) — not a prerequisite |
 | `c3d6ecf`, `a764689` | — | Not implementation commits (`CLAUDE.md` / `.vscode/`) — not counted |
 
-**Remaining sequence up to `EXE-P0.2.B`** — one line at a time, with Claude Code stopping after every step:
+**Remaining sequence up to `EXE-P0.2.B` (v1.0.11)** — one line at a time, with Claude Code stopping after every step:
+
+```text
+(needed) commit the v1.0.11 correction
+
+Execute REM-P0.2.B-02
+Approve REM-P0.2.B-02
+
+Execute EXE-P0.2.B
+Approve EXE-P0.2.B
+
+(optional, when directed) Execute REM-P0.2.B-03 / Approve REM-P0.2.B-03
+```
+
+*(Historical v1.0.10 sequence, retained below: it ran `REM-P0.2.B-01` and then a source-contract correction.)*
 
 ```text
 (needed) commit the v1.0.10 correction

@@ -80,6 +80,8 @@ EvaluationFramework {
 
 `SOURCE-DEFINED` — verified directly against `interfaces.md` §18 (`INTF-030`, "3 schemas": the interface itself, `EvaluationRun`, `EvaluationComparison`). `RegressionReport` is referenced by `report_regression()`'s return type but is not one of the 3 schemas actually defined in that section — confirmed still true; disposed at §43 (`SOURCE-GAP-EVAL-01`).
 
+> **Correction (2026-09-25, execution-plan v1.0.11 / DB-3):** At P0, `run_baseline()` returns a `BaselineEvaluationRecord` (`interfaces.md` §18), not an `EvaluationRun`; the listing above and the "3 schemas" count describe INTF-030 as written before that correction (INTF-030 now defines 4 schemas). `run_optimized()`, `compare()` and `report_regression()` are unchanged and deferred; `SOURCE-GAP-EVAL-01` remains open.
+
 ## 6. Evaluation Lifecycle
 
 The five `EL-NNN` modules interact but are not required by any source to run in one fixed sequence for every optimization — each module's `architecture.md` §21 stub is independently triggerable. A common (not mandatory) lifecycle observed across the sources is:
@@ -111,6 +113,8 @@ EL-004 Continuous Policy Learning  ---> Governance Review / HAG Approval (securi
 **Applicability.** Any `TECH-NNN`/`DA-NNN`/`P5 Index` technique at Optimization Maturity Level 0 (RESEARCH) or 1 (EXPERIMENTAL) seeking promotion to Level 2 (SHADOW) — `conventions.md` §20.3, `SOURCE-DEFINED`.
 
 **Mechanics.** For each real incoming request: (1) execute the actual, user-facing baseline pipeline unmodified; (2) internally simulate the candidate-optimized pipeline against the same request without surfacing its output anywhere the caller or downstream system can observe; (3) call `EvaluationFramework.run_baseline()` and `run_optimized()` with `run_type = SHADOW` (`INTF-030`, `SOURCE-DEFINED`); (4) accumulate the resulting `EvaluationRun` records as evidence.
+
+> **Correction (2026-09-25, execution-plan v1.0.11 / DB-3):** Steps (3) and (4) read `run_baseline()` as producing an `EvaluationRun` typed by `run_type`. Under the P0 contract it returns a `BaselineEvaluationRecord` (`interfaces.md` §18), which carries `run_type` using the existing `EvaluationRun` semantic, with the value `BASELINE`; the `OPTIMIZED` and `SHADOW` run types belong to the `EvaluationRun`s of the deferred optimized path. EL-001 as a whole stays deferred until an optimized execution path exists (`interfaces.md` §18 notes; HQ-3, HQ-4).
 
 **Decision logic / promotion criteria.** `PROPOSED DEFAULT — VALIDATE LOCALLY`: promote a technique from shadow to `EL-002` controlled rollout only once its accumulated shadow evidence shows `net_savings > 0` and a quality delta within the bound `quality-gates.md` establishes (cited, not redefined) across a minimum evidence volume — illustratively, on the order of hundreds of shadow comparisons per representative workload segment (`ILLUSTRATIVE EXAMPLE` only; the actual bar is a sample-size question, see §18).
 
@@ -236,6 +240,8 @@ Comparison dimensions are `SOURCE-DEFINED` (§13). What must be held constant be
 
 `baseline_cost`, `optimized_cost`, `gross_savings`, `optimizer_overhead`, `net_savings`, `net_savings_pct`, `quality_delta`, `quality_score_baseline`, `quality_score_optimized`, `latency_delta_ms`, `latency_ms_baseline`, `latency_ms_optimized`, `cache_hit_rate`, `tokens_avoided_by_cache`, `task_success_baseline`, `task_success_optimized`, `regression_detected`, `regression_dimensions`.
 
+> **Correction (2026-09-25, execution-plan v1.0.11 / DB-3):** the list above is the `EvaluationRun` schema. The P0 baseline result `BaselineEvaluationRecord` carries only `baseline_cost` and `latency_ms_baseline` from it, plus identity fields (`run_id`, `request_id`, `run_type`, `timestamp`), `tenant_id`, `currency`, `schema_version` and `source_entry_id`. It does not carry the quality and task-success baselines (no producer, `SOURCE-GAP-EXECPLAN-11`) or the cache fields (not applicable to a pure BASELINE run).
+
 These map directly onto `architecture.md` §32.2's required comparison list and §35's regression dimensions — this document does not introduce parallel field names for the same concepts.
 
 ---
@@ -292,6 +298,8 @@ Never equate observed token reduction with net economic success (§4, item 5) �
 ## 24. Cache Evaluation
 
 `cache-strategy.md` owns cache mechanics — not redefined here. This document evaluates cache **effect**, distinguishing EAIOC application-managed cache types (`CACHE-001`–`004`/`006`–`007`) from `PROVIDER_NATIVE` cache (`CACHE-005`) per that document's own boundary. Provider-native cache savings must never be attributed to an EAIOC optimization technique without evidence that the technique itself, rather than the provider's own caching behavior, produced the observed reduction (root `CLAUDE.md` rule 5 — never fabricate savings). `EvaluationRun.cache_hit_rate`/`tokens_avoided_by_cache` are the measurement surface; which cache type produced them is a `cache-strategy.md` attribution question this document consumes rather than re-derives.
+
+> **Correction (2026-09-25, execution-plan v1.0.11 / DB-3):** the cache fields above are not part of the P0 baseline result (operator decision D-D). Caveat: cache state is a comparability dimension (§15, §30) and a Path A entry can carry provider-native cached input; the baseline record's `source_entry_id` keeps that recoverable (`interfaces.md` §18 notes).
 
 ## 25. Agent and Multi-Agent Evaluation
 
@@ -393,6 +401,8 @@ This directly implements `EC-071`'s expected behavior: re-run the full experimen
 | P5 contamination | §26 | Layer-1/2 and P5 effects conflated | Report rejected as ambiguous | Re-decompose before reporting |
 | Concurrent experiment interference | `SCN-CMP-051/052/056/057` | Comparison pair confounded | Segmented analysis required (§34) | Segment by group; do not merge |
 
+> **Correction (2026-09-25, execution-plan v1.0.11 / DB-3) — row "Missing baseline run":** at P0 the baseline result is a `BaselineEvaluationRecord`; "absent" means no record was produced because a valid baseline measurement could not be acquired — the operation failed without returning a result — for example because there is not exactly one matching ledger entry for the request (all matching entries are counted first), or the single matching entry is not `verified = true` (`interfaces.md` §18 notes). The disposition is unchanged: comparison withheld, fail-closed on the evaluation verdict.
+
 No mandatory recovery behavior is invented beyond what §7–§11, §33, and root `CLAUDE.md` rule 2 (fail-open on optimization, fail-closed on security) already establish, applied here as: an evaluation-pipeline failure never blocks the underlying production request, but it does prevent that evaluation's conclusion from being counted as validated evidence until resolved.
 
 ---
@@ -402,6 +412,8 @@ No mandatory recovery behavior is invented beyond what §7–§11, §33, and roo
 `PROPOSED METHODOLOGY` unless a step cites a specific source. Lettered per this chain's established convention.
 
 **A — Baseline Selection.** Given a request, select the most recent `EvaluationRun` with `run_type = BASELINE` matching the request's workload/model/provider/policy-version signature (§15); if none exists, execute a fresh baseline run before proceeding.
+
+> **Correction (2026-09-25, execution-plan v1.0.11 / DB-3):** "select the most recent `EvaluationRun` with `run_type = BASELINE`" does not apply to the P0 baseline path. There, the baseline measurement is exactly one matching ledger entry per `(tenant_id, request_id)`, consumed only when it is `verified = true`; zero or several matching entries (counted over all matching entries, whatever their `verified` value) mean no measurement, never "most recent" (`interfaces.md` §18 notes). Selection among several prior baseline results by signature (§15) remains `PROPOSED METHODOLOGY` for the deferred optimized path.
 
 **B — Treatment Construction.** Apply the candidate technique's plan to the same request signature used for the selected baseline (`A`); execute under `run_type = SHADOW` (`EL-001`) or `OPTIMIZED` (`EL-003`/production) as appropriate to the calling context.
 
