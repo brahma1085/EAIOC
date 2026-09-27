@@ -1,5 +1,6 @@
 package com.eaioc.controlplane.accounting.ledger;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -87,5 +88,43 @@ public class CostLedgerStore {
             return Optional.empty();
         }
         return Optional.ofNullable(tenantEntries.get(entryId));
+    }
+
+    /**
+     * Returns every entry in {@code tenantId}'s own partition whose {@code requestId} matches —
+     * added by {@code REM-P0.2.B-02} ({@code docs/execution-plan.md} §18.14.8) purely to let
+     * {@link LedgerCostReporter} determine, for one {@code (tenant_id, request_id)}, how many ledger
+     * entries match before applying the {@code verified = true} test to a single one of them — the
+     * "count-all-then-verify" rule ({@code interfaces.md} §18 P0 realization notes, human contract
+     * decision of 2026-09-25). The count is taken over every matching entry regardless of
+     * {@link CostLedgerEntry#verified()}; that filter is deliberately not applied here so the caller
+     * can distinguish "several matches, one verified" (no measurement) from "exactly one match,
+     * verified" (a measurement).
+     *
+     * <p><b>Deliberately package-private, not public.</b> {@code CostLedgerTenantIsolationTest}
+     * (Capability 1, Gate P0.1 approved) structurally guards this class's *public* API surface down
+     * to exactly {@code write} and {@code read} — "no list-all/iterate-all-style method may exist at
+     * all" on it — and that Gate is not reopened by this remediation (§18.14.8: "That Gate approval
+     * is not revoked or reopened"). Keeping this enumeration helper package-private satisfies that
+     * guard exactly (it never appears in {@code CostLedgerStore.class.getMethods()}) while still
+     * letting {@link LedgerCostReporter}, in this same package, reach it. This is also why
+     * {@code LedgerCostReporter} lives in {@code accounting.ledger} rather than a separate
+     * {@code accounting.reporting} package: package-private access does not cross package
+     * boundaries, even between a package and its own sub-package.
+     *
+     * <p>{@code write} and {@code read(tenantId, entryId)} above are unchanged by this method: it
+     * only reads, and only from {@code tenantId}'s own map entry in {@link #byTenant}, so it is
+     * exactly as tenant-scoped as {@link #read} — there is no way to reach another tenant's
+     * partition through this method either. Returns an empty, immutable list when the tenant has no
+     * entries at all; never {@code null}.
+     */
+    List<CostLedgerEntry> findByRequestId(String tenantId, String requestId) {
+        Map<String, CostLedgerEntry> tenantEntries = byTenant.get(tenantId);
+        if (tenantEntries == null) {
+            return List.of();
+        }
+        return tenantEntries.values().stream()
+            .filter(entry -> entry.requestId().equals(requestId))
+            .toList();
     }
 }
