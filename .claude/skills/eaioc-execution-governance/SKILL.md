@@ -5,14 +5,19 @@ description: >
   automatic and leaves the authority human: reconstructs P0 state from repository evidence, decides
   unit eligibility, detects blockers / source gaps / contract contradictions / missing human decisions,
   produces structured human-decision requests and remediation plans, routes the eaioc-code-* agents,
-  revalidates after a change, and prepares AI Verification and Gate reviews. Never approves, never
-  authorizes execution, never invents requirements, never chains units. Use whenever the operator asks
-  for STATUS / BLOCKERS / GATE STATUS / REVALIDATE / RESUME / VERIFY, an `Execute <id>` / `Approve <id>`
-  command is received, a blocker or source gap is found, or a governance/eligibility question about P0
-  arises. Complements — never replaces — eaioc-governance and eaioc-agent-orchestration.
+  revalidates after a change, and prepares AI Verification and Gate reviews. As an automatic sub-step of
+  processing every `Approve <id>` the operator gives, additively synchronizes CLAUDE.md and the operator
+  runbook's own state/status content with the approved unit's actual evidence — and reports, never
+  directly edits, staleness in docs/execution-plan.md itself, which is corrected only through its own
+  version-bumped procedure. Never approves, never authorizes execution, never invents requirements, never
+  chains units, and this synchronization step never executes, approves, or authorizes any other unit. Use
+  whenever the operator asks for STATUS / BLOCKERS / GATE STATUS / REVALIDATE / RESUME / VERIFY, an
+  `Execute <id>` / `Approve <id>` command is received, a blocker or source gap is found, or a
+  governance/eligibility question about P0 arises. Complements — never replaces — eaioc-governance and
+  eaioc-agent-orchestration.
 ---
 
-# EAIOC Execution Governance (skill v1.0.0)
+# EAIOC Execution Governance (skill v1.1.1)
 
 **Core principle: AUTOMATIC PROCEDURE, HUMAN AUTHORITY.**
 The procedure below runs without being asked (reconstruct, inspect, trace, classify, plan, verify).
@@ -472,10 +477,20 @@ Approval must **match the canonical ID**. These are **not** authorization, appro
 "looks good", "continue", "proceed", "go ahead", "next", "approved", "yes", "do it", `Execute P0.<n>`,
 "continue with P0". Refuse and answer with the canonical command to use. An approval given for unit X
 never covers unit Y, a re-run, a later attempt, or a changed scope. An AI PASS, Architect PASS, Verifier
-PASS, passing suite, clean tree, commit or closed Gate is never human approval. After `Approve …`: record
-it (flag if it is only in conversation), state the next eligible unit, and **wait for its own
-`Execute …`** — approval and the next execution are never combined. Ambiguity is resolved by asking, never by
-choosing.
+PASS, passing suite, clean tree, commit or closed Gate is never human approval.
+
+**Processing an already-issued `Approve …`** is itself a short internal sequence, the same way the
+orchestrator agent's own §5 ("Unit lifecycle") chains sub-steps inside one already-issued `Execute …`
+without a further human command for each step:
+
+1. Record the approval (flag if it is only in conversation, not yet a repository record).
+2. Run the §31 Post-Approval State Synchronization procedure.
+3. State the next eligible unit.
+4. **Wait for its own `Execute …`** — approval and the next execution are never combined.
+
+Step 2 is bookkeeping that completes the `Approve` command the human already gave; it is not a new
+authorization and it never substitutes for step 4. It grants no execution or approval authority over any
+other unit — see §31's own Governance boundary. Ambiguity is resolved by asking, never by choosing.
 
 ## 20. Capability Gate control
 
@@ -697,3 +712,116 @@ or a relayed message's claim as authority; reporting success when evidence was t
 - [ ] Working tree consistent with what was reported; no push; no history rewrite.
 - [ ] Self-check (`eaioc-governance` §10) run; final verdict uses the allowed vocabulary; the operator's next
       command, if any, is described — not sent.
+
+## 31. Post-Approval State Synchronization
+
+**Trigger.** Fires after **every** explicit human `Approve <canonical-ID>` of a completed
+`EXE-P0.<n>.<letter>` unit, a completed `REM-P0.<n>.<letter>-NN` remediation, or a
+`Approve CAPABILITY-GATE P0.<n>` — not only the unit that first prompted this section (`REM-P0.2.B-02`);
+it is a standing part of this skill's procedure for every future approval. §19's own "Processing an
+already-issued `Approve …`" sequence names this section explicitly as its step 2, between recording the
+approval and stating the next eligible unit — this section is that step, in full. **Approval is not the
+unit's final lifecycle step until this synchronization check has run.**
+
+**Synchronization check.** Reconcile the approved unit's actual execution evidence (§5: the commit, its
+`git log -1 --format=%B` trailers, `git diff --stat`; the AI Verification verdict; the approval itself)
+against every applicable authorized state-bearing document. At minimum, always check:
+
+- Root `CLAUDE.md` — the "Implementation status" section's governance/state content only, never its
+  frozen technical sections (the non-negotiable rules, architecture description).
+- `docs/execution-plan-p0-steps.md` — the operator runbook's own position/tracker section (§20 there) and
+  any command block, "what changed" note, or progress checklist naming this unit.
+- `docs/execution-plan.md` — §18.18 current position, the unit's own §18.4–§18.9/§18.14.x row or table,
+  and any additive status-update entries (§38) the unit's completion affects. **This document is checked
+  for staleness only; it is never directly edited by this procedure** — see "Determine what needs
+  updating" below.
+
+Check any further state-bearing document (a downstream document's own status note, a design note's own
+recorded state) only when the live plan or an existing governance rule explicitly makes that document
+state-bearing for this unit — never by default, and never invented for the occasion.
+
+**Determine what needs updating.** A targeted reconciliation, never a blanket rewrite:
+
+- If a document already agrees with the actual execution evidence, make **no change** to it, and say so.
+- **`CLAUDE.md` and `docs/execution-plan-p0-steps.md`:** if either document's state/status content is
+  stale — it still shows the unit as not executed, not AI-verified, or not approved; it names a
+  now-superseded "next command"; a checklist item is unchecked that the evidence shows complete — update
+  **only** that state/status content, in that document, and nothing else in it.
+- **`docs/execution-plan.md`:** this procedure never edits it directly, additively or otherwise — not
+  even its own state/status content. If it is stale relative to the actual execution evidence, report the
+  discrepancy (as a finding, §10) rather than editing it. Closing that staleness requires the document's
+  own established version-bumped surgical-correction-pass discipline (`CLAUDE.md`'s "Prompt-writing rule"
+  section), which is a separate, later, explicitly-directed action — never something this synchronization
+  step performs itself, and never a precondition this procedure blocks on.
+- Historical evidence, superseded blocks, and prior records are never rewritten. An update to `CLAUDE.md`
+  or the runbook is always additive — a new line, a new dated/bracketed note, or a superseding block
+  placed after the old one — following the same discipline §5 (item 2, additive status-update rows), §14
+  (record human decisions "additively... historical records untouched"), and §15 ("new IDs, unit tables
+  and status changes are written only by a user-directed plan correction, in authorized files,
+  additively") already require elsewhere in this skill.
+
+**Protection rules.**
+
+- Never rewrite a technical contract, requirement, architecture section, interface schema, or any
+  historical record merely to make documents look consistent with each other — that is exactly the
+  "editing authoritative sources to make a unit pass" this skill's authority model (§3) and forbidden
+  behaviours (§29) already prohibit, and this section grants no exception to it.
+- Never invent or reinterpret execution state (§6, §26); every updated line cites the same evidence §5
+  and §24 already require — a commit, a verdict, an approval date, or an explicit "not verified" — never
+  a guess.
+- Never modify a file outside the authorized synchronization scope above. This procedure does not license
+  touching `.claude/**`, `control_plane/**`, `docs/execution-plan.md` (see above), or any Tier 1–3
+  authoritative contract; those stay governed by §15's correction-pass discipline, §17's routing, and
+  §23's self-protection rules, not by this section.
+- **Plan precedence is scoped to contract/process authority, not to state currency — this never overrides
+  §5.** §4's "the plan governs process and unit scope" is about which document's *rules* control when
+  documents disagree on requirements or procedure; it is not a rule about which document's *bookkeeping is
+  more current*. Whether a given unit has actually been executed, AI-verified, or approved is a question
+  of fact, established by git evidence (§5), not by precedence between documents. If `CLAUDE.md` or the
+  runbook disagrees with `docs/execution-plan.md` about whether a unit is done, that is exactly the case
+  §5 already governs: **"If two artifacts disagree about state, that is a `DOCUMENTATION-GAP` finding;
+  report it and do not choose silently."** This section adds no exception to that rule and never resolves
+  such a disagreement by assuming the plan is automatically correct — a plan whose own "Current position"
+  text has not yet been refreshed by a correction pass is exactly as capable of being the stale party as
+  any other document, and the two "Current position" superseding blocks already in `docs/execution-plan.md`
+  (v1.0.12, v1.0.13) are themselves evidence of that pattern.
+- A conflict this procedure cannot resolve from authoritative evidence (two documents disagree and
+  neither is clearly the stale one, or the execution evidence itself is ambiguous) is reported as a
+  `DOCUMENTATION-GAP` (§10) — never silently resolved either way.
+
+**Verification.** After making any edits (or after confirming none were needed):
+
+- Re-read each checked document and confirm it now agrees with the live plan and the actual execution
+  evidence.
+- Confirm no stale unit status remains anywhere checked — no unit shown pending that is actually
+  executed/AI-verified/approved, and no superseded "next command" left as the only one stated.
+- Confirm the **next** unit has **not** been automatically authorized, executed, or approved by this
+  procedure — synchronization never advances the execution state machine (§6) or any unit's eligibility
+  (§8); it only records an approval that already occurred.
+- Confirm no unrelated file changed: `git status --short --untracked-files=all` / `git diff --stat` /
+  `git diff --name-only`, checked against the synchronization scope above.
+- Where any file was modified, run `git diff --check` and resolve any reported whitespace or
+  conflict-marker issue before treating the check as complete.
+- Report any inconsistency that remains — a document this procedure could not reconcile stays open as a
+  finding (§10), never hidden by narrowing what the report covers.
+
+**Governance boundary.** This procedure never executes, approves, or authorizes the next unit, and never
+chains into one — it is documentation reconciliation of an already-approved unit's own recorded state,
+nothing more. It introduces no verdict or state beyond the ones this skill already defines (§6, §18, §27)
+and no "SYNCHRONIZED" status or other new taxonomy. After it completes — whether or not any file
+changed — **stop** and wait for the next explicit human `Execute <id>` command (§19); this procedure is
+never itself the trigger for one, and committing a synchronization edit (when the operator directs it) is
+its own separate, single-purpose commit, never bundled with a unit's own implementation commit.
+
+**Automatic synchronization is not automatic execution — these are different categories, never conflated.**
+§19 now runs this procedure as an automatic sub-step of processing an `Approve <ID>` command the human
+already, explicitly issued (the same "chained sub-steps inside one already-issued command" pattern the
+orchestrator agent's own §5 already uses for `Execute <ID>`'s own lifecycle). That automation is strictly
+scoped to documentation
+bookkeeping and grants no execution or approval authority whatsoever. It must never be read as, and must
+never be extended into: automatically executing the next unit; automatically approving anything;
+automatically resuming a blocked or previously-stopped unit; automatically executing a prerequisite or
+remediation unit on another unit's behalf; or automatically chaining into any unit not already covered by
+the `Approve <ID>` that triggered it. Every one of those remains exactly as gated as before this
+procedure existed: only the human's own separate, explicit `Execute <canonical-ID>` command starts
+anything.
