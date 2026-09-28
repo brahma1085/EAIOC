@@ -2126,3 +2126,102 @@ Approve EXE-P0.2.B
 *(Historical v1.0.7 sequence — `REM-P0.1.B-02`, the G/H approvals and the Capability 1 Gate — is complete: all issued and approved on 2026-09-23.)*
 
 After `EXE-P0.2.B`, continue with §8's Capability 2 steps from `Execute EXE-P0.2.C`.
+
+---
+
+### Authorized Path State (plan §18.20.N — Continuous Phase-Driven Execution, effective from `EXE-P0.2.C` onward)
+
+Plan §18.20.N names this runbook's §20 as the place a deferred authorized-path field would eventually
+live, once a separate correction pass added it. This subsection is that pass. It supplements, and never
+replaces, the "Current Position" block above — where the two disagree, `git log` and the most recently
+synced block above win, and the disagreement is a `DOCUMENTATION-GAP` (plan §18.20.N; the term itself is
+defined at `.claude/skills/eaioc-execution-governance/SKILL.md` §10, "Blocker detection"), never resolved
+by guessing.
+
+**This field is not:**
+
+- a second state ledger (plan §18.20.N, HD-CE-12) — it never substitutes for git evidence; a
+  disagreement between this field and git history is resolved in git's favor and reported as a
+  `DOCUMENTATION-GAP`;
+- a new authorization mechanism — nothing recorded here ever itself authorizes a unit; only the
+  operator's own explicit `Execute <id>` does;
+- an implicit approval record — an entry here for a `CONTINUING` / `CONTINUING (NOT APPLICABLE)` unit
+  is never read as that unit's own `Approve`;
+- a source of authorization for any unit or Capability outside the path it describes.
+
+**A hard prerequisite is not automatically path-internal (plan §18.20.I).** A remediation or prerequisite
+unit being a *hard prerequisite* of a path-internal unit (in the sense already used at §18.15, §18.14.8)
+never by itself makes that prerequisite eligible to auto-run inside an open path — only the live plan's
+own explicit designation of that exact unit as path-internal for that exact path does. As of this
+writing no currently registered remediation is plan-designated path-internal; `REM-P0.2.B-03` in
+particular is Optional (§18.20.J, HD-CE-09) and is never auto-run regardless of any path being open.
+
+**Template — the eight facts plan §18.20.N requires, kept current only while a path is actually open:**
+
+```text
+AUTHORIZED PATH STATE (plan §18.20.N)
+Capability:                    <n>
+Authorized starting unit:      EXE-P0.<n>.<letter>      (the unit named in the triggering Execute)
+Authorized path boundary:      Capability Gate P0.<n>  |  EXE-P0.<n>.<letter> (if stopped short of the Gate)
+Completed units:
+  EXE-P0.<n>.<letter> — HUMAN APPROVED                             (approved before this path opened)
+  EXE-P0.<n>.<letter> — AI VERIFIED — CONTINUING                    (committed, PASS-class, path-internal)
+  EXE-P0.<n>.<letter> — AI VERIFIED — CONTINUING (NOT APPLICABLE)   (no commit, N/A, path-internal)
+Current stopped unit:          <id> | none (path complete or not yet opened)
+Stop reason:                   <cite the exact §18.20.K condition> | none
+HDR resolution status:         OPEN | RESOLVED (date, decision reference) | not applicable
+Continuation-authorized:       true | false
+```
+
+**Terminology — three states, never conflated:**
+
+| State | Meaning | Commit? | Individual `Approve`? | Is it `HUMAN APPROVED`? |
+|---|---|---|---|---|
+| `HUMAN APPROVED` | The historical, per-unit model — the operator's own explicit `Approve <id>` | (per the unit) | Yes — this *is* the approval | Yes |
+| `AI VERIFIED — CONTINUING` | Path-internal, PASS-class unit; continuation permitted only because it lies inside the path an earlier `Execute` opened (plan §18.20.F) | Yes | No — none is requested | **No — never** |
+| `AI VERIFIED — CONTINUING (NOT APPLICABLE)` | Path-internal, `NOT APPLICABLE` unit (plan §18.20.R) | **No — never** | No — none is requested | **No — never** |
+
+Both continuation states authorize only the automatic move to the next path-internal unit of the *same*
+Capability; neither authorizes anything outside that path, and neither is ever read as, or reported as,
+`HUMAN APPROVED` anywhere in this runbook.
+
+**Resume semantics after a Human Decision Request (plan §18.20.H).** When a path stops on an HDR or
+blocker, this field's "Current stopped unit" / "Stop reason" / "HDR resolution status" rows are the
+record of that stop. Once the operator resolves it:
+
+1. Reconstruct state from this field, git, and the live plan.
+2. Reconcile the resolution against the authoritative documents — a decision existing is not proof it
+   was correctly promoted into a source document.
+3. Confirm `Continuation-authorized` remains true **for this same Capability and boundary only** — an
+   HDR resolution never expands the path (plan §18.20.H).
+4. If the same path remains valid, execution resumes automatically at the stopped-at unit — **no fresh
+   `Execute` is required** solely because the HDR was resolved.
+5. If reconciliation surfaces a new HDR or blocker, the path stops again and this field is updated again.
+6. If reconstruction is ambiguous (this field, git and the plan do not agree, or a fact is missing), that
+   is a `DOCUMENTATION-GAP` — no automatic resume; the operator sends a fresh `Execute <id>` naming where
+   to resume, which itself validly re-opens the path from that unit (plan §18.20.B).
+
+**An explicit operator `STOP` ends the open path's automatic-continuation privilege immediately** —
+resuming afterward always requires a fresh, explicit `Execute <id>`, never an automatic resume, regardless
+of what this field otherwise records.
+
+**Boundary approval (plan §18.20.G).** When the path reaches its boundary — ordinarily the Capability
+Gate, or an earlier unit if the path is closed out without reaching the Gate — the resulting
+`Approve EXE-P0.n.X` or `Approve CAPABILITY-GATE P0.<n>` request must **enumerate every path-internal
+unit this field lists as completed since the path opened or last resumed, naming which of the two
+continuation states each one reached.** This enumeration is never an implicit "everything up to here,"
+and naming an N/A unit in it is never that unit's own individual approval — the boundary approval is one
+act covering the whole named set. At the Capability Gate specifically: the Gate review remains its own
+separate step (`Review CAPABILITY-GATE P0.<n>`, unchanged); Gate approval remains entirely
+human-controlled; Gate approval may serve as the path's own boundary approval when the path runs through
+H; and — absolutely, with no exception — **Gate approval for Capability N never starts Capability N+1.**
+Capability N+1's Sub-phase A always needs its own separate, explicit `Execute EXE-P0.(N+1).A`.
+
+**Historical compatibility (plan §18.20.O).** `EXE-P0.2.A` and `EXE-P0.2.B` were executed and approved
+under the prior, per-unit model, before this continuous model existed. They are never re-run, never
+re-verified under this procedure, and never relabeled as `CONTINUING` or `CONTINUING (NOT APPLICABLE)` —
+their `HUMAN APPROVED` record in the "Current Position" block and the "Detail per unit" table above
+stays exactly as it is. The continuous model this subsection documents is effective only from
+`EXE-P0.2.C` onward (plan §18.20.O); as of this writing `EXE-P0.2.C` is **not executed, not approved,
+not authorized**, so no path is currently open and every field in the template above is currently
+empty / `none` / `false`.
