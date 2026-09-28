@@ -2,11 +2,11 @@
 
 **Document ID:** EAIOC-EXECPLAN-001
 **Status:** PRE-IMPLEMENTATION — Level 0 (RESEARCH). This document plans execution; it does not itself constitute implementation, and its existence does not change the repository's maturity level.
-**Version:** 1.0.12
+**Version:** 1.1.1
 **Generated:** 2026-09-23 (per repository date)
 **Generation prompt:** `docs/prompts/execute-p0-foundation.prompt.md` (Master Prompt — Execution Plan Generation + Gated Implementation Execution, Mode A)
 **Mode executed:** MODE A — Execution-Plan Generation. No source code was written in producing this document.
-**Correction history:** v1.0.0 → v1.0.1 — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.1.md`: removed a Sub-phase A/B shared-commit contradiction (§18.4) and all wording that could be misread as permitting parallel *execution* of Capabilities 1–3 in Mode B (§18.3, §48, §H below), while preserving the true dependency-independence fact those capabilities share. No requirement, scope, technology-baseline, or source-gap content was altered — see this document's own version-1.0.1 self-check at the end. **v1.0.1 → v1.0.2** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.2.md`: reclassified the Capability Gate as a post-lifecycle review/promotion checkpoint rather than a ninth implementation sub-phase (§18.10) — it receives its own explicit human approval but no implementation commit and no `EXE-P0.<n>.<letter>` ID — and corrected every dependent count reference from "54 atomic execution units" to "48 atomic `EXE-P0.<n>.<letter>` execution units + 6 Capability Gates = 54 total gated checkpoints" (§18.2, §H, and this header). No scope, technology-baseline, source-gap, or sequential-execution content was altered — see this document's own version-1.0.2 self-check at the end. **v1.0.2 → v1.0.3** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.3.md`: added a new §18.11 "Claude Code Mode B Execution Command Protocol" — the canonical `Execute EXE-P0.<n>.<letter>`/`Approve EXE-P0.<n>.<letter>`/`Approve CAPABILITY-GATE P0.<n>` command syntax, the required per-unit response/reporting format, a command-state table, a prohibited-ambiguous-command list, and the full six-capability copy/paste operator reference sequence. No scope, architecture, technology-baseline, requirements, source-gap, ADR, or sequencing content was changed — see this document's own version-1.0.3 self-check at the end. **v1.0.3 → v1.0.4** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.4.md`, addressing the shared-core-foundation ownership gap exposed by `EXE-P0.2.B` and strengthening Mode B approval into a mandatory two-stage control: Claude Code AI verification first, followed by explicit human approval. The correction assigns the shared `core/interfaces`, `core/schemas`, and `core/errors` foundation ownership to Capability 1 / `EXE-P0.1.A`, adds a post-hoc reconciliation mechanism for already-executed P0.1.A, adds explicit precondition guards for P0.2.B, defines AI verification checklists/reporting/state transitions, separates AI verification from human approval, adds AI Capability Gate verification before human Gate approval, clarifies N/A sub-phase handling, and records the historical `c3d6ecf` out-of-band documentation/editor-settings commit as non-implementation history. No upstream architecture, requirements, ADR, technology-baseline, or P0 capability scope is changed by this correction. New/changed sections: §18.2 (N/A commit exception), §18.4/§18.5/§18.6 (Preconditions and the affected A/B rows), §18.10 (two-layer Gate), §18.11.3/§18.11.5–§18.11.8/§18.11.11 (revised), new §18.12–§18.18, §37, §38 (`SOURCE-GAP-EXECPLAN-04`), §52, and this document's version-1.0.4 self-check at the end. **v1.0.4 → v1.0.5** — surgical correction per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.5.md`, to eliminate remaining internal inconsistencies after post-v1.0.4 verification. Corrected the architecture-to-implementation mapping so only A–H are lifecycle sub-phases; corrected the §18.2 field-compaction wording from nine entries to eight lifecycle entries plus a separate Gate; retired ambiguous capability-level shorthand execution semantics in favor of the mandatory canonical `Execute EXE-P0.<n>.<letter>` syntax; corrected final validation/readiness language to recognize `SOURCE-GAP-EXECPLAN-04` as the current implementation-side blocker; and aligned the companion operator runbook to v1.0.5. No scope, architecture, requirements, technology baseline, ADR status, P0 capability definition, execution counts, remediation mechanism, or implementation code was changed. Sections touched: §1 (Version row), §7, §18.2, §18.11.2, §18.11.9, §52, Summary K/U, Execution Plan Readiness, and the new version-1.0.5 self-check at the end. **v1.0.5 → v1.0.6** — surgical source-and-plan correction per `docs/prompts/AC005-Contract-Correction-Prompt.md`, applying the human-approved AC-005 / `CostLedgerEntry` contract decisions D-1 to D-4. It records `CONTRA-EXECPLAN-01`: `INTF-047` did not represent the complete `architecture.md` §27.1 ledger model, a frozen-source contract inconsistency resolved by the documented precedence in `conventions.md`'s header. `interfaces.md` §28.1 and `conventions.md` §14.1 were corrected in the same pass. The plan now corrects Capability 1's Sub-phase B Definition of Done (§18.4) without claiming it was met historically by `e353dcf`; adds the reconciliation of `EXE-P0.1.B` (`RECONCILED: GAP FOUND`) and formally assigns the remediation units `REM-P0.1.B-01` (Contract / Design Reconciliation) and `REM-P0.1.B-02` (Minimal Implementation Remediation) in §18.14.4; and records the G/H approval-evidence finding (§18.14.3). It also refreshes the stale current position (§18.18, §52, Readiness) and adds `SOURCE-GAP-EXECPLAN-05`/`-06` (§38). No upstream scope, architecture, technology baseline, ADR status, P0 capability definition, execution counts, or implementation code changed. **v1.0.6 → v1.0.7** — documentation-only decision-promotion correction, **DB-2**. It promotes the explicit human-operator decisions HD-1 to HD-4, made during the approved `REM-P0.1.B-01` (`34dd1f1`), into `interfaces.md` §28.1 (22 former `SOURCE-UNRESOLVED` types resolved; OD-28.1-A/B closed) and `conventions.md` §14.1 (null/`unverified` rule), as §18.14.4 requires before `REM-P0.1.B-02`. It resolves `SOURCE-GAP-EXECPLAN-05`/`-06`; records DB-1, the approved placeholder rule, as unchanged; adds §18.14.5; and refreshes the current position. `REM-P0.1.B-02` remains NOT EXECUTED; Capability 1 Gate and `EXE-P0.2.B` remain BLOCKED. No historical record, `CONTRA-EXECPLAN-01`, count, or implementation code changed. **v1.0.7 → v1.0.8** — documentation-only correction recording the human-operator decisions HQ-1 to HQ-6 and GS-1 (2026-09-24), made after `EXE-P0.2.B` returned `AI VERIFICATION: BLOCKED` on INTF-030 design gaps at P0. It records the decisions (§18.14.6), adds P0 realization notes to `interfaces.md` §18 and a `run_baseline` row to §26.1 (contract text unchanged), registers `SOURCE-GAP-EXECPLAN-07`/`SOURCE-GAP-EXECPLAN-08`/`-09` (§38), annotates the §18.5 B row, and synchronizes the stale Capability Gate P0.1 state with the operator's 2026-09-23 approvals (§1, §18.14.3, §18.14.5, §18.18, §52, Readiness). `SOURCE-GAP-EVAL-01` remains open. `EXE-P0.2.B` remains BLOCKED on `SOURCE-GAP-EXECPLAN-07`/`SOURCE-GAP-EXECPLAN-08`. No source code, test, or historical commit changed. **v1.0.8 → v1.0.9** — documentation-only correction per the operator-supplied v1.0.9 surgical-correction prompt (provided in session; no copy exists under `docs/prompts/`): adds the **Execution Assistance Layer** (§18.19) — the repository's Claude Code skills and subagents as development-workflow assistance inside an authorized unit, never an EAIOC runtime/architecture layer and never an authorization mechanism. It inventories the current `.claude/` agents and skills, adds a routing matrix by capability and sub-phase, a per-unit pre-flight and fast-fail rule, a minimum-sufficient-assistance rule, and the specialist-evidence-versus-verdict rule; adds AI Verification dimension **K** (§18.12.1; J stays the final verdict, so no reference is renumbered) and report line 10 (§18.12.3); annotates the §18.5 B row's no-op wording per HQ-3 and Summary K's gap list. P0 scope, sequencing, unit IDs, counts, Capability Gate semantics, approvals, and all historical evidence are unchanged. `EXE-P0.2.B` remains BLOCKED on `SOURCE-GAP-EXECPLAN-07`/`-08`. **v1.0.9 → v1.0.10** — documentation/governance-only correction per the operator-supplied v1.0.10 surgical-correction prompt (provided in session; no copy exists under `docs/prompts/`). It formally registers the `EXE-P0.2.B` blocker remediation as **`REM-P0.2.B-01`** (§18.14.7), under the existing `REM-P0.<n>.<letter>-<NN>` convention. That section defines the unit's scope (decision areas D-A to D-D, none pre-decided), prerequisites, Definition of Done, review and verification, approval, and its explicit relationship to `SOURCE-GAP-EXECPLAN-07`/`-08`. It extends §18.14's remediation mechanism to this one pre-execution contract/design case. It links the unit in §18.5, §18.14.6, §18.18, §18.19.7, §38, §52, Summary H/K and the readiness conclusion, and synchronizes the operator runbook. `REM-P0.2.B-01` is REGISTERED / NOT STARTED; `SOURCE-GAP-EXECPLAN-07`/`-08` remain OPEN; `EXE-P0.2.B` remains BLOCKED. No contract, source code, test, count, unit ID, or historical record changed. **v1.0.10 → v1.0.11** — source-contract correction **DB-3**, per the operator-directed instruction of 2026-09-25 (given in-session; no copy under `docs/prompts/`). It promotes the operator's `REM-P0.2.B-01` decisions (D-A to D-D and the operator's decisions of 2026-09-25) into `interfaces.md` §18 (new `BaselineEvaluationRecord`; field mappings; retrieval and verified-only rule; no-measurement principle), resolves `SOURCE-GAP-EXECPLAN-07`/`-08` at source and narrows `-09` (additive status updates in §38; the register rows are retained unmodified), records `REM-P0.2.B-01` as executed (`e4cf1f5`), AI-verified and human-approved, registers `REM-P0.2.B-02` (prerequisite of `EXE-P0.2.B`) and `REM-P0.2.B-03` (not a prerequisite) in the new §18.14.8 with an explicit extension of §18.14's pre-execution mechanism, records the explicit deferral of live Path A measurement at Capability Gate P0.2 (§18.10), redefines `EXE-P0.2.B` as contract-level and fixture-based (§18.5), and registers `SOURCE-GAP-EXECPLAN-10` to `-15` (§38). Six contract values and decisions are recorded as human contract decisions of 2026-09-25, not source-derived: the record's initial `schema_version` (`1.0.0`), the field name `source_entry_id`, the carrying of `run_type`, the retrieval count basis (count-all-then-verify), the no-measurement outcome (`run_baseline()` fails without returning a result), and the retention of the `interfaces.md` document Version 1.2.0 with an explicit amendment-history entry. Changed under the operator's file authorization: `docs/interfaces.md`, `docs/eval.md`, `docs/implementation-plan.md`, `docs/execution-plan.md`, `docs/execution-plan-p0-steps.md`, root `CLAUDE.md` (governance state only). `SOURCE-GAP-EVAL-01` and `SOURCE-GAP-IRG-02` remain open. No source code, test, count or existing unit ID changed. **v1.0.11 → v1.0.12** — documentation-only state-refresh correction, synchronizing this document with `REM-P0.2.B-02`'s already-completed execution. It records `REM-P0.2.B-02` as executed (`bf74ac3`), AI-verified (`PASS`), and human-approved (2026-09-27), which clears that named precondition of `EXE-P0.2.B` (§18.14.8, §18.15); `EXE-P0.2.B` remains **not yet executable**, pending its own pre-flight (§18.19.3), a fresh §18.15 guard check against the now-existing retrieval realization, and a Code Architect re-assessment — none of which has run. It refreshes every §18.14.8/§18.18/§52/Summary-K status, readiness and current-position block that referenced `REM-P0.2.B-02`'s prior `REGISTERED / NOT EXECUTED` status, using the established superseding-block pattern (no v1.0.11 text rewritten in place), and updates the next-executable-unit statement from `REM-P0.2.B-02` to `EXE-P0.2.B` (subject to that unit's own pre-flight). No contract, interface, schema, unit definition, count, source-gap definition, or governance semantic changed; `REM-P0.2.B-03` remains registered, not executed, not a prerequisite.
+**Correction history:** v1.0.0 → v1.0.1 — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.1.md`: removed a Sub-phase A/B shared-commit contradiction (§18.4) and all wording that could be misread as permitting parallel *execution* of Capabilities 1–3 in Mode B (§18.3, §48, §H below), while preserving the true dependency-independence fact those capabilities share. No requirement, scope, technology-baseline, or source-gap content was altered — see this document's own version-1.0.1 self-check at the end. **v1.0.1 → v1.0.2** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.2.md`: reclassified the Capability Gate as a post-lifecycle review/promotion checkpoint rather than a ninth implementation sub-phase (§18.10) — it receives its own explicit human approval but no implementation commit and no `EXE-P0.<n>.<letter>` ID — and corrected every dependent count reference from "54 atomic execution units" to "48 atomic `EXE-P0.<n>.<letter>` execution units + 6 Capability Gates = 54 total gated checkpoints" (§18.2, §H, and this header). No scope, technology-baseline, source-gap, or sequential-execution content was altered — see this document's own version-1.0.2 self-check at the end. **v1.0.2 → v1.0.3** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.3.md`: added a new §18.11 "Claude Code Mode B Execution Command Protocol" — the canonical `Execute EXE-P0.<n>.<letter>`/`Approve EXE-P0.<n>.<letter>`/`Approve CAPABILITY-GATE P0.<n>` command syntax, the required per-unit response/reporting format, a command-state table, a prohibited-ambiguous-command list, and the full six-capability copy/paste operator reference sequence. No scope, architecture, technology-baseline, requirements, source-gap, ADR, or sequencing content was changed — see this document's own version-1.0.3 self-check at the end. **v1.0.3 → v1.0.4** — surgical correction pass per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.4.md`, addressing the shared-core-foundation ownership gap exposed by `EXE-P0.2.B` and strengthening Mode B approval into a mandatory two-stage control: Claude Code AI verification first, followed by explicit human approval. The correction assigns the shared `core/interfaces`, `core/schemas`, and `core/errors` foundation ownership to Capability 1 / `EXE-P0.1.A`, adds a post-hoc reconciliation mechanism for already-executed P0.1.A, adds explicit precondition guards for P0.2.B, defines AI verification checklists/reporting/state transitions, separates AI verification from human approval, adds AI Capability Gate verification before human Gate approval, clarifies N/A sub-phase handling, and records the historical `c3d6ecf` out-of-band documentation/editor-settings commit as non-implementation history. No upstream architecture, requirements, ADR, technology-baseline, or P0 capability scope is changed by this correction. New/changed sections: §18.2 (N/A commit exception), §18.4/§18.5/§18.6 (Preconditions and the affected A/B rows), §18.10 (two-layer Gate), §18.11.3/§18.11.5–§18.11.8/§18.11.11 (revised), new §18.12–§18.18, §37, §38 (`SOURCE-GAP-EXECPLAN-04`), §52, and this document's version-1.0.4 self-check at the end. **v1.0.4 → v1.0.5** — surgical correction per `docs/prompts/Execution_Plan_Surgical_Correction_Prompt_v1.0.5.md`, to eliminate remaining internal inconsistencies after post-v1.0.4 verification. Corrected the architecture-to-implementation mapping so only A–H are lifecycle sub-phases; corrected the §18.2 field-compaction wording from nine entries to eight lifecycle entries plus a separate Gate; retired ambiguous capability-level shorthand execution semantics in favor of the mandatory canonical `Execute EXE-P0.<n>.<letter>` syntax; corrected final validation/readiness language to recognize `SOURCE-GAP-EXECPLAN-04` as the current implementation-side blocker; and aligned the companion operator runbook to v1.0.5. No scope, architecture, requirements, technology baseline, ADR status, P0 capability definition, execution counts, remediation mechanism, or implementation code was changed. Sections touched: §1 (Version row), §7, §18.2, §18.11.2, §18.11.9, §52, Summary K/U, Execution Plan Readiness, and the new version-1.0.5 self-check at the end. **v1.0.5 → v1.0.6** — surgical source-and-plan correction per `docs/prompts/AC005-Contract-Correction-Prompt.md`, applying the human-approved AC-005 / `CostLedgerEntry` contract decisions D-1 to D-4. It records `CONTRA-EXECPLAN-01`: `INTF-047` did not represent the complete `architecture.md` §27.1 ledger model, a frozen-source contract inconsistency resolved by the documented precedence in `conventions.md`'s header. `interfaces.md` §28.1 and `conventions.md` §14.1 were corrected in the same pass. The plan now corrects Capability 1's Sub-phase B Definition of Done (§18.4) without claiming it was met historically by `e353dcf`; adds the reconciliation of `EXE-P0.1.B` (`RECONCILED: GAP FOUND`) and formally assigns the remediation units `REM-P0.1.B-01` (Contract / Design Reconciliation) and `REM-P0.1.B-02` (Minimal Implementation Remediation) in §18.14.4; and records the G/H approval-evidence finding (§18.14.3). It also refreshes the stale current position (§18.18, §52, Readiness) and adds `SOURCE-GAP-EXECPLAN-05`/`-06` (§38). No upstream scope, architecture, technology baseline, ADR status, P0 capability definition, execution counts, or implementation code changed. **v1.0.6 → v1.0.7** — documentation-only decision-promotion correction, **DB-2**. It promotes the explicit human-operator decisions HD-1 to HD-4, made during the approved `REM-P0.1.B-01` (`34dd1f1`), into `interfaces.md` §28.1 (22 former `SOURCE-UNRESOLVED` types resolved; OD-28.1-A/B closed) and `conventions.md` §14.1 (null/`unverified` rule), as §18.14.4 requires before `REM-P0.1.B-02`. It resolves `SOURCE-GAP-EXECPLAN-05`/`-06`; records DB-1, the approved placeholder rule, as unchanged; adds §18.14.5; and refreshes the current position. `REM-P0.1.B-02` remains NOT EXECUTED; Capability 1 Gate and `EXE-P0.2.B` remain BLOCKED. No historical record, `CONTRA-EXECPLAN-01`, count, or implementation code changed. **v1.0.7 → v1.0.8** — documentation-only correction recording the human-operator decisions HQ-1 to HQ-6 and GS-1 (2026-09-24), made after `EXE-P0.2.B` returned `AI VERIFICATION: BLOCKED` on INTF-030 design gaps at P0. It records the decisions (§18.14.6), adds P0 realization notes to `interfaces.md` §18 and a `run_baseline` row to §26.1 (contract text unchanged), registers `SOURCE-GAP-EXECPLAN-07`/`SOURCE-GAP-EXECPLAN-08`/`-09` (§38), annotates the §18.5 B row, and synchronizes the stale Capability Gate P0.1 state with the operator's 2026-09-23 approvals (§1, §18.14.3, §18.14.5, §18.18, §52, Readiness). `SOURCE-GAP-EVAL-01` remains open. `EXE-P0.2.B` remains BLOCKED on `SOURCE-GAP-EXECPLAN-07`/`SOURCE-GAP-EXECPLAN-08`. No source code, test, or historical commit changed. **v1.0.8 → v1.0.9** — documentation-only correction per the operator-supplied v1.0.9 surgical-correction prompt (provided in session; no copy exists under `docs/prompts/`): adds the **Execution Assistance Layer** (§18.19) — the repository's Claude Code skills and subagents as development-workflow assistance inside an authorized unit, never an EAIOC runtime/architecture layer and never an authorization mechanism. It inventories the current `.claude/` agents and skills, adds a routing matrix by capability and sub-phase, a per-unit pre-flight and fast-fail rule, a minimum-sufficient-assistance rule, and the specialist-evidence-versus-verdict rule; adds AI Verification dimension **K** (§18.12.1; J stays the final verdict, so no reference is renumbered) and report line 10 (§18.12.3); annotates the §18.5 B row's no-op wording per HQ-3 and Summary K's gap list. P0 scope, sequencing, unit IDs, counts, Capability Gate semantics, approvals, and all historical evidence are unchanged. `EXE-P0.2.B` remains BLOCKED on `SOURCE-GAP-EXECPLAN-07`/`-08`. **v1.0.9 → v1.0.10** — documentation/governance-only correction per the operator-supplied v1.0.10 surgical-correction prompt (provided in session; no copy exists under `docs/prompts/`). It formally registers the `EXE-P0.2.B` blocker remediation as **`REM-P0.2.B-01`** (§18.14.7), under the existing `REM-P0.<n>.<letter>-<NN>` convention. That section defines the unit's scope (decision areas D-A to D-D, none pre-decided), prerequisites, Definition of Done, review and verification, approval, and its explicit relationship to `SOURCE-GAP-EXECPLAN-07`/`-08`. It extends §18.14's remediation mechanism to this one pre-execution contract/design case. It links the unit in §18.5, §18.14.6, §18.18, §18.19.7, §38, §52, Summary H/K and the readiness conclusion, and synchronizes the operator runbook. `REM-P0.2.B-01` is REGISTERED / NOT STARTED; `SOURCE-GAP-EXECPLAN-07`/`-08` remain OPEN; `EXE-P0.2.B` remains BLOCKED. No contract, source code, test, count, unit ID, or historical record changed. **v1.0.10 → v1.0.11** — source-contract correction **DB-3**, per the operator-directed instruction of 2026-09-25 (given in-session; no copy under `docs/prompts/`). It promotes the operator's `REM-P0.2.B-01` decisions (D-A to D-D and the operator's decisions of 2026-09-25) into `interfaces.md` §18 (new `BaselineEvaluationRecord`; field mappings; retrieval and verified-only rule; no-measurement principle), resolves `SOURCE-GAP-EXECPLAN-07`/`-08` at source and narrows `-09` (additive status updates in §38; the register rows are retained unmodified), records `REM-P0.2.B-01` as executed (`e4cf1f5`), AI-verified and human-approved, registers `REM-P0.2.B-02` (prerequisite of `EXE-P0.2.B`) and `REM-P0.2.B-03` (not a prerequisite) in the new §18.14.8 with an explicit extension of §18.14's pre-execution mechanism, records the explicit deferral of live Path A measurement at Capability Gate P0.2 (§18.10), redefines `EXE-P0.2.B` as contract-level and fixture-based (§18.5), and registers `SOURCE-GAP-EXECPLAN-10` to `-15` (§38). Six contract values and decisions are recorded as human contract decisions of 2026-09-25, not source-derived: the record's initial `schema_version` (`1.0.0`), the field name `source_entry_id`, the carrying of `run_type`, the retrieval count basis (count-all-then-verify), the no-measurement outcome (`run_baseline()` fails without returning a result), and the retention of the `interfaces.md` document Version 1.2.0 with an explicit amendment-history entry. Changed under the operator's file authorization: `docs/interfaces.md`, `docs/eval.md`, `docs/implementation-plan.md`, `docs/execution-plan.md`, `docs/execution-plan-p0-steps.md`, root `CLAUDE.md` (governance state only). `SOURCE-GAP-EVAL-01` and `SOURCE-GAP-IRG-02` remain open. No source code, test, count or existing unit ID changed. **v1.0.11 → v1.0.12** — documentation-only state-refresh correction, synchronizing this document with `REM-P0.2.B-02`'s already-completed execution. It records `REM-P0.2.B-02` as executed (`bf74ac3`), AI-verified (`PASS`), and human-approved (2026-09-27), which clears that named precondition of `EXE-P0.2.B` (§18.14.8, §18.15); `EXE-P0.2.B` remains **not yet executable**, pending its own pre-flight (§18.19.3), a fresh §18.15 guard check against the now-existing retrieval realization, and a Code Architect re-assessment — none of which has run. It refreshes every §18.14.8/§18.18/§52/Summary-K status, readiness and current-position block that referenced `REM-P0.2.B-02`'s prior `REGISTERED / NOT EXECUTED` status, using the established superseding-block pattern (no v1.0.11 text rewritten in place), and updates the next-executable-unit statement from `REM-P0.2.B-02` to `EXE-P0.2.B` (subject to that unit's own pre-flight). No contract, interface, schema, unit definition, count, source-gap definition, or governance semantic changed; `REM-P0.2.B-03` remains registered, not executed, not a prerequisite. **v1.0.12 → v1.0.13** — documentation-only state-refresh correction, synchronizing this document with `EXE-P0.2.B`'s already-completed execution. It records `EXE-P0.2.B` (Sub-phase B — Minimal Implementation) as executed (`a2d022f`), AI-verified (`PASS`), and human-approved (2026-09-27), with the full 92-test suite passing and all three governance agents' reviews (Architect `APPROVED FOR IMPLEMENTATION`, Reviewer `PASS WITH REQUIRED FOLLOW-UP` — one LOW finding, fixed in the same commit — Verifier `CONFORMANT WITH DOCUMENTED GAPS`) recorded, including the disclosed, not concealed, finding that the Architect/Reviewer/Verifier routing ran after implementation rather than before (a documented deviation from §18.19.4/§18.19.5's normal sequence that produced no required design change). It records `EXE-P0.2.C` as NOT EXECUTED and NOT AUTHORIZED, and Capability Gate P0.2 as NOT AUTHORIZED — `Approve EXE-P0.2.B` approved only that one sub-phase and does not chain to either. It refreshes every §18.14.8/§18.18/§52/Summary-K status, readiness and current-position block that referenced `EXE-P0.2.B`'s prior `NOT YET EXECUTABLE` status, using the established superseding-block pattern (no v1.0.12 text rewritten in place), and updates the next-executable-unit statement from `EXE-P0.2.B` to `EXE-P0.2.C`. No contract, interface, schema, unit definition, count, source-gap definition, or governance semantic changed; the documented Architect/Reviewer/Verifier ordering deviation is preserved as historical evidence, not rewritten or concealed. **v1.0.13 → v1.1.0** — **structural execution-authorization-model amendment, not a routine state refresh.** Adopted from the human decision register HD-CE-01 through HD-CE-16 (frozen 2026-09-28, following a dedicated read-only governance-redesign analysis and decision-collection process conducted outside this document). Adds new §18.20 "Continuous Phase-Driven Execution Model" — the authoritative source for continuous execution within an explicitly human-authorized Capability path: "phase" = Capability (§18.20.A); one `Execute <ID>` opens the path for the remaining sub-phases of that unit's Capability through its own Capability Gate, never another Capability (§18.20.B–C); path-internal units continue automatically after a PASS-class AI Verification and their own commit, reporting the new `### AI VERIFIED — CONTINUING` footer/state — never `HUMAN APPROVED`, never itself authorizing anything outside the path (§18.20.D–F, §18.12.4, §18.17); human `Approve …` is required only at the path's boundary, which must explicitly enumerate every unit it covers (§18.20.G); a resolved Human Decision Request auto-resumes the same path, never expanding it (§18.20.H); a prerequisite/remediation unit may execute automatically only when this plan explicitly designates that exact unit as path-internal — `REM-P0.2.B-03` is classified `Optional`, not path-internal (§18.20.I–J); eleven enumerated conditions unconditionally stop a path (§18.20.K); commit granularity is unchanged — one commit per changing unit, never merged (§18.20.L); the Capability boundary is absolute — no authorization ever crosses into the next Capability (§18.20.M); cross-session reconstruction uses repository evidence plus a runbook §20 authorized-path field to be added in a later, separate pass (§18.20.N); the model applies prospectively only, effective from `EXE-P0.2.C` — `EXE-P0.2.A`/`EXE-P0.2.B` remain historical under the prior per-unit model, never relabeled (§18.20.O); and "NO UNAUTHORIZED CHAINING" is established as the one authoritative replacement for the historical "no automatic chaining" principle (§18.20.P), which is retained verbatim at §18.11.12 and annotated `SUPERSEDED BY §18.20` rather than deleted. Cross-references qualifying, not rewriting, the pre-existing model are added at §18.2, §18.10, §18.11.1, §18.11.2, §18.11.3, §18.11.5, §18.11.6, §18.11.7, §18.11.12, §18.12.1, §18.12.4, §18.17, and §18.19.1. This amendment does not modify `.claude/agents/eaioc-p0-execution-orchestrator.md`, `.claude/skills/eaioc-execution-governance/SKILL.md`, `docs/execution-plan-p0-steps.md`, or root `CLAUDE.md` — those artifacts' own required amendments are explicitly deferred to separate, later, explicitly-directed correction passes (§18.20.Q), and until each is made, the orchestrator and skill continue to implement only the pre-existing per-unit model. No requirement, architecture, interface, schema, contract, unit definition, count (48 units + 6 Gates = 54 checkpoints, unchanged), source-gap definition, or historical execution record is changed by this amendment. **v1.1.0 → v1.1.1** — **structural governance correction, not a new decision round and not implementation or a state-changing execution.** Implements the human decision register HD-CE-17, HD-CE-18, and HD-CE-19 (frozen after v1.1.0, following a dedicated read-only follow-up audit and decision-collection process conducted outside this document), and fixes three drafting omissions in the v1.1.0 pass (§18.11.8, §18.12.5, §18.12.6 each lacked the qualifying cross-reference every other command-protocol section received). Adds the new canonical footer/state `### AI VERIFIED — CONTINUING (NOT APPLICABLE)` (§18.12.4) — distinct from ordinary `### AI VERIFIED — CONTINUING`, which remains PASS-class/committed-only — for a path-internal `NOT APPLICABLE` sub-phase: the AI Verification verdict stays `NOT APPLICABLE`; no implementation commit exists or is required; no individual human `Approve` is required; the unit counts as completed for path progression; it is never `HUMAN APPROVED`; it never authorizes anything outside the path; it is not a fifth AI Verification verdict (HD-CE-17). Corrects §18.2/§18.16's previously-unqualified N/A human-approval requirement to state the path-internal exception explicitly. Corrects §18.15's completion-guard semantics (the literal "Capability `<n>`.A has been approved" check): within the same §18.20 authorized path, that completion-only condition is now satisfied by `HUMAN APPROVED` (historical), `AI VERIFIED — CONTINUING` (continuous, PASS-class), or `AI VERIFIED — CONTINUING (NOT APPLICABLE)` (continuous, N/A) — explicitly, in every case, never satisfying human approval, human authorization, Capability Gate approval, boundary approval, or any guard whose purpose specifically requires human review/authorization (HD-CE-18, HD-CE-19); §18.15's existing generalization to later capabilities' own Sub-phase B (at minimum `EXE-P0.3.B`) is preserved and now carries the corrected semantics automatically, with no separate edit needed for Capability 3 onward, and no structurally equivalent guard was found elsewhere (Capabilities 4–6's own preconditions check Capability Gate closure only, already unaffected). Adds a parallel N/A-continuation branch to §18.17's state model, alongside the existing `CONTINUING` branch, both explicitly stated to never satisfy a `HUMAN APPROVED` condition while either may satisfy a completion-only guard within the same path. Corrects §18.18's v1.1.0 worked sequence, whose Sub-phase F step incorrectly resolved to ordinary `CONTINUING` despite Capability 2's F row being `NOT APPLICABLE` — it now resolves to `AI VERIFIED — CONTINUING (NOT APPLICABLE)`. Extends §18.20 with new subsections R (N/A continuation) and S (completion-guard semantics), and amends §18.20.G (boundary-approval enumeration must include N/A-continuation units, never retroactively read as their individual approval) and §18.20.N (cross-session reconstruction recognizes the new N/A state as valid path-completion evidence). This correction does not execute, verify, or approve any unit; `EXE-P0.2.C` remains, as a repository-state fact, `NOT EXECUTED, NOT AUTHORIZED`; the orchestrator, governance skill, `CLAUDE.md`, and runbook remain unmodified and unamended, so continuous execution — now including its corrected N/A and completion-guard semantics — is still not yet operative in practice (§18.20.Q, unchanged).
 
 **Relationship to the documentation chain:** Not part of the originally-planned chain (2 authoritative sources + 5 baseline documents + 12 generated documents + ADR set + Implementation Readiness Gate). It is a downstream implementation-planning artifact consuming that completed chain — it does not replace `architecture.md`, `implementation-plan.md`, `requirements-traceability.md`, any ADR, `security.md`, `observability.md`, or any other approved authoritative source, and it does not modify any of them.
 
@@ -25,8 +25,8 @@
 | Document ID | `EAIOC-EXECPLAN-001` |
 | Title | Enterprise Agent & LLM Inference Optimization Control Plane — Execution Plan |
 | Level | LEVEL 0 — RESEARCH / PRE-IMPLEMENTATION |
-| Status | Mode A (planning) output. Mode B had not begun when this document was first generated; as of v1.0.4 it has begun under the gated protocol (§18.11) — Capability 1 A–E/G/H committed (F `NOT APPLICABLE`, no commit), `EXE-P0.2.A` committed, `EXE-P0.2.B` stopped on an unmet precondition (§18.13–§18.15). **As of v1.0.6:** `REM-P0.1.A-01`/`-02` done and approved (`c05e3e7`, `93c1ba3`, `5e12148`); `EXE-P0.1.F` acknowledged as N/A; Capability Gate P0.1 **BLOCKED** on `CONTRA-EXECPLAN-01` (AC-005 / `INTF-047`), pending `REM-P0.1.B-01`/`-02` (§18.14.4, §18.18). **As of v1.0.8:** `REM-P0.1.B-02` done and approved (`c378dc9`); `EXE-P0.1.G`/`H` approved; Capability Gate P0.1 **APPROVED** (2026-09-23) — Capability 1 closed; `EXE-P0.2.B` **BLOCKED** on `SOURCE-GAP-EXECPLAN-07`/`SOURCE-GAP-EXECPLAN-08` (§18.14.6). **As of v1.0.9:** status unchanged; Execution Assistance Layer added (§18.19). **As of v1.0.10:** remediation unit `REM-P0.2.B-01` registered, not started (§18.14.7); `SOURCE-GAP-EXECPLAN-07`/`-08` open; `EXE-P0.2.B` **BLOCKED**. **As of v1.0.11:** `REM-P0.2.B-01` executed (`e4cf1f5`), AI-verified and human-approved (2026-09-24); its decisions are promoted (DB-3, §18.14.8); `SOURCE-GAP-EXECPLAN-07`/`-08` resolved at source, `-09` narrowed (§38 status updates); `REM-P0.2.B-02` and `REM-P0.2.B-03` registered, not executed; `EXE-P0.2.B` not yet executable (requires `REM-P0.2.B-02`) |
-| Version | 1.0.11 (surgical correction — see Correction History above) |
+| Status | Mode A (planning) output. Mode B had not begun when this document was first generated; as of v1.0.4 it has begun under the gated protocol (§18.11) — Capability 1 A–E/G/H committed (F `NOT APPLICABLE`, no commit), `EXE-P0.2.A` committed, `EXE-P0.2.B` stopped on an unmet precondition (§18.13–§18.15). **As of v1.0.6:** `REM-P0.1.A-01`/`-02` done and approved (`c05e3e7`, `93c1ba3`, `5e12148`); `EXE-P0.1.F` acknowledged as N/A; Capability Gate P0.1 **BLOCKED** on `CONTRA-EXECPLAN-01` (AC-005 / `INTF-047`), pending `REM-P0.1.B-01`/`-02` (§18.14.4, §18.18). **As of v1.0.8:** `REM-P0.1.B-02` done and approved (`c378dc9`); `EXE-P0.1.G`/`H` approved; Capability Gate P0.1 **APPROVED** (2026-09-23) — Capability 1 closed; `EXE-P0.2.B` **BLOCKED** on `SOURCE-GAP-EXECPLAN-07`/`SOURCE-GAP-EXECPLAN-08` (§18.14.6). **As of v1.0.9:** status unchanged; Execution Assistance Layer added (§18.19). **As of v1.0.10:** remediation unit `REM-P0.2.B-01` registered, not started (§18.14.7); `SOURCE-GAP-EXECPLAN-07`/`-08` open; `EXE-P0.2.B` **BLOCKED**. **As of v1.0.11:** `REM-P0.2.B-01` executed (`e4cf1f5`), AI-verified and human-approved (2026-09-24); its decisions are promoted (DB-3, §18.14.8); `SOURCE-GAP-EXECPLAN-07`/`-08` resolved at source, `-09` narrowed (§38 status updates); `REM-P0.2.B-02` and `REM-P0.2.B-03` registered, not executed; `EXE-P0.2.B` not yet executable (requires `REM-P0.2.B-02`). **As of v1.0.12:** `REM-P0.2.B-02` executed (`bf74ac3`), AI-verified (`PASS`) and human-approved (2026-09-27); `EXE-P0.2.B`'s named precondition is cleared. **As of v1.0.13:** `EXE-P0.2.B` executed (`a2d022f`), AI-verified (`PASS`) and human-approved (2026-09-27), 92/92 tests; `EXE-P0.2.C` and Capability Gate P0.2 **NOT AUTHORIZED**. **As of v1.1.0:** new §18.20 "Continuous Phase-Driven Execution Model" adopted — a **structural execution-authorization amendment**, not a state refresh (see Correction History above); effective prospectively from `EXE-P0.2.C` onward; `EXE-P0.2.A`/`EXE-P0.2.B` remain historical under the prior per-unit model. No unit executed, verified, or approved by this amendment itself; `EXE-P0.2.C` remains **NOT EXECUTED**. **As of v1.1.1:** HD-CE-17/18/19 implemented — the new `### AI VERIFIED — CONTINUING (NOT APPLICABLE)` footer/state (§18.12.4), corrected §18.15 completion-guard semantics, and the three v1.1.0 drafting omissions (§18.11.8, §18.12.5, §18.12.6) fixed — a **further structural governance correction, not a new decision round, not implementation, and not a state-changing execution**. `EXE-P0.2.C` remains **NOT EXECUTED, NOT AUTHORIZED**; the orchestrator, governance skill, `CLAUDE.md`, and runbook remain unmodified, so continuous execution (including its now-corrected N/A/completion-guard semantics) is still not yet operative in practice. |
+| Version | 1.1.1 (surgical correction — see Correction History above; the `1.0.11` value previously recorded in this row was stale relative to the header's `1.0.13` and was corrected at v1.1.0 as an incidental fix, not a frozen HD-CE decision) |
 | Owning artifact class | Downstream implementation-planning document, outside the original chain, alongside the ADR set and the Implementation Readiness Gate |
 | File-scope this generation | Only `docs/execution-plan.md` created. No upstream, sibling, or ADR document modified. Verified via `git status --short`/`git diff --stat` (§52). |
 
@@ -218,6 +218,10 @@ Where a sub-phase is genuinely not applicable, this document states `NOT APPLICA
 **Every `EXE-P0.<n>.<letter>` unit below is a standalone, independently executable and independently reviewable step: one lifecycle sub-phase = one git commit = one explicit human-approval checkpoint, with no exception anywhere in this document.** Sub-phase A's design note is never committed together with Sub-phase B's implementation, nor is any pair of sub-phases ever combined into one commit or one approval round; `EXE-P0.<n>.B` (and every subsequent letter) does not begin until the prior sub-phase's own commit has been reviewed and explicitly approved. This applies uniformly across all six capabilities (§18.4–§18.9) and is restated, not weakened, by the field-compaction note below. Concretely: Mode B is driven only by the canonical `Execute EXE-P0.<n>.<letter>` command, which names exactly one unit (§18.11.2); no capability-level instruction is ever authorization to implement Sub-phases A through H (or the Capability Gate) of a capability in one uninterrupted turn. Claude Code implements exactly the requested unit, reports evidence, and waits; it does not infer permission to continue to the next sub-phase or the next capability from a closed gate, a passing test, or the absence of an objection.
 
 **v1.0.4 clarifications to this boundary (§18.12, §18.16):** (1) every unit's checkpoint is now two-stage — Claude Code's own AI Verification (§18.12) must complete with an acceptable verdict before the human-approval checkpoint is presented, and human approval remains required afterwards; neither substitutes for the other. (2) The "one sub-phase = one git commit" rule applies to every sub-phase that **produces implementation changes**. A sub-phase whose row is genuinely `NOT APPLICABLE` (e.g. every capability's Sub-phase F at P0 scope, §28) produces no source change and therefore **no implementation commit** — it still receives its own AI Verification (verdict `NOT APPLICABLE`) and its own explicit human approval, and is never given a fake or empty commit merely to satisfy sequencing (§18.16). The 48-unit count is unchanged by this exception.
+
+**v1.1.0 continuous-execution qualification (§18.20):** the per-unit commit rule above — "one lifecycle sub-phase = one git commit" — has no exception under §18.20 and is unchanged: continuous execution never merges multiple units into one commit (§18.20.L). The per-unit human-approval-checkpoint rule above is qualified, not repealed: within an execution path explicitly opened under §18.20 by a human `Execute` command, a path-internal unit's own checkpoint is `### AI VERIFIED — CONTINUING` (§18.12.4, §18.17), not an individual `Approve …` request; explicit human approval is required only at that path's boundary (§18.20.G). Outside a §18.20 path — including every unit executed before the migration point recorded at §18.20.O — this section's original per-unit approval-checkpoint rule governs unchanged, with no exception.
+
+**v1.1.1 note on N/A sub-phases (§18.20.R, HD-CE-17):** the N/A commit exception two paragraphs below applies unchanged in every case — an N/A sub-phase never has an implementation commit, inside or outside a §18.20 path. Its *approval* treatment, however, follows the same historical/path-internal split as above: outside a §18.20 path, an N/A sub-phase still receives its own explicit human approval (§18.16, unchanged there). Inside a §18.20 authorized path, an N/A sub-phase instead emits the distinct `### AI VERIFIED — CONTINUING (NOT APPLICABLE)` footer/state (§18.12.4) — never ordinary `CONTINUING`, which remains defined for committed, PASS-class units only — and continues automatically, with no individual `Approve` and no change to `HUMAN APPROVED`'s meaning (§18.17).
 
 **The Capability Gate that follows Sub-phase H (§18.10) is not one of these `EXE-P0.<n>.<letter>` units** — it is a separate post-lifecycle review/promotion checkpoint, not an implementation sub-phase, and receives no `EXE-P0` ID and no implementation commit of its own (§18.10). Across the six capabilities this document therefore defines exactly **48** `EXE-P0.<n>.<letter>` atomic execution units (8 lifecycle sub-phases, A–H, per capability) plus **6** Capability Gates — **54 total gated checkpoints**, never described as "54 atomic execution units" anywhere in this document.
 
@@ -492,6 +496,8 @@ Units executed before v1.0.4 (single-stage human approval only) are not retroact
 
 If the Gate finds a Blocking Condition unmet, promotion to the next capability is denied until it is addressed — this is a promotion decision, not a code rollback (§37): every A–H commit remains individually revertible, but the Gate has no commit of its own to revert.
 
+**v1.1.0 clarification (§18.20):** under continuous execution, the Capability Gate remains the sole human boundary separating one Capability from the next — this is unchanged. When a §18.20 authorized path runs through H, the path's boundary approval (§18.20.G) coincides with this Gate's Human Gate Approval, which then reviews every path-internal unit's evidence alongside H's own, extending this section's existing whole-capability review pattern rather than replacing it. Gate approval never itself authorizes the next Capability's Sub-phase A (§18.20.E, §18.20.M) — that still requires its own explicit `Execute EXE-P0.(n+1).A`, unchanged from §18.11.6 below.
+
 ### 18.11 Claude Code Mode B Execution Command Protocol
 
 This section makes §18.2's and §18.10's approval discipline operational: the exact commands a human operator issues to a Claude Code session, the exact response format Claude Code returns, and the exact state transitions permitted between them. It adds no new scope, technology, requirement, or sequencing content — it is a command-syntax and reporting-format clarification of the model already established above.
@@ -499,6 +505,8 @@ This section makes §18.2's and §18.10's approval discipline operational: the e
 #### 18.11.1 Mode B is strictly user-command-driven
 
 Mode B never begins or advances on its own. The user explicitly issues the command for every atomic unit; Claude Code never infers authorization for the next unit from anything that happened during the current one. In particular, none of the following — individually or in combination — constitute authorization to proceed: all tests passing, a clean `git status`, a successful commit, a closed Capability Gate, or the absence of an objection from the user. The only thing that authorizes starting an execution unit is an explicit user command naming that unit (§18.11.2, §18.11.4).
+
+**v1.1.0 qualification (§18.20):** the explicit human `Execute` command remains the sole event that opens authorization — this is unchanged. What one such command authorizes is redefined, not weakened: per §18.20, naming one unit opens a path-scoped authorization covering that unit and every remaining sub-phase of its Capability, through that Capability's own Gate, never a different Capability. Nothing in this subsection's list of non-authorizing signals (passing tests, clean status, successful commit, closed Gate, absence of objection) is altered — none of them ever expands what is authorized; only an explicit human `Execute` does, exactly as stated above.
 
 #### 18.11.2 Canonical execution command syntax
 
@@ -544,6 +552,8 @@ Review CAPABILITY-GATE P0.<n>
 **The canonical `Execute EXE-P0.<n>.<letter>` syntax is mandatory for Mode B execution. Do not use `Execute P0.<n>` as an execution command.** No capability-only command resolves, dynamically or otherwise, to any sub-phase depending on execution history; Claude Code treats such a command as ambiguous under §18.11.9 and asks for the canonical unit ID instead of executing anything.
 
 *Historical behavior superseded by the canonical command protocol (v1.0.3–v1.0.4 only; not an active rule):* earlier versions allowed a capability-level shorthand (`Execute P0.1`) that resolved to one sub-phase. It was retired in v1.0.5 because its resolution depended on execution history and was therefore ambiguous.
+
+**v1.1.0 authorization-semantics note (§18.20):** the canonical syntax above is unchanged. What issuing one such command authorizes is redefined by §18.20: naming `EXE-P0.<n>.<letter>` opens the bounded execution path consisting of that unit and every remaining not-yet-approved sub-phase of Capability `<n>`, through that Capability's own Gate — never Capability `<n>+1`. This applies from the migration point recorded at §18.20.O onward (`EXE-P0.2.C`); units executed before that point were, and remain, governed by this subsection's original one-unit-per-command meaning.
 
 #### 18.11.3 Per-unit execution lifecycle
 
@@ -591,6 +601,8 @@ NEXT EXPLICIT Execute EXE-P0.n.next-letter
 The AI verification is a prerequisite to human approval. "If PASS" includes `PASS WITH DOCUMENTED NON-BLOCKING GAP`; a `NOT APPLICABLE` verdict produces no commit (§18.16); a `BLOCKED` verdict produces no commit and **no approval request** — the report ends with `### AI VERIFICATION BLOCKED` instead (§18.12.4). Where the prerequisite check itself fails (e.g. §18.15's guard), Claude Code writes no code at all and reports `AI VERIFICATION: BLOCKED` naming exactly which prerequisite is missing.
 
 Claude Code stops after exactly one atomic unit every time. It does not continue to the next letter automatically, and it does not perform the Capability Gate automatically after `H` is approved (§18.11.6).
+
+**v1.1.0 note (§18.20):** the diagram above (`Approve EXE-P0.n.X` → `HUMAN APPROVED` → next explicit `Execute`) is this subsection's original, still-governing model for every unit outside a §18.20 authorized path. For a unit inside such a path, this diagram's `### AI VERIFIED — AWAITING HUMAN APPROVAL` / `Approve EXE-P0.n.X` / `HUMAN APPROVED` sequence is replaced, for that unit only, by `### AI VERIFIED — CONTINUING` and automatic continuation, per §18.12.4 and §18.20.D–G; the sequence above still governs the path's boundary unit unchanged.
 
 #### 18.11.4 Canonical approval command syntax
 
@@ -651,6 +663,8 @@ Approve EXE-P0.n.H to proceed to the Capability Gate.
 ```
 (`AI VERIFICATION: PASS` in these blocks is replaced by `PASS WITH DOCUMENTED NON-BLOCKING GAP` or `NOT APPLICABLE` when that is the actual verdict — §18.12.2, §18.16.) If AI verification is blocked, the report instead ends with the §18.12.4 blocked block and **no approval request**. Claude Code does not perform the Capability Gate automatically after any of these.
 
+**v1.1.0 pointer (§18.20):** for a unit inside a §18.20 authorized path (other than the path's boundary unit), the block above is replaced by the `### AI VERIFIED — CONTINUING` block defined at §18.12.4 — this subsection's blocks above are not duplicated here; they remain the governing text for every unit outside a §18.20 path and for a path's boundary unit.
+
 #### 18.11.6 Capability Gate command protocol
 
 After the user issues `Approve EXE-P0.n.H`, Claude Code may prepare and present the Capability Gate review — evaluating the question set already defined in §18.10 (Entry/Implementation/Integration/Security-Governance/Quality/Scenario/Failure-Recovery Completion, Exit Criteria, Blocking Conditions) against the evidence Sub-phases B–H actually produced — but must never treat the gate as automatically approved. If the Gate review is resumed in a later session (i.e. not in the same turn that received `Approve EXE-P0.n.H`), the operator triggers it with `Review CAPABILITY-GATE P0.n` — a review-only trigger that authorizes no implementation and no approval.
@@ -688,6 +702,8 @@ NEXT AUTHORIZED UNIT: EXE-P0.(n+1).A
 ```
 
 but still waits for the separate, explicit command `Execute EXE-P0.(n+1).A` before doing anything further — the gate-approval report is informational, not an execution trigger. An `Approve CAPABILITY-GATE P0.n` issued while the AI Gate Verification is `BLOCKED` or has not yet been performed is not acted on; Claude Code reports that the Gate's AI verification is outstanding.
+
+**v1.1.0 note (§18.20):** unchanged, absolutely — this is the one invariant §18.20.M restates rather than qualifies. Where a §18.20 authorized path runs through H, `Approve CAPABILITY-GATE P0.n` is also the path's boundary approval (§18.20.C, §18.20.G) and must enumerate every path-internal unit it covers; it still, in every case, only authorizes the next capability's Sub-phase A informationally, never triggers it.
 
 #### 18.11.7 Full P0 operator reference sequence
 
@@ -744,6 +760,8 @@ Approve CAPABILITY-GATE P0.6
 
 **v1.0.4 reading of this sequence:** between every `Execute` and its `Approve`, Claude Code's AI Verification (§18.12) runs automatically and must return an acceptable verdict — the operator never issues a separate `Verify` command, and never issues `Approve …` in response to a `### AI VERIFICATION BLOCKED` report. Between `Approve EXE-P0.n.H` and `Approve CAPABILITY-GATE P0.n`, the AI Gate Verification (§18.11.6) runs and must return `PASS`. For **this repository's actual execution history**, the idealized sequence above does not describe where execution currently stands; §18.18 gives the authoritative remaining sequence, including the remediation units §18.14 requires before `EXE-P0.2.B`.
 
+**v1.1.0 note (§18.20):** for `EXE-P0.2.C` onward, and for every Capability from Capability 3 forward, this reference sequence's individual per-sub-phase `Execute`/`Approve` pairs are superseded by §18.20's path-scoped model: one `Execute` at a Capability's authorized starting unit opens automatic continuation through that Capability's remaining sub-phases to its Gate (§18.20.C–D), with `Approve` required only at the boundary (§18.20.G). This listing is retained as a reference for canonical command syntax and unit ordering (its own framing above), not as the current authorization model for `EXE-P0.2.C` onward.
+
 #### 18.11.8 Command-state table
 
 | State | Allowed next action |
@@ -757,6 +775,8 @@ Approve CAPABILITY-GATE P0.6
 | Gate AI-verified (`PASS`), awaiting human approval | User must issue `Approve CAPABILITY-GATE P0.n` |
 | Gate approved | User may issue the next capability's `Execute EXE-P0.(n+1).A` |
 | Gate blocked (AI Gate Verification `BLOCKED`) | No next capability may start and no Gate approval is requested until the blocking condition is addressed and the gate is re-reviewed |
+
+**v1.1.1 qualification (§18.20; fixes a v1.1.0 drafting omission — this table did not previously receive the same cross-reference every other command-protocol section did).** The rows above are this subsection's original, still-governing model for every unit outside a §18.20 authorized path. Inside such a path: a PASS-class path-internal unit reaching "AI verified" produces `### AI VERIFIED — CONTINUING` and continues automatically, no `Approve` required; an N/A path-internal unit produces `### AI VERIFIED — CONTINUING (NOT APPLICABLE)` (§18.12.4, §18.20.R) and likewise continues automatically, no `Approve` required. Neither changes what `HUMAN APPROVED` means — a genuine boundary unit (Gate, or a §18.20.K stop) still follows the "AI verified, awaiting human approval → must issue `Approve`" row above exactly as written.
 
 Claude Code never self-authorizes any transition in this table — every row's "allowed next action" column names a user command, never an automatic Claude Code action. The only automatic Claude Code transition is performing AI Verification on the unit or Gate it was just asked to execute or review; AI Verification is evidence, never authorization. The full per-unit state model is §18.17.
 
@@ -795,6 +815,8 @@ An implementation commit contains only the files its unit's row names (§18.12.1
 #### 18.11.12 No-automatic-chaining rule
 
 Claude Code must stop after the requested atomic unit even when all tests pass, the commit succeeds, no blocking condition is found, or the user previously approved the broader capability in general terms. No completion signal, passing gate, or successful command result is ever interpreted as permission to execute the next unit — the only valid authorization is the next explicit `Execute EXE-P0.<n>.<letter>` (or `Approve …`) command from the user (§18.11.1). **v1.0.4:** this explicitly includes Claude Code's own `AI VERIFICATION: PASS` and `AI CAPABILITY GATE VERIFICATION: PASS` — neither is ever permission to continue (§18.12.5). Approval and the next execution are never combined into one command.
+
+**SUPERSEDED BY §18.20 (v1.1.0), prospectively from `EXE-P0.2.C` onward.** The rule above is retained verbatim as the historical rule and remains the fully governing rule for every unit outside a §18.20 authorized path. §18.20's "NO UNAUTHORIZED CHAINING" (§18.20.P) is the authoritative current statement of this principle: it does not weaken the rule above — no test result, commit, AI Verification PASS, or closed Gate ever expands what is authorized, exactly as required here — it restates that exact boundary in path-scoped terms. The one difference is that a path opened under §18.20 by an explicit human `Execute` permits automatic continuation to the next unit strictly *within* that same path, which this subsection's original wording (predating §18.20) did not contemplate. See §18.20 for the current rule; this subsection's text above is not deleted and governs unchanged everywhere §18.20 does not apply.
 
 ### 18.12 AI Verification Protocol (v1.0.4)
 
@@ -912,6 +934,8 @@ AI VERIFICATION: NOT APPLICABLE
 AI VERIFICATION: PASS WITH DOCUMENTED NON-BLOCKING GAP
 ```
 
+**v1.1.0 note (§18.20):** these four verdict values are exhaustive and unchanged — §18.20 adds no fifth verdict. A PASS-class verdict (`PASS` or `PASS WITH DOCUMENTED NON-BLOCKING GAP`) here produces one of two different footers depending on whether the unit lies inside a §18.20 authorized path (§18.12.4): `### AI VERIFIED — AWAITING HUMAN APPROVAL` (unchanged) or, for a path-internal unit short of the path's boundary, the new `### AI VERIFIED — CONTINUING`. The footer choice is downstream of the verdict; it never changes what the verdict itself means. **v1.1.1 note (§18.20.R):** the same downstream-of-the-verdict principle applies to `NOT APPLICABLE` — it remains this list's third value, unchanged; inside a §18.20 path short of the boundary it produces the distinct `### AI VERIFIED — CONTINUING (NOT APPLICABLE)` footer (§18.12.4) rather than either of the PASS-class footers. Still exactly four verdicts; still no fifth.
+
 #### 18.12.2 AI Verification Is Not Human Approval
 
 **AI Verification** — Claude Code answers: *"Based on the authoritative sources, the execution-plan row, the actual changes, tests, and Git evidence, did this atomic unit satisfy its defined requirements?"* Possible outcomes: `AI VERIFICATION: PASS`, `AI VERIFICATION: BLOCKED`, `AI VERIFICATION: NOT APPLICABLE`, `AI VERIFICATION: PASS WITH DOCUMENTED NON-BLOCKING GAP`.
@@ -992,11 +1016,44 @@ The next execution unit is NOT authorized.
 
 A blocked AI verification must not be followed by an approval request. An `Approve EXE-P0.n.X` issued for a unit whose AI verification is `BLOCKED` is not acted on as progression; Claude Code reports that the unit is blocked and restates the required remediation.
 
+**v1.1.0 — path-internal continuation footer (§18.20).** For a unit inside an execution path already opened under §18.20 — and only when the next sub-phase remains within that same path, i.e. this is not the path's boundary unit (§18.20.C, §18.20.K) — a PASS-class verdict produces this footer instead of the A–G/H blocks above:
+
+```
+### AI VERIFIED — CONTINUING
+
+AI VERIFICATION: PASS
+
+This unit is committed. Continuation to EXE-P0.n.<next-letter> occurs
+automatically because this unit lies within the execution path opened by
+Execute EXE-P0.n.<start-letter> under §18.20. This is NOT human approval
+and does not authorize any unit outside that path.
+```
+
+(`AI VERIFICATION: PASS` above is replaced by `PASS WITH DOCUMENTED NON-BLOCKING GAP` when that is the actual verdict, exactly as for the blocks above.) At the path's boundary unit — the last sub-phase before its Capability Gate, or any unit at which a §18.20.K blocking condition applies — the footer reverts to `### AI VERIFIED — AWAITING HUMAN APPROVAL` above, and that approval request explicitly enumerates every unit the path covers since it opened or last resumed (§18.20.G). Outside a §18.20 path, this subsection's A–G/H blocks above apply unchanged to every unit, with no exception.
+
+**v1.1.1 — path-internal N/A continuation footer (§18.20.R, HD-CE-17).** The `### AI VERIFIED — CONTINUING` block above is defined for, and remains limited to, a PASS-class verdict on a *committed* unit. It is never emitted for a `NOT APPLICABLE` verdict. For a unit inside a §18.20 path whose verdict is `AI VERIFICATION: NOT APPLICABLE` — and only when it is not the path's boundary unit — this distinct footer is emitted instead:
+
+```
+### AI VERIFIED — CONTINUING (NOT APPLICABLE)
+
+AI VERIFICATION: NOT APPLICABLE
+
+No implementation commit exists or is required for this unit. Continuation
+to EXE-P0.n.<next-letter> occurs automatically because this unit lies
+within the execution path opened by Execute EXE-P0.n.<start-letter> under
+§18.20. This is NOT human approval, does not claim the unit was committed,
+and does not authorize any unit outside that path.
+```
+
+This is not a fifth AI Verification verdict — the four verdicts of §18.12.1.J are unchanged and exhaustive; this is a footer/state indicating the continuation disposition for an already-reached `NOT APPLICABLE` verdict, exactly as `### AI VERIFIED — CONTINUING` is a footer/state for an already-reached PASS-class verdict. The two footers are never interchangeable: `CONTINUING` always implies a commit exists; `CONTINUING (NOT APPLICABLE)` always implies no commit exists (§18.16, unchanged). At the path's boundary unit, or wherever a §18.20.K condition applies, an N/A unit's footer reverts to `### AI VERIFIED — AWAITING HUMAN APPROVAL` (§18.16) exactly as outside a §18.20 path. Per §18.20.S/HD-CE-18/HD-CE-19, this footer — like ordinary `CONTINUING` — may satisfy a downstream guard whose purpose is only to confirm the predecessor sub-phase completed, but it never satisfies `HUMAN APPROVED`, human authorization, Capability Gate approval, boundary approval, or any guard specifically requiring human review.
+
 #### 18.12.5 Critical Safety Rule for Mode B
 
 > **Claude Code MUST NOT request human approval until its own AI Verification has completed and returned an acceptable verdict. Human approval is a second, independent authorization layer. AI verification is evidence; human approval is authorization. Neither substitutes for the other.**
 
 > **Claude Code MUST NOT treat its own AI Verification PASS as permission to execute the next unit. Only the explicit human `Approve ...` command authorizes progression, and only a subsequent explicit `Execute ...` command authorizes implementation.**
+
+**v1.1.1 qualification (§18.20; fixes a v1.1.0 drafting omission).** Both blockquotes above remain fully true as stated: no signal other than an explicit human `Approve …` ever *authorizes* anything, and only an explicit human `Execute …` ever *opens* authorization to implement. What they do not by themselves describe is continuation already inside an authorization a human has already granted: once a path is opened under §18.20 by such an `Execute` command, a path-internal unit's PASS-class or `NOT APPLICABLE` continuation (`### AI VERIFIED — CONTINUING` / `### AI VERIFIED — CONTINUING (NOT APPLICABLE)`, §18.12.4) is not a new authorization event and is not what these two rules govern — it is the exercise of the authorization the triggering `Execute` already granted (§18.20.D). Neither an AI PASS nor a `NOT APPLICABLE` verdict ever itself grants authorization; only the path's own opening `Execute` did.
 
 #### 18.12.6 Explicit Command Rules
 
@@ -1008,6 +1065,8 @@ A blocked AI verification must not be followed by an approval request. An `Appro
 | Capability Gate review (resume trigger, §18.11.6) | `Review CAPABILITY-GATE P0.n` | User |
 | Capability Gate approval | `Approve CAPABILITY-GATE P0.n` | User |
 | Remediation (§18.14) | `Execute REM-P0.1.A-0N` / `Approve REM-P0.1.A-0N`; from v1.0.6 also `Execute REM-P0.1.B-0N` / `Approve REM-P0.1.B-0N` (§18.14.4) | User |
+
+**v1.1.1 qualification (§18.20; fixes a v1.1.0 drafting omission).** The table above is this subsection's original, still-governing model for a unit outside a §18.20 path, and for a path's boundary unit. For a path-internal unit (PASS-class or N/A) short of the boundary, there is no "Human approval" step and no user-issued "Next execution" command — continuation is automatic (§18.12.4, §18.20.D). "Human approval" and "Capability Gate approval" remain exactly as shown for every genuine boundary; "Next execution" remains exactly as shown for opening a new path or a new Capability.
 | Next execution | `Execute EXE-P0.(n+1).A` (or the next letter) | User |
 
 Never combine the approval and next execution into one command.
@@ -1410,6 +1469,16 @@ revalidation of EXE-P0.2.B: Execute EXE-P0.2.B → §18.15 guard → pre-flight
 - `SOURCE-GAP-EVAL-01`/`SOURCE-GAP-IRG-02`: unchanged, OPEN.
 - `EXE-P0.2.B`: **STILL NOT YET EXECUTABLE.** Its `REM-P0.2.B-02` precondition is now cleared, but its own pre-flight (§18.19.3), a fresh §18.15 guard check against the now-existing retrieval realization, and a Code Architect re-assessment have not run — none of those steps is performed by this correction. It remains contract-level and fixture-based and claims no live measurement; the Gate P0.2 deferral (§18.10) is unchanged.
 
+*(The "Status after v1.0.12" bullets above are the v1.0.12 position, retained as history; "Status after v1.0.13" below supersedes them.)*
+
+**Status after v1.0.13.**
+- `REM-P0.2.B-01`/`REM-P0.2.B-02`: unchanged from the v1.0.12 status above.
+- `REM-P0.2.B-03`: **REGISTERED / NOT EXECUTED** — unchanged. Not a prerequisite of `EXE-P0.2.B`; not scheduled by this plan.
+- `SOURCE-GAP-EXECPLAN-07`/`-08`/`-09`/`-10` to `-15`, `SOURCE-GAP-EVAL-01`/`SOURCE-GAP-IRG-02`: unchanged.
+- `EXE-P0.2.B`: **EXECUTED (`a2d022f`), AI-VERIFIED (`PASS`), HUMAN-APPROVED (2026-09-27).** Full 92-test suite passing. Reviewed by Architect (`APPROVED FOR IMPLEMENTATION`), Reviewer (`PASS WITH REQUIRED FOLLOW-UP` — one LOW finding, a missing `serialVersionUID`, fixed in the same commit) and Verifier (`CONFORMANT WITH DOCUMENTED GAPS`). **Disclosed, not concealed:** the Architect/Reviewer/Verifier routing ran after implementation rather than before, deviating from §18.19.4/§18.19.5's normal sequence; all three reviews found no required design change because of it. Still contract-level and fixture-based; live Path A end-to-end baseline measurement remains NOT DEMONSTRATED — explicitly deferred (Gate P0.2, §18.10).
+- `EXE-P0.2.C`: **NOT EXECUTED, NOT AUTHORIZED.** `Approve EXE-P0.2.B` approved only that one sub-phase; it does not chain to `EXE-P0.2.C` (§18.11.12, no automatic chaining).
+- **Capability Gate P0.2: NOT AUTHORIZED.** Not reachable until Sub-phases C–H are each separately executed and approved (§18.10).
+
 ```
 v1.0.11 correction committed
         ↓
@@ -1438,6 +1507,18 @@ Capability 2.A has been approved
 ```
 
 Concretely: each `core/<leaf>/` check is against the Java realization defined in §18.13; "required shared request/plan types" means `ControlPlaneRequest` and `OptimizationPlan` in `core/schemas/`; "match the authoritative interfaces" means field-by-field against the live `interfaces.md` §2.1/§3.2, subject only to deferrals `REM-P0.1.A-01` explicitly recorded and the human approved; "ownership satisfied" means §18.14.1's `GAP FOUND` has been closed by `REM-P0.1.A-01` and `-02`, both AI-verified and human-approved; the two approval checks are against the operator's explicit `Approve CAPABILITY-GATE P0.1` and `Approve EXE-P0.2.A` commands.
+
+**v1.1.1 completion-guard semantics (§18.20.S, HD-CE-18, HD-CE-19) — the most important correction in this pass.** The two checks above are two different kinds of condition, and this pass distinguishes them precisely for the first time:
+
+- **"Capability 1 Gate has been approved"** is a Capability-boundary condition. It is satisfied *only* by a genuine `Approve CAPABILITY-GATE P0.1` — never by `AI VERIFIED — CONTINUING`, never by `AI VERIFIED — CONTINUING (NOT APPLICABLE)`, and never by anything else. This check is unaffected by §18.20 and remains exactly as originally written, with no exception.
+- **"Capability `<n>`.A has been approved"** is a completion-only condition — its actual purpose, stated precisely for the first time here, is to confirm that predecessor Sub-phase A reached a valid terminal state, not specifically that a human reviewed it. Within the same §18.20 authorized path, this condition is satisfied by any of:
+  1. `HUMAN APPROVED` — the historical per-unit model (this is how it was satisfied for `EXE-P0.2.B`, and remains how it is satisfied for any unit outside a §18.20 path);
+  2. `AI VERIFIED — CONTINUING` — the continuous model, PASS-class predecessor, same authorized path as the unit whose guard is being checked;
+  3. `AI VERIFIED — CONTINUING (NOT APPLICABLE)` — the continuous model, `NOT APPLICABLE` predecessor, same authorized path.
+
+  Options 2 and 3 are valid *only* when the predecessor sub-phase is path-internal to the exact same §18.20 authorized path as the unit performing the check — never across a path boundary, never across a Capability, and never as a substitute for a genuine boundary approval. **None of the three options above ever satisfies:** human approval; human authorization; Capability Gate approval; boundary approval; or any guard whose purpose specifically requires human review, authorization, or approval (which is exactly why "Capability 1 Gate has been approved," above, is not rewritten — a Gate check is precisely such a guard, not a completion-only one). No new global "approval" state is introduced; options 2 and 3 are the same two states §18.12.4/§18.17 already define, merely recognized here as valid completion evidence for this one, already-named kind of check.
+
+  This corrected semantics is preserved for the historical interpretation of every check already satisfied before the migration point (e.g. `EXE-P0.2.B`'s own already-recorded `Approve EXE-P0.2.A`, unaffected and unrelabeled) and carries forward automatically, with no separate edit, through this section's own existing generalization below ("the same guard applies... to every later capability's Sub-phase B, at minimum `EXE-P0.3.B`") — so Capability 3's `EXE-P0.3.B` guard is corrected by this same paragraph, and no structurally equivalent guard requiring a separate correction was found elsewhere in this document (Capabilities 4–6's own Preconditions fields, §18.7–§18.9, check Capability Gate closure only, which is unaffected exactly as "Capability 1 Gate has been approved" above is unaffected).
 
 If any condition fails:
 
@@ -1468,6 +1549,8 @@ Approve EXE-P0.n.X to continue.
 ```
 
 Human approval remains required so the operator explicitly acknowledges the N/A disposition. No fake implementation commit is created for an N/A sub-phase merely to satisfy sequencing. The plan's count remains **48 atomic `EXE-P0.<n>.<letter>` execution units**, but an N/A unit may have no source-code change and therefore no implementation commit — this document no longer claims every A–H unit necessarily has a code commit (§18.2, §18.11.11). A `NO DEDICATED SCENARIO` G row is *not* automatically N/A: Claude Code first re-verifies the claim against the live `scenario-matrix.md` (as `EXE-P0.1.G` did, finding `SCN-TEN-003`/`SCN-AUDIT-003`), and only a confirmed absence yields `NOT APPLICABLE`.
+
+**v1.1.1 qualification (§18.20.R, HD-CE-17) — historical vs. path-internal.** The "human approval remains required" sentence above is this subsection's original, still-governing rule for every N/A unit outside a §18.20 authorized path, applying unchanged to every N/A unit executed before the migration point recorded at §18.20.O (e.g. `EXE-P0.1.F`, already individually approved). **Inside a §18.20 authorized path**, an N/A sub-phase does not follow the `### AI VERIFIED — AWAITING HUMAN APPROVAL` / `Approve EXE-P0.n.X` sequence above: it emits the distinct `### AI VERIFIED — CONTINUING (NOT APPLICABLE)` footer (§18.12.4) instead, requires no individual `Approve`, counts as completed for path progression, and continues automatically to the next path-internal unit — while still never producing a commit (unchanged, this section, above), never becoming `HUMAN APPROVED`, and never expanding authorization beyond the path (§18.20.R). All other protections in this subsection — no fake commit, the `NO DEDICATED SCENARIO` re-verification requirement, the unchanged 48-unit count — apply identically inside and outside a §18.20 path.
 
 **Commit discipline clarification.** Preserved: `One executable A–H sub-phase = one isolated implementation change-set.` Where that sub-phase produces implementation changes: `one sub-phase = one implementation commit`. Where a sub-phase is genuinely `NOT APPLICABLE` and produces no implementation changes: `no implementation commit`. The Capability Gate remains: `no implementation commit`. An N/A checkpoint is never called, or represented by, a fake commit.
 
@@ -1518,6 +1601,34 @@ RE-EXECUTE / RE-VERIFY
 ```
 
 No state may bypass AI verification. A precondition failure detected before any work begins (e.g. §18.15) moves the unit directly from `EXECUTING` to `AI VERIFICATION BLOCKED` with no change-set. `RE-EXECUTE / RE-VERIFY` always requires a fresh explicit `Execute` command from the user — Claude Code never re-executes on its own after remediation. `NEXT UNIT ELIGIBLE` means only that the user *may* issue the next `Execute`; it never triggers it.
+
+**v1.1.0 path-internal continuation state (§18.20).** For a unit inside a §18.20-authorized path, when the next sub-phase remains within that same path (i.e. this is not the path's boundary unit), the model above branches after `AI VERIFIED`:
+
+```
+AI VERIFIED
+    ↓
+[within a §18.20 authorized path, not at its boundary]
+    ↓
+CONTINUING   (committed; NOT `HUMAN APPROVED`)
+    ↓
+NEXT UNIT ELIGIBLE   (automatic — no human command required)
+```
+
+`CONTINUING` is a distinct state from `HUMAN APPROVED` and never *is*, or is treated as, `HUMAN APPROVED` — no guard whose purpose specifically requires human review, human authorization, or human approval (e.g. a Capability Gate approval check, or a boundary-approval check) is ever satisfied by `CONTINUING`. **v1.1.1 correction (§18.20.S, HD-CE-18):** this is narrower than the v1.1.0 wording it replaces — a *completion-only* guard (one whose purpose is only to confirm a predecessor sub-phase reached a valid terminal state, such as the second check in §18.15's guard) may accept `CONTINUING` as valid evidence when the predecessor is path-internal to the same authorized path; see §18.20.S for the exact, narrow scope of this exception and the guards it never applies to. At the path's boundary unit, the model rejoins the original diagram above at `AWAITING HUMAN APPROVAL → HUMAN APPROVED`, and that approval names every unit the path covers since it opened or last resumed (§18.20.G). Outside a §18.20 path, the original diagram above applies unchanged, with `HUMAN APPROVED` required for every unit exactly as before.
+
+**v1.1.1 path-internal N/A continuation state (§18.20.R, HD-CE-17).** For a unit inside a §18.20-authorized path whose verdict is `NOT APPLICABLE` — and, as with `CONTINUING` above, only when it is not the path's boundary unit — the model branches after `AI VERIFIED` along a distinct path:
+
+```
+AI VERIFIED   (verdict: NOT APPLICABLE)
+    ↓
+[within a §18.20 authorized path, not at its boundary]
+    ↓
+CONTINUING (NOT APPLICABLE)   (no commit; NOT `HUMAN APPROVED`; NOT ordinary `CONTINUING`)
+    ↓
+NEXT UNIT ELIGIBLE   (automatic — no human command required)
+```
+
+`CONTINUING (NOT APPLICABLE)` is a state distinct from both `HUMAN APPROVED` and ordinary `CONTINUING` — it is never substitutable for either, and it never implies a commit exists (§18.16). Like `CONTINUING`, it never satisfies a guard requiring human review/authorization/approval, but, per §18.20.S/HD-CE-19, it may satisfy a completion-only guard on the same narrow terms as `CONTINUING` does. At the path's boundary unit, an N/A unit's state likewise rejoins `AWAITING HUMAN APPROVAL → HUMAN APPROVED`, unchanged from §18.16. Outside a §18.20 path, the original diagram above (§18.16's N/A approval sequence) applies unchanged.
 
 ### 18.18 Updated P0 Sequence Semantics and Current Position (v1.0.4)
 
@@ -1674,6 +1785,57 @@ Execute EXE-P0.2.B           → §18.15 guard (+ v1.0.11 addition) → pre-flig
 
 Each line is issued one command at a time, with no automatic chaining. `Approve REM-P0.2.B-02` did not authorize `EXE-P0.2.B`. The v1.0.11 sequence block above is historical.
 
+*(The block headed "Current position in this repository (updated at v1.0.12 correction time)" and its sequence above are the v1.0.12 position, retained as history; the v1.0.13 position below supersedes them.)*
+
+**Current position in this repository (updated at v1.0.13 correction time).**
+- **Environment readiness:** passed.
+- **Capability 1 — CLOSED:** unchanged (Gate P0.1 approved 2026-09-23).
+- **Capability 2:**
+  - A committed and approved (`0e92261`). `REM-P0.2.B-01`/`REM-P0.2.B-02`: unchanged from the v1.0.12 position above.
+  - B: **executed (`a2d022f`), AI-verified (`PASS`), human-approved (2026-09-27).** 92/92 tests passing. `run_baseline(request: ControlPlaneRequest) -> BaselineEvaluationRecord` realized in `control_plane/benchmarking/` (`BaselineRunner`) and `control_plane/evaluation/` (`BaselineEvaluationRecord`, `RunType`), per D-C/HQ-5 package placement. Contract-level and fixture-based; live Path A end-to-end baseline measurement remains NOT DEMONSTRATED — explicitly deferred (§18.14.8; Gate P0.2, §18.10).
+  - C: **NOT EXECUTED, NOT AUTHORIZED.**
+- `control_plane/benchmarking/{BaselineRunner.java, NoBaselineMeasurementException.java}`, `control_plane/evaluation/{BaselineEvaluationRecord.java, RunType.java, MissingTenantIdException.java}` (`a2d022f`) are `EXE-P0.2.B`'s realization, alongside their tests (`BaselineRunnerTest`, `BaselineTestFixtures`).
+- **Capability Gate P0.2: NOT AUTHORIZED** — not reachable until Sub-phases C–H are each separately executed and approved.
+
+The authoritative remaining sequence up to Capability Gate P0.2 is:
+
+```
+DONE: v1.0.12 correction committed (793ed7d)
+DONE: Execute EXE-P0.2.B → AI verification (Architect + Reviewer + Verifier) → Approve EXE-P0.2.B (a2d022f, approved 2026-09-27)
+
+Execute EXE-P0.2.C → AI verification → Approve EXE-P0.2.C
+… EXE-P0.2.D–H … Capability Gate P0.2 (live Path A measurement: explicitly deferred, §18.10)
+
+(optional, when directed) Execute REM-P0.2.B-03 → AI verification (Architect + Verifier) → Approve REM-P0.2.B-03
+```
+
+Each line is issued one command at a time, with no automatic chaining. `Approve EXE-P0.2.B` did not authorize `EXE-P0.2.C`. The v1.0.12 sequence block above is historical.
+
+**v1.1.0 continuous-execution sequence (§18.20; supersedes the sequence above for `EXE-P0.2.C` onward, which is retained as history describing the pre-§18.20 model).**
+
+```
+DONE: v1.0.12 correction committed (793ed7d)
+DONE: v1.0.13 correction committed — Execute EXE-P0.2.B → AI verification → Approve EXE-P0.2.B (a2d022f, approved 2026-09-27)
+DONE: v1.1.0 correction — adopts §18.20; EXE-P0.2.C is the recorded migration point (§18.20.O); not itself an execution
+DONE: v1.1.1 correction — implements HD-CE-17/18/19 (N/A continuation semantics, §18.15 completion-guard semantics); not itself an execution
+
+Execute EXE-P0.2.C
+  → opens the authorized path for Capability 2's remaining sub-phases (§18.20.B–C)
+  → C: AI verification → PASS-class → commit → ### AI VERIFIED — CONTINUING (auto-continue)
+  → D: AI verification → PASS-class → commit → ### AI VERIFIED — CONTINUING (auto-continue)
+  → E: AI verification → PASS-class → commit → ### AI VERIFIED — CONTINUING (auto-continue)
+  → F: AI verification → NOT APPLICABLE (no commit, §18.16) → ### AI VERIFIED — CONTINUING (NOT APPLICABLE) (auto-continue, §18.12.4/§18.20.R — corrected at v1.1.1; not ordinary CONTINUING)
+  → G: AI verification → PASS-class → commit → ### AI VERIFIED — CONTINUING (auto-continue)
+  → H: AI verification → PASS-class → commit → ### AI VERIFIED — CONTINUING (auto-continue)
+  → Capability Gate P0.2 review → AI Capability Gate Verification
+       PASS    → boundary approval requested, enumerating every unit C–H (including F's NOT APPLICABLE disposition, §18.20.G) → Approve CAPABILITY-GATE P0.2
+       BLOCKED → path stops (§18.20.K); no boundary approval requested
+
+(optional, when directed) Execute REM-P0.2.B-03 → AI verification → Approve REM-P0.2.B-03 (Optional, §18.20.J; not path-internal, not automatic)
+```
+
+This sequence does not itself execute, verify, approve, or commit anything — it is this document's authoritative description of what one `Execute EXE-P0.2.C` will do once issued. Any §18.20.K blocking condition encountered at C, D, E, G, or H stops the path at that unit and requests a normal `Approve EXE-P0.n.X` for the units completed so far (§18.20.G), not the Gate-level approval above. Capability Gate P0.2's live-Path-A-measurement deferral (§18.10, §18.14.8) is unaffected by this amendment.
+
 ### 18.19 Execution Assistance Layer (v1.0.9)
 
 #### 18.19.1 Definition and boundary
@@ -1698,6 +1860,8 @@ Human: Execute EXE-P0.n.X
 ```
 
 The Capability Gate sequence (Review → AI Capability Gate Verification → Human Gate Approval) is likewise unchanged.
+
+**v1.1.0 note (§18.20):** the diagram above is this subsection's original, still-governing model for every unit outside a §18.20 authorized path. For a path-internal unit short of its path's boundary, the `AI Verification` → `PASS` → `### AI VERIFIED — AWAITING HUMAN APPROVAL` → `Human: Approve` step is replaced by `### AI VERIFIED — CONTINUING` and automatic continuation to the next unit's pre-flight and routing (§18.12.4, §18.20.D); the Capability Gate sequence itself is unchanged, and where a path runs through it, serves as that path's boundary approval (§18.20.C, §18.10).
 
 #### 18.19.2 Current inventory (live `.claude/` tree at v1.0.9)
 
@@ -1764,7 +1928,201 @@ Agent output is evidence for the main session's §18.12 AI Verification, never a
 
 #### 18.19.7 `EXE-P0.2.B` protection
 
-This correction does not move `EXE-P0.2.B` forward. It remains **BLOCKED** on `SOURCE-GAP-EXECPLAN-07` and `-08` (§18.14.6, §38), with `SOURCE-GAP-EVAL-01` open, until an authorized, user-directed source-contract correction independently closes them. Routing assistance does not make it READY. *(v1.0.10: the remediation that prepares that correction is registered as `REM-P0.2.B-01`, §18.14.7. Its routing is AUTHORITATIVE-DOC — Architect and Verifier at STEP level — and no agent may take its human decisions.)* *(v1.0.11: `SOURCE-GAP-EXECPLAN-07`/`-08` are resolved at source and `EXE-P0.2.B` is now conditioned on `REM-P0.2.B-02` (§18.14.8); `SOURCE-GAP-EVAL-01` stays open; routing assistance still does not make `EXE-P0.2.B` READY.)*
+This correction does not move `EXE-P0.2.B` forward. It remains **BLOCKED** on `SOURCE-GAP-EXECPLAN-07` and `-08` (§18.14.6, §38), with `SOURCE-GAP-EVAL-01` open, until an authorized, user-directed source-contract correction independently closes them. Routing assistance does not make it READY. *(v1.0.10: the remediation that prepares that correction is registered as `REM-P0.2.B-01`, §18.14.7. Its routing is AUTHORITATIVE-DOC — Architect and Verifier at STEP level — and no agent may take its human decisions.)* *(v1.0.11: `SOURCE-GAP-EXECPLAN-07`/`-08` are resolved at source and `EXE-P0.2.B` is now conditioned on `REM-P0.2.B-02` (§18.14.8); `SOURCE-GAP-EVAL-01` stays open; routing assistance still does not make `EXE-P0.2.B` READY.)* *(This §18.19.7 note is unaffected by §18.20 below: `EXE-P0.2.B` is already executed and approved as of v1.0.13, and this paragraph is retained as history.)*
+
+### 18.20 Continuous Phase-Driven Execution Model (v1.1.0)
+
+This section is the authoritative source for continuous, phase-driven execution within an explicitly human-authorized Capability path. It is adopted as a formal amendment following the human decision register HD-CE-01 through HD-CE-16 (frozen 2026-09-28, in a dedicated read-only governance-redesign analysis and decision-collection process conducted outside this document) and does not weaken any invariant listed at §18.20.Q. **It applies prospectively only**, from the migration point recorded at §18.20.O (`EXE-P0.2.C`) onward; every unit executed before that point remains governed exclusively by this document's pre-existing model (§18.2, §18.11.1, §18.11.2, §18.11.12, §18.17), unchanged and never relabeled (§18.20.O, HD-CE-15).
+
+#### A. Phase
+
+"Phase" means **Capability**, exactly as Capability is already used throughout §18.1–§18.9. No new hierarchy level is introduced above or below Capability/Sub-phase (HD-CE-01).
+
+#### B. Human authorization
+
+The explicit human `Execute EXE-P0.<n>.<letter>` command remains the sole event that opens an authorized execution path — unchanged from §18.11.1. What one such command authorizes is redefined: naming a unit opens the path for the remaining sub-phases of that unit's Capability. For example, `Execute EXE-P0.2.C` opens the path for Capability 2's remaining sub-phases (C onward). Authorization is path-scoped, never global: it authorizes nothing in any other Capability, and nothing that precedes the named unit (HD-CE-02).
+
+#### C. Authorized execution path
+
+An authorized execution path:
+- starts at the unit explicitly named in the triggering `Execute` command;
+- consists of that unit and every remaining not-yet-approved sub-phase of that same Capability, in the existing A–H order;
+- ends at that Capability's own Capability Gate (§18.10) — the path's boundary approval (§18.20.G) coincides with, and is satisfied by, that Gate's Human Gate Approval, reusing §18.10's existing pattern of reviewing the whole capability's evidence in one pass, now extended to cover every path-internal unit's evidence as well;
+- never crosses into another Capability under any circumstance (§18.20.M).
+
+If a path stops before reaching its Gate (any §18.20.K condition), its boundary is the stopped-at unit, and its boundary approval (once the stop is resolved and the path resumes to completion, or independently if the operator chooses to approve the completed portion) is a normal `Approve EXE-P0.n.X`, not a Gate approval.
+
+#### D. Continuous continuation
+
+After a path-internal unit's work completes:
+1. Specialist governance routing (Architect/Reviewer/Verifier, §18.19.4–§18.19.5) occurs exactly as it would for any unit — unchanged.
+2. Implementation, testing and evidence-gathering occur exactly as §18.4–§18.9 and §18.12.1 require — unchanged.
+3. AI Verification (§18.12) occurs exactly as required — unchanged.
+4. On a PASS-class verdict (`PASS` or `PASS WITH DOCUMENTED NON-BLOCKING GAP`), the unit is committed — exactly one commit, unchanged (§18.20.L).
+5. If the next sub-phase remains within the same authorized path and no §18.20.K blocking condition applies, execution continues automatically to that next sub-phase, reporting `### AI VERIFIED — CONTINUING` (§18.12.4) rather than requesting an individual `Approve …`.
+
+This continuation is not a new authorization event. It is the exercise of the authorization already granted by the triggering `Execute` command (§18.20.B), never an independent act of judgment beyond that grant.
+
+#### E. No authorization expansion
+
+None of the following ever expands what is authorized, under continuous execution or otherwise:
+- a passing test;
+- a successful commit;
+- an `AI VERIFICATION: PASS` (or `PASS WITH DOCUMENTED NON-BLOCKING GAP`) verdict;
+- a closed Capability Gate.
+
+A Capability Gate approval never authorizes the next Capability's Sub-phase A. Only an explicit human `Execute EXE-P0.(n+1).A` does (unchanged from §18.11.6).
+
+#### F. `AI VERIFIED — CONTINUING`
+
+```
+### AI VERIFIED — CONTINUING
+```
+
+means: the unit passed AI Verification; the unit was committed; continuation to the next unit is permitted only because this unit lies within an execution path already opened by an explicit human `Execute` command (§18.20.B–C); it is not, and must never be treated as, `HUMAN APPROVED`; it authorizes no work outside that path. It is never a fifth AI Verification verdict value (§18.12.1.J is unchanged) — it is a footer/state distinct from, and never substitutable for, `### AI VERIFIED — AWAITING HUMAN APPROVAL` (§18.12.4), which remains the footer for every unit outside a §18.20 path and for a path's own boundary unit.
+
+#### G. Human approval
+
+- No individual `Approve …` is required for a unit that transitions to `AI VERIFIED — CONTINUING`.
+- Human `Approve …` is required at the path's boundary (§18.20.C) — ordinarily `Approve CAPABILITY-GATE P0.<n>`, following an `AI CAPABILITY GATE VERIFICATION: PASS` exactly as §18.10/§18.11.6 already require, now reviewing every path-internal unit's evidence alongside H's own.
+- **The boundary approval request must explicitly enumerate exactly which units' evidence it covers** — it is never an implicit blanket approval of "everything up to here" (HD-CE-05). **v1.1.1 (HD-CE-17):** this enumeration must name every completed path-internal unit regardless of which continuation state it reached — `AI VERIFIED — CONTINUING` units and `AI VERIFIED — CONTINUING (NOT APPLICABLE)` units alike (§18.20.R) — so an N/A unit's disposition is always part of what the human reviews at the boundary. Naming an N/A unit in this enumeration is never itself, and must never be read as, that unit's own individual approval — the boundary approval is a single act covering the whole named set, not a retroactive collection of per-unit approvals (§18.20.G, above).
+- `AI VERIFICATION: PASS` (in any form) is never human approval, under continuous execution or otherwise (unchanged from §18.12.2, §18.12.5).
+- If a path stops before reaching its Gate (§18.20.C, §18.20.K), the boundary approval requested is a normal `Approve EXE-P0.n.X` for the stopped-at unit, likewise enumerating every path-internal unit committed since the path opened or last resumed.
+
+#### H. Human Decision Requests (HDR)
+
+- An HDR (a genuine ambiguity, source gap, or undecided contract question surfacing mid-path) causes an immediate stop, exactly as it always has.
+- The human decision is recorded, exactly as it always has been (e.g. §18.14.5's HD-1–HD-4, §18.14.6's HQ-1–HQ-6).
+- Reconciliation runs against the recorded decision.
+- If the same authorized path (§18.20.C) remains valid after reconciliation, execution resumes automatically — no fresh `Execute` is required.
+- If reconciliation surfaces a new HDR, or any §18.20.K blocking condition, the path stops again.
+- Resolving an HDR never expands the authorized path (HD-CE-07). It never authorizes any unit or Capability outside the path that was already open when the HDR was raised.
+
+#### I. Prerequisites
+
+A prerequisite or remediation unit may execute automatically inside an authorized path **only when this execution plan itself explicitly designates that exact unit as path-internal for that exact path**. Being a "hard prerequisite" of another unit (in the sense already used at §18.15, §18.14.8) does not, by itself, authorize automatic execution — that status and this designation are independent; a unit can be a hard prerequisite without being plan-designated as path-internal (HD-CE-08).
+
+**No currently registered prerequisite or remediation unit is newly designated path-internal by this amendment.** `REM-P0.2.B-01` and `REM-P0.2.B-02` are already executed and approved (historical, unaffected). `REM-P0.2.B-03` is classified at §18.20.J below.
+
+#### J. Remediation classification
+
+Every remediation unit is classified into exactly one of:
+
+1. **Path-Internal** — explicitly designated by this plan as required within a specific authorized path; may execute automatically within that path (§18.20.I).
+2. **Optional** — registered but not required by any path; never executes automatically.
+3. **Separately Authorized** — requires its own independent human authorization regardless of any open path; never executes automatically.
+4. **Unrelated** — out of scope of any current path entirely.
+
+**`REM-P0.2.B-03` = Optional** (HD-CE-09). It remains registered, not executed, not a prerequisite of anything, and does not execute automatically under continuous execution.
+
+#### K. Blocking conditions
+
+Any one of the following unconditionally stops an authorized path (HD-CE-10):
+
+1. `AI VERIFICATION: BLOCKED` on any unit.
+2. An unresolved Human Decision Request or `SOURCE-GAP`.
+3. A failure requiring human intervention.
+4. A security/governance decision requiring human intervention.
+5. Discovery of an out-of-scope file or change.
+6. Discovery of an unrelated issue.
+7. A pre-existing guard failure.
+8. Reaching the path's own boundary (§18.20.C).
+9. Reaching a Capability Gate.
+10. An attempted crossing outside the authorized path (into another Capability, or into a unit the path does not name).
+11. A governance-agent (Architect/Reviewer/Verifier) finding that `governance-matrix.yaml`'s escalation rules classify as requiring human escalation, independent of the unit's own AI Verification verdict.
+
+Any one of these causes the path to stop; none is resolved by the orchestrator on its own.
+
+#### L. Commit semantics
+
+Unchanged, absolutely (HD-CE-11): exactly one commit per changing execution unit, scoped only to that unit's own files, carrying its own tests, its own governance-agent routing evidence where applicable, and its own AI Verification report; independently revertible without affecting any other unit's commit (§37). **Continuous execution never merges multiple execution units into one commit.**
+
+#### M. Capability boundary
+
+Absolute, unconditional (HD-CE-14): Capability N's authorization, however granted — including a Capability Gate approval — never automatically authorizes Capability N+1. Every Capability's own starting unit requires its own explicit human `Execute`, under both this document's pre-existing model and this section.
+
+#### N. Cross-session reconstruction
+
+An authorized path's state, after a session or context reset, is reconstructed from:
+- git evidence (commit history, commit messages, commit trailers);
+- this document's own status/position blocks (§18.14.8, §18.18, §52);
+- the operator runbook's evidence (`docs/execution-plan-p0-steps.md` §20);
+- root `CLAUDE.md`'s recorded state, as applicable;
+- an explicit authorized-path field set in the runbook's §20, **to be added there in a separate, later correction pass** (this amendment does not itself edit the runbook — §18.20.Q), containing:
+  - the Capability;
+  - the authorized starting unit;
+  - the authorized path boundary;
+  - the completed units;
+  - the current stopped unit, if any;
+  - the stop reason, if any;
+  - the HDR resolution status, if applicable;
+  - a continuation-authorized flag.
+
+Ambiguous reconstruction — where the evidence above does not unambiguously establish one of these eight facts — **fails closed**: it is reported as a `DOCUMENTATION-GAP`, and no automatic continuation occurs until a human resolves it. No separate state-tracking file is introduced anywhere in the repository (HD-CE-12).
+
+**v1.1.1 note (§18.20.R):** "the completed units" above includes units that reached `AI VERIFIED — CONTINUING (NOT APPLICABLE)` on exactly the same footing as units that reached ordinary `AI VERIFIED — CONTINUING` — both are valid path-completion evidence for reconstruction purposes, and the deferred runbook §20 field (above) must be able to record either outcome per unit, once that later pass adds it.
+
+#### O. Historical/non-retroactive rule and migration point
+
+Every unit, remediation, and Gate approved before the migration point below was executed and approved under this document's pre-existing, per-unit model, in force at that time. No historical record is reinterpreted, relabeled, or retroactively described using continuous-execution terminology (HD-CE-15).
+
+```
+CONTINUOUS EXECUTION MODEL EFFECTIVE FROM: EXE-P0.2.C
+```
+
+- `EXE-P0.2.A` — prior (per-unit) model. Historical; unaffected.
+- `EXE-P0.2.B` — prior (per-unit) model. Historical; unaffected.
+- `EXE-P0.2.C` onward within Capability 2, and every sub-phase of every Capability from Capability 3 forward — this section's continuous model (HD-CE-03, Option B).
+
+#### P. NO UNAUTHORIZED CHAINING
+
+This is the authoritative current replacement for the historical "no automatic chaining" principle stated at §18.11.12 (retained there verbatim, annotated `SUPERSEDED BY §18.20` — not deleted, per HD-CE-16):
+
+> **NO UNAUTHORIZED CHAINING:** Continuation from one execution unit to another may occur automatically only when the destination lies inside an execution path already opened by an explicit human `Execute` command under this section. Continuation outside that path is forbidden. No test result, commit, AI Verification PASS, or closed Gate ever expands the authorized path.
+
+This restates, in path-scoped terms, the exact principle §18.11.12 has always required — that no success signal ever creates authorization — while additionally permitting automatic continuation strictly *within* an already-authorized path, which §18.11.12's original, pre-§18.20 wording did not contemplate.
+
+#### Q. Preserved invariants
+
+This amendment's only deliberate change is to **reduce the frequency of human-approval checkpoints within an already human-authorized Capability path.** It does not weaken, and this document continues to require in full:
+- human authority over all authorization (§18.20.B, §18.20.E, §18.20.M);
+- specialist governance-agent routing (§18.19, unchanged);
+- Architect/Reviewer/Verifier requirements (§18.19.4–§18.19.5, unchanged);
+- AI Verification for every unit (§18.12, unchanged);
+- fail-closed behavior on any blocking condition (§18.20.K);
+- Capability boundaries (§18.20.M);
+- unit-level commit discipline (§18.20.L);
+- evidence traceability (every path-internal unit's own AI Verification report and commit, unchanged);
+- out-of-scope protections (§18.20.K.5–7);
+- remediation/source-gap protections (§18.20.I–J);
+- the no-invention/no-assumption rule (§18.19.6, unchanged);
+- every existing governance gate (§18.10, §18.11, §18.12, §18.17).
+
+This section does not itself amend `.claude/agents/eaioc-p0-execution-orchestrator.md`, `.claude/skills/eaioc-execution-governance/SKILL.md`, root `CLAUDE.md`, or `docs/execution-plan-p0-steps.md`. Those artifacts' own required amendments — orchestrator command semantics and lifecycle loop; skill eligibility/HDR-resume/§31-trigger wiring; `CLAUDE.md`'s "one rule that matters most" wording; the runbook's §20 authorized-path field (§18.20.N) — are deferred to separate, later, explicitly-directed correction passes. Until each of those passes is made, this document's continuous-execution model is authoritative but **not yet operative in practice**: the orchestrator and skill currently in the repository still implement only the pre-existing per-unit model, and continue to do so until they are separately amended to match this section.
+
+#### R. N/A continuation (v1.1.1, HD-CE-17)
+
+A `NOT APPLICABLE` sub-phase that is path-internal (i.e. not the path's boundary unit, §18.20.C) continues automatically, on the same footing as a PASS-class path-internal unit, subject to all of the following:
+
+- its AI Verification verdict remains exactly `NOT APPLICABLE` — this section introduces no new verdict value (§18.12.1.J is unchanged);
+- it produces no implementation commit, and none is ever fabricated to represent it (§18.16, unchanged);
+- no individual human `Approve …` is required for it;
+- it counts as completed for the purpose of path progression;
+- it emits the distinct footer/state `### AI VERIFIED — CONTINUING (NOT APPLICABLE)` (§18.12.4, §18.17) — never ordinary `### AI VERIFIED — CONTINUING`, which remains defined only for a committed, PASS-class unit;
+- it is never `HUMAN APPROVED`, and this section grants it no exception from that;
+- it never expands the authorized path or authorizes anything outside it.
+
+Outside a §18.20 authorized path, and for every unit executed before the migration point recorded at §18.20.O, §18.2/§18.16's original rule governs unchanged: an N/A unit still receives its own explicit human approval.
+
+#### S. Completion-only guards (v1.1.1, HD-CE-18, HD-CE-19)
+
+A downstream guard whose purpose is **only** to establish that a predecessor sub-phase completed, or reached a valid terminal state — the clearest existing example being §18.15's "Capability `<n>`.A has been approved" check — is, within the same authorized execution path as the unit performing the check, satisfied by any of:
+
+1. `HUMAN APPROVED` — the historical per-unit model;
+2. `AI VERIFIED — CONTINUING` — the continuous model, PASS-class predecessor, same authorized path;
+3. `AI VERIFIED — CONTINUING (NOT APPLICABLE)` — the continuous model, `NOT APPLICABLE` predecessor, same authorized path (§18.20.R).
+
+Options 2 and 3 apply **only** when the predecessor is path-internal to the exact same authorized path as the unit whose guard is being checked — never across a path boundary, never across a Capability (§18.20.M is unaffected: the "same authorized path" qualifier structurally forecloses this, since no path ever spans two Capabilities). **None of the three options above ever satisfies:** human approval; human authorization; Capability Gate approval; boundary approval; or any guard whose purpose specifically requires human review, authorization, or approval — a guard of that kind (e.g. "Capability 1 Gate has been approved," the other check in §18.15) is never a completion-only guard and is never affected by this subsection. This introduces no new global "approval" state; options 2 and 3 are exactly the two states already defined at §18.12.4/§18.17/§18.20.F/R, merely recognized here as valid evidence for this one, already-existing kind of check.
 
 ---
 
@@ -2024,6 +2382,57 @@ CODE COMPLETE         — not reached
 BENCHMARK VALIDATED   — not reached
 ```
 
+*(The v1.0.12 status block above is retained as history; the v1.0.13 status block below supersedes it.)*
+
+**v1.0.13 status (supersedes the v1.0.12 status block above, which is retained as history):**
+
+```text
+PLAN READY            — YES
+MODE B READY          — for REM-P0.2.B-02: DONE (unchanged from v1.0.12).
+                      — for REM-P0.2.B-03: registered, not scheduled; NOT a prerequisite of EXE-P0.2.B
+                      — for EXE-P0.2.B: DONE. Executed, AI-verified (PASS), and human-approved
+                        (a2d022f, 2026-09-27). 92/92 tests passing. Contract-level and fixture-based;
+                        live Path A end-to-end baseline measurement: NOT DEMONSTRATED — explicitly
+                        deferred (Gate P0.2, §18.10)
+                      — for EXE-P0.2.C: NO — not executed, not authorized. Approve EXE-P0.2.B covers
+                        only Sub-phase B
+CODE COMPLETE         — not reached
+BENCHMARK VALIDATED   — not reached
+```
+
+*(The v1.0.13 status block above is retained as history; the v1.1.0 status block below supersedes it.)*
+
+**v1.1.0 status (supersedes the v1.0.13 status block above, which is retained as history; structural amendment, not a state-refresh — §18.20 adopted, no unit executed by this correction itself):**
+
+```text
+PLAN READY            — YES
+MODE B READY          — for EXE-P0.2.B: DONE (unchanged from v1.0.13).
+                      — for EXE-P0.2.C: NOT EXECUTED. Issuing Execute EXE-P0.2.C now opens the §18.20
+                        authorized path for Capability 2's remaining sub-phases (C through H) through
+                        Capability Gate P0.2 (§18.20.B–C), per the migration point recorded at §18.20.O.
+                        This correction does not itself execute, verify, or approve EXE-P0.2.C.
+CODE COMPLETE         — not reached
+BENCHMARK VALIDATED   — not reached
+```
+
+*(The v1.1.0 status block above is retained as history; the v1.1.1 status block below supersedes it.)*
+
+**v1.1.1 status (supersedes the v1.1.0 status block above, which is retained as history; further structural governance correction — HD-CE-17/18/19 implemented, no unit executed by this correction itself):**
+
+```text
+PLAN READY            — YES
+MODE B READY          — for EXE-P0.2.B: DONE (unchanged from v1.0.13/v1.1.0).
+                      — for EXE-P0.2.C: NOT EXECUTED. Unchanged repository-state fact. What is corrected
+                        is the model's own internal consistency: Sub-phase F's NOT APPLICABLE disposition
+                        (§18.5) now resolves to the distinct ### AI VERIFIED — CONTINUING (NOT APPLICABLE)
+                        footer (§18.12.4, §18.20.R), not ordinary CONTINUING; and §18.15's "Capability
+                        2.A has been approved" completion-only check now correctly recognizes CONTINUING/
+                        CONTINUING (NOT APPLICABLE) as valid completion evidence within the same path
+                        (§18.20.S), while a Gate-level or boundary-approval check is never so satisfied.
+CODE COMPLETE         — not reached
+BENCHMARK VALIDATED   — not reached
+```
+
 *(The v1.0.5 status — `MODE B READY` for `REM-P0.1.A-01` — is superseded: `REM-P0.1.A-01`/`-02` are done and approved.)* *(The v1.0.6 status — `MODE B READY` for `REM-P0.1.B-01` — is superseded: `REM-P0.1.B-01` is done and approved.)* Neither `CODE COMPLETE` nor `BENCHMARK VALIDATED` is stated or implied by v1.0.7. *(The v1.0.7 status — `MODE B READY` for `REM-P0.1.B-02`, and `EXE-P0.2.B` NO on Gate P0.1 — is superseded: both conditions are resolved, and `EXE-P0.2.B` is now blocked on `SOURCE-GAP-EXECPLAN-07`/`-08`.)*
 
 P0 completion, once Mode B finishes all six Capability Gates, does **not** automatically imply: production readiness, enterprise-scale readiness, P1–P5 readiness, any ADR's acceptance, final infrastructure selection, or proven business savings — restated verbatim from the generation prompt's own §37, since this is the single most consequential boundary statement in the entire execution-planning exercise.
@@ -2054,7 +2463,7 @@ Phase 1 (Java core) is this slice's own scope; Phases 2–4 (Python, Go, special
 Capability 1 → 2 → 3 (no cross-dependency among these three, but executed strictly sequentially, never in parallel — §18.2–§18.3) → 4 (needs 1) → 5 (needs 3, 4) → 6 (needs 1) — §18.3, §48.
 
 ### H. P0 Execution Sequence
-Six capabilities, 8 lifecycle sub-phases (A–H) each = 48 atomic `EXE-P0.<n>.<letter>` execution units, plus 6 Capability Gates (review/promotion checkpoints — no ID, no commit) = 54 total gated checkpoints across the P0 tier — §18.4–18.10. From v1.0.4, every unit is AI-verified before human approval and every Gate is AI-verified before human Gate approval (§18.12, §18.11.6); N/A units carry no commit (§18.16); history-specific remediation units (`REM-P0.1.A-01`/`-02`, §18.14) are additional corrective checkpoints outside this count. *(v1.0.10: so are `REM-P0.1.B-01`/`-02` and the pre-execution remediation `REM-P0.2.B-01`, §18.14.4, §18.14.7.)* *(v1.0.11: and `REM-P0.2.B-02`/`-03`, §18.14.8.)*
+Six capabilities, 8 lifecycle sub-phases (A–H) each = 48 atomic `EXE-P0.<n>.<letter>` execution units, plus 6 Capability Gates (review/promotion checkpoints — no ID, no commit) = 54 total gated checkpoints across the P0 tier — §18.4–18.10. From v1.0.4, every unit is AI-verified before human approval and every Gate is AI-verified before human Gate approval (§18.12, §18.11.6); N/A units carry no commit (§18.16); history-specific remediation units (`REM-P0.1.A-01`/`-02`, §18.14) are additional corrective checkpoints outside this count. *(v1.0.10: so are `REM-P0.1.B-01`/`-02` and the pre-execution remediation `REM-P0.2.B-01`, §18.14.4, §18.14.7.)* *(v1.0.11: and `REM-P0.2.B-02`/`-03`, §18.14.8.)* *(v1.1.0: §18.20 adopts continuous execution within an authorized Capability path, effective from `EXE-P0.2.C`; the 48+6=54 count and the one-commit-per-changing-unit rule are unchanged — §18.20.L.)* *(v1.1.1: N/A sub-phases (still no commit, §18.16) that are path-internal now correctly emit `AI VERIFIED — CONTINUING (NOT APPLICABLE)` rather than ordinary `CONTINUING`, §18.20.R; the 48+6=54 count is unaffected.)*
 
 ### I. First Proving Slice
 Docker Compose reference environment; Path A (baseline) vs. Path B (through the six-capability EAIOC substrate); no optimization savings claimed yet, only overhead measured honestly — §16–17.
@@ -2063,7 +2472,7 @@ Docker Compose reference environment; Path A (baseline) vs. Path B (through the 
 Zero of six ADRs block any in-scope capability; two (0004, 0005) are loosely touched via interim/moot dispositions — §39.
 
 ### K. Source-Gap Implementation Register
-Four `SOURCE-GAP-EXECPLAN-NN` entries — §38: `SOURCE-GAP-EXECPLAN-01` — non-blocking; `SOURCE-GAP-EXECPLAN-02` — non-blocking; `SOURCE-GAP-EXECPLAN-03` — non-blocking; `SOURCE-GAP-EXECPLAN-04` (shared-core ownership, added v1.0.4) — **blocking implementation-side gap until remediation**: plan side resolved; implementation side open until remediation completes, blocking `EXE-P0.2.B`/`EXE-P0.3.B` — §18.13–§18.15. **v1.0.6:** `-04`'s implementation side is now closed by the approved `REM-P0.1.A-01`/`-02`. It adds `SOURCE-GAP-EXECPLAN-05` (22 `SOURCE-UNRESOLVED` ledger types) and `-06` (availability vs. `unverified`), both blocking `REM-P0.1.B-02` until decided, and the contradiction `CONTRA-EXECPLAN-01` (`INTF-047` vs §27.1; resolved at source, implementation remediation pending). **Current (v1.0.8/v1.0.9):** nine entries — `-01`–`-03` non-blocking; `-04` closed (implementation side, `REM-P0.1.A-01`/`-02`); `-05`/`-06` resolved (v1.0.7, DB-2); `-07`/`-08` **blocking `EXE-P0.2.B`** (added v1.0.8); `-09` non-blocking (added v1.0.8). `CONTRA-EXECPLAN-01` is closed at source and in code (`c378dc9`). **v1.0.10:** unchanged gap list; `-07`/`-08` remain **OPEN** and blocking, with remediation unit `REM-P0.2.B-01` registered (not started, §18.14.7). **v1.0.11:** `REM-P0.2.B-01` executed and approved; `-07`/`-08` resolved at source and `-09` narrowed (§38 status updates), `-10` to `-15` added (fifteen entries); `REM-P0.2.B-02`/`-03` registered, not executed (§18.14.8); `EXE-P0.2.B` not yet executable. **v1.0.12:** `REM-P0.2.B-02` executed, AI-verified (`PASS`) and human-approved (`bf74ac3`, 2026-09-27), clearing that named precondition; `REM-P0.2.B-03` remains registered, not executed, not a prerequisite; `EXE-P0.2.B` still not yet executable pending its own pre-flight, a fresh §18.15 guard check, and a Code Architect re-assessment. Gap list unchanged.
+Four `SOURCE-GAP-EXECPLAN-NN` entries — §38: `SOURCE-GAP-EXECPLAN-01` — non-blocking; `SOURCE-GAP-EXECPLAN-02` — non-blocking; `SOURCE-GAP-EXECPLAN-03` — non-blocking; `SOURCE-GAP-EXECPLAN-04` (shared-core ownership, added v1.0.4) — **blocking implementation-side gap until remediation**: plan side resolved; implementation side open until remediation completes, blocking `EXE-P0.2.B`/`EXE-P0.3.B` — §18.13–§18.15. **v1.0.6:** `-04`'s implementation side is now closed by the approved `REM-P0.1.A-01`/`-02`. It adds `SOURCE-GAP-EXECPLAN-05` (22 `SOURCE-UNRESOLVED` ledger types) and `-06` (availability vs. `unverified`), both blocking `REM-P0.1.B-02` until decided, and the contradiction `CONTRA-EXECPLAN-01` (`INTF-047` vs §27.1; resolved at source, implementation remediation pending). **Current (v1.0.8/v1.0.9):** nine entries — `-01`–`-03` non-blocking; `-04` closed (implementation side, `REM-P0.1.A-01`/`-02`); `-05`/`-06` resolved (v1.0.7, DB-2); `-07`/`-08` **blocking `EXE-P0.2.B`** (added v1.0.8); `-09` non-blocking (added v1.0.8). `CONTRA-EXECPLAN-01` is closed at source and in code (`c378dc9`). **v1.0.10:** unchanged gap list; `-07`/`-08` remain **OPEN** and blocking, with remediation unit `REM-P0.2.B-01` registered (not started, §18.14.7). **v1.0.11:** `REM-P0.2.B-01` executed and approved; `-07`/`-08` resolved at source and `-09` narrowed (§38 status updates), `-10` to `-15` added (fifteen entries); `REM-P0.2.B-02`/`-03` registered, not executed (§18.14.8); `EXE-P0.2.B` not yet executable. **v1.0.12:** `REM-P0.2.B-02` executed, AI-verified (`PASS`) and human-approved (`bf74ac3`, 2026-09-27), clearing that named precondition; `REM-P0.2.B-03` remains registered, not executed, not a prerequisite; `EXE-P0.2.B` still not yet executable pending its own pre-flight, a fresh §18.15 guard check, and a Code Architect re-assessment. Gap list unchanged. **v1.0.13:** `EXE-P0.2.B` executed, AI-verified (`PASS`) and human-approved (`a2d022f`, 2026-09-27; 92/92 tests); `EXE-P0.2.C` not executed, not authorized; Capability Gate P0.2 not authorized. Gap list unchanged. **v1.1.0:** no new source gap; §18.20 (Continuous Phase-Driven Execution Model) adopted, effective prospectively from `EXE-P0.2.C`; `EXE-P0.2.C` remains not executed, not authorized by this correction itself. Gap list unchanged. **v1.1.1:** no new source gap; HD-CE-17/18/19 implemented (N/A continuation footer, §18.15 completion-guard semantics, three v1.1.0 drafting omissions fixed); `EXE-P0.2.C` remains not executed, not authorized by this correction itself. Gap list unchanged.
 
 ### L. Requirement Coverage Summary
 Nine distinct requirement IDs directly touched (`OBJ-011/012`, `AC-001/002/005/015/017`, `SEC-001`, `TECH-001`), all `FULLY TRACED` per `requirements-traceability.md` — §40.
@@ -2160,6 +2569,56 @@ The next executable unit, once this correction is committed, is `REM-P0.2.B-02` 
 > **MODE B READY for `EXE-P0.2.B`: NOT YET — `SOURCE-GAP-EXECPLAN-07`/`-08` are resolved at source (§38), and the retrieval realization `REM-P0.2.B-02` is now executed, AI-verified and approved (§18.14.8, §18.15). What remains is `EXE-P0.2.B`'s own pre-flight (§18.19.3), a fresh §18.15 guard check against the now-existing retrieval realization, and a Code Architect re-assessment — none of which has run. `EXE-P0.2.B` is a contract-level, fixture-based unit; live Path A end-to-end baseline measurement: NOT DEMONSTRATED — explicitly deferred (§18.14.8; Gate P0.2, §18.10).**
 
 The next executable unit, once this correction is committed, is `EXE-P0.2.B` (`Execute EXE-P0.2.B`), subject to its own pre-flight (§18.19.3), the §18.15 guard (with its v1.0.11 addition) and a Code Architect re-assessment before any code; only the concrete failure mechanism of the no-measurement outcome (`SOURCE-GAP-EXECPLAN-13`, narrowed) is a unit-level matter at that pre-flight; the outcome itself is decided (operation failure). `REM-P0.2.B-03` remains registered, optional, and not a prerequisite. *(The v1.0.11 wording — `Execute REM-P0.2.B-02` as the next unit — is superseded.)*
+
+*(The conclusion above is the v1.0.12 conclusion, retained as history; the v1.0.13 conclusion below supersedes it.)*
+
+**Current readiness conclusion (v1.0.13; documentation-only state refresh recording `EXE-P0.2.B`'s completed execution).** *(Items 1–7 and 10 of the v1.0.11 conclusion are unchanged; items 8–9 are restated, and the next-executable-unit statement is updated.)*
+
+- **Item 8 — current condition for `EXE-P0.2.C`:** `EXE-P0.2.B` has been executed, AI-verified (`PASS`) and human-approved (`a2d022f`, 2026-09-27) — 92/92 tests passing. `EXE-P0.2.C` (Integration) has not been executed and is not authorized; `Approve EXE-P0.2.B` covers only Sub-phase B (§18.11.12, no automatic chaining). `SOURCE-GAP-EVAL-01`: OPEN (unchanged). `SOURCE-GAP-IRG-02`: OPEN (unchanged).
+- **Item 9 — repository position (§18.18):** Capability 1 closed. Capability 2: `EXE-P0.2.A` executed and approved; `REM-P0.2.B-01`/`REM-P0.2.B-02` executed, AI-verified and approved; `REM-P0.2.B-03` registered, not executed, not a prerequisite; `EXE-P0.2.B` executed (`a2d022f`), AI-verified (`PASS`) and human-approved (2026-09-27); `EXE-P0.2.C` not executed, not authorized; Capability Gate P0.2 not authorized.
+
+> **PLAN READY: YES.**
+>
+> **MODE B READY for `EXE-P0.2.B`: DONE — executed, AI-verified (`PASS`), and human-approved (`a2d022f`, 2026-09-27).** 92/92 tests passing. Reviewed by Architect (`APPROVED FOR IMPLEMENTATION`), Reviewer (`PASS WITH REQUIRED FOLLOW-UP`, resolved), and Verifier (`CONFORMANT WITH DOCUMENTED GAPS`); the Architect/Reviewer/Verifier routing ran after implementation rather than before, a disclosed deviation from §18.19.4/§18.19.5's normal sequence that produced no required design change. `EXE-P0.2.B` remains a contract-level, fixture-based unit; live Path A end-to-end baseline measurement: NOT DEMONSTRATED — explicitly deferred (§18.14.8; Gate P0.2, §18.10).
+>
+> **MODE B READY for `EXE-P0.2.C`: NOT YET — not executed, not authorized.** `Approve EXE-P0.2.B` approved only Sub-phase B; `EXE-P0.2.C` needs its own explicit `Execute EXE-P0.2.C`, its own pre-flight, and its own AI Verification before any human approval. Capability Gate P0.2 is reachable only after Sub-phases C–H are each separately executed and approved.
+
+The next executable unit, once this correction is committed, is `EXE-P0.2.C` (`Execute EXE-P0.2.C`), subject to its own pre-flight (§18.19.3) and routing. `REM-P0.2.B-03` remains registered, optional, and not a prerequisite. *(The v1.0.12 wording — `Execute EXE-P0.2.B` as the next unit — is superseded.)*
+
+*(The conclusion above is the v1.0.13 conclusion, retained as history; the v1.1.0 conclusion below supersedes it.)*
+
+**Current readiness conclusion (v1.1.0; structural execution-authorization amendment adopting §18.20, per the frozen HD-CE-01–HD-CE-16 human decision register — not a state refresh; decides no new fact about repository state).** *(Items 1–7 and 10 of the v1.0.11 conclusion are unchanged in substance; item 7's "no automatic chaining" is now qualified, not repealed, by §18.20 — see §18.11.12's own annotation. Items 8–9 are restated below.)*
+
+- **Item 7 — no automatic chaining, qualified:** §18.11.12's rule is retained verbatim and annotated `SUPERSEDED BY §18.20` — it remains fully governing outside a §18.20 authorized path. Within such a path, §18.20.P's "NO UNAUTHORIZED CHAINING" is the current authoritative statement: no success signal ever expands what is authorized; only automatic continuation strictly inside an already-authorized path is newly permitted.
+- **Item 8 — current condition for `EXE-P0.2.C`:** unchanged from v1.0.13 as a repository-state fact — `EXE-P0.2.C` has not been executed and is not authorized by anything that has happened so far. What changes is the *meaning* of issuing `Execute EXE-P0.2.C` going forward: per §18.20.B–C, it will open the authorized path for Capability 2's remaining sub-phases (C–H) through Capability Gate P0.2, rather than authorizing only Sub-phase C. `SOURCE-GAP-EVAL-01`: OPEN (unchanged). `SOURCE-GAP-IRG-02`: OPEN (unchanged).
+- **Item 9 — repository position (§18.18):** unchanged from v1.0.13 — Capability 1 closed; Capability 2: A and B executed and approved (historical, under the prior model, §18.20.O); `REM-P0.2.B-01`/`REM-P0.2.B-02` executed and approved; `REM-P0.2.B-03` registered, not executed, classified `Optional` (§18.20.J); `EXE-P0.2.C` not executed, not authorized; Capability Gate P0.2 not authorized.
+- **Item 11 — new in this correction:** §18.20 is adopted as this document's authoritative continuous-execution model, effective prospectively from `EXE-P0.2.C` (§18.20.O). It is not yet operative in practice: `.claude/agents/eaioc-p0-execution-orchestrator.md` and `.claude/skills/eaioc-execution-governance/SKILL.md` are unchanged by this correction and continue to implement only the pre-existing per-unit model until they are separately amended to match §18.20 (§18.20.Q).
+
+> **PLAN READY: YES.**
+>
+> **MODE B READY for `EXE-P0.2.B`: DONE (unchanged from v1.0.13).**
+>
+> **MODE B READY for `EXE-P0.2.C`: NOT YET EXECUTED — not executed, not authorized by this correction.** Once issued, `Execute EXE-P0.2.C` opens the §18.20 authorized path for Capability 2's remaining sub-phases through Capability Gate P0.2 (§18.20.B–C, §18.18's v1.1.0 sequence block) — subject to its own pre-flight (§18.19.3), routing, and every §18.20.K blocking condition.
+
+The next executable unit is unchanged: `EXE-P0.2.C` (`Execute EXE-P0.2.C`), subject to its own pre-flight (§18.19.3) and routing — now understood, per §18.20, as opening the path through Capability Gate P0.2 rather than authorizing only Sub-phase C. `REM-P0.2.B-03` remains registered, `Optional` (§18.20.J), and not a prerequisite. *(The v1.0.13 reading of `Execute EXE-P0.2.C` as authorizing only Sub-phase C is superseded for `EXE-P0.2.C` onward; it remains the accurate historical reading of every unit executed before this correction.)*
+
+*(The conclusion above is the v1.1.0 conclusion, retained as history; the v1.1.1 conclusion below supersedes it.)*
+
+**Current readiness conclusion (v1.1.1; further structural governance correction implementing HD-CE-17/18/19 — not a new decision round, not implementation, decides no new fact about repository state).** *(All items of the v1.1.0 conclusion remain unchanged in substance; this correction fixes the model's own internal consistency, not repository state.)*
+
+- **N/A continuation (HD-CE-17, §18.20.R):** a path-internal `NOT APPLICABLE` sub-phase now correctly emits the distinct `### AI VERIFIED — CONTINUING (NOT APPLICABLE)` footer — never ordinary `CONTINUING`, which the v1.1.0 text incorrectly showed at §18.18's Capability 2 Sub-phase F step (now corrected). No commit, no individual `Approve`, never `HUMAN APPROVED`, never an expansion of authorization — identical in every governance respect to ordinary `CONTINUING` except that it correctly never claims a commit exists.
+- **Completion-only guards (HD-CE-18/HD-CE-19, §18.20.S):** §18.15's "Capability `<n>`.A has been approved" check — a completion-only guard, not a human-authorization guard — is now explicitly satisfied, within the same authorized path, by `HUMAN APPROVED`, `AI VERIFIED — CONTINUING`, or `AI VERIFIED — CONTINUING (NOT APPLICABLE)`. The other check in the same guard, "Capability 1 Gate has been approved," is unaffected — a Gate-level check is never a completion-only guard and is never satisfied by anything but a genuine `Approve CAPABILITY-GATE P0.<n>`. §18.15's existing generalization to future capabilities carries this correction forward automatically; no other structurally equivalent guard was found in the document.
+- **Three drafting omissions fixed:** §18.11.8, §18.12.5, and §18.12.6 each now carry the same v1.1.0-style qualifying cross-reference that every other command-protocol section already received — these were omitted in the v1.1.0 pass itself, not a new design change.
+- **Repository state:** unchanged. `EXE-P0.2.C` remains, as a fact, `NOT EXECUTED, NOT AUTHORIZED`. `SOURCE-GAP-EVAL-01`/`SOURCE-GAP-IRG-02`: OPEN (unchanged).
+- **Operative status:** unchanged from v1.1.0 — `.claude/agents/eaioc-p0-execution-orchestrator.md`, `.claude/skills/eaioc-execution-governance/SKILL.md`, `docs/execution-plan-p0-steps.md`, and root `CLAUDE.md` remain unmodified by this correction; continuous execution, including its now-corrected N/A and completion-guard semantics, is still not yet operative in practice (§18.20.Q).
+
+> **PLAN READY: YES.**
+>
+> **MODE B READY for `EXE-P0.2.B`: DONE (unchanged).**
+>
+> **MODE B READY for `EXE-P0.2.C`: NOT YET EXECUTED — not executed, not authorized by this correction.** Once issued, `Execute EXE-P0.2.C` opens the §18.20 authorized path for Capability 2's remaining sub-phases through Capability Gate P0.2, now with internally consistent N/A (Sub-phase F) and completion-guard semantics (§18.18's v1.1.1-corrected sequence block, §18.20.R–S).
+
+The next executable unit is unchanged: `EXE-P0.2.C` (`Execute EXE-P0.2.C`), subject to its own pre-flight (§18.19.3) and routing. `REM-P0.2.B-03` remains registered, `Optional` (§18.20.J), and not a prerequisite.
 
 *The per-version surgical-correction self-checks below are historical records of each pass. Each one's own closing sentence (e.g. "ready to freeze") describes that pass only. The current readiness conclusion is the one above, restated in the v1.0.5 self-check.*
 
@@ -2273,4 +2732,43 @@ No commit was created by this correction.
 9. **File scope.** `git status --short`/`git diff --stat`/`git diff -- docs/execution-plan.md` confirm only this file changed during this correction.
 10. No blocking issue remains for this correction itself; the document now reflects `REM-P0.2.B-02`'s completed state.
 
-FINAL EXECUTION PLAN v1.0.12 CORRECTION COMPLETE — REM-P0.2.B-02 EXECUTED (bf74ac3), AI-VERIFIED PASS, HUMAN-APPROVED 2026-09-27; EXE-P0.2.B PREREQUISITE CLEARED BUT STILL NOT YET EXECUTABLE (OWN PRE-FLIGHT / FRESH §18.15 GUARD CHECK / CODE ARCHITECT RE-ASSESSMENT PENDING); COUNTS UNCHANGED — NEXT: Execute EXE-P0.2.B (subject to its own pre-flight)
+**v1.0.13 surgical-correction self-check** (documentation-only state refresh: records `EXE-P0.2.B`'s completed execution, AI verification and human approval; decides nothing new):
+1. **Version and history.** The version is `1.0.13`, with a v1.0.12 → v1.0.13 history entry (document header); the v1.0.1–v1.0.12 history and self-checks are preserved unchanged.
+2. **Scope.** Documentation-only. This correction records already-completed execution/verification/approval evidence (`a2d022f`; `AI VERIFICATION: PASS`; human-approved 2026-09-27; 92/92 tests); it promotes no new human decision, decides no open question, and assigns no new ID.
+3. **Sections touched.** §18.14.8 (new "Status after v1.0.13" bullets, superseding "Status after v1.0.12" as history); §18.18 (new "Current position... updated at v1.0.13 correction time" block, superseding the v1.0.12 block as history); the readiness/status block (new v1.0.13 status block, superseding the v1.0.12 block as history); the "Current readiness conclusion" (new v1.0.13 conclusion — Items 8–9 restated, `MODE B READY` lines restated, next-executable-unit line updated from `EXE-P0.2.B` to `EXE-P0.2.C`); Summary K; this self-check; and the terminal verdict line.
+4. **Historical preservation.** No v1.0.12 (or earlier) text was edited or deleted. Every updated block is a new, explicitly-labeled block placed after its predecessor with a superseding pointer sentence. The documented Architect/Reviewer/Verifier ordering deviation for `EXE-P0.2.B` (routing ran after implementation rather than before) is recorded in the new "Status after v1.0.13" bullets and in `EXE-P0.2.B`'s own commit message (`a2d022f`) as historical evidence — preserved, not rewritten or concealed.
+5. **No contract/code/governance change.** `interfaces.md`, `conventions.md`, `architecture.md`, `eval.md`, `implementation-plan.md`, any INTF/schema, any unit Deliverable/Tests/DoD, any count (48 units + 6 Gates = 54 checkpoints, unchanged), any `SOURCE-GAP-EXECPLAN-*`/`SOURCE-GAP-EVAL-01`/`SOURCE-GAP-IRG-02` definition, and the orchestrator agent, `eaioc-execution-governance` skill, and `eaioc-agent-orchestration` skill are all unchanged by this correction.
+6. **`EXE-P0.2.B`.** Recorded as executed (`a2d022f`), AI-verified (`PASS`), human-approved (2026-09-27), 92/92 tests passing. This approval covers only Sub-phase B.
+7. **`EXE-P0.2.C`.** `NOT EXECUTED, NOT AUTHORIZED`. No automatic chaining applies (§18.11.12) — this correction does not execute, AI-verify, or approve `EXE-P0.2.C`, and does not alter its Deliverable, Tests, Failure-Path Test, or Definition of Done. Capability Gate P0.2 likewise `NOT AUTHORIZED`.
+8. **`REM-P0.2.B-03`.** Unchanged: registered, not executed, not a prerequisite, not scheduled by this plan.
+9. **File scope.** `git status --short`/`git diff --stat`/`git diff -- docs/execution-plan.md` confirm only this file changed during this correction.
+10. No blocking issue remains for this correction itself; the document now reflects `EXE-P0.2.B`'s completed state.
+
+**v1.1.0 surgical-correction self-check** (structural execution-authorization-model amendment — adopts §18.20 per the frozen HD-CE-01–HD-CE-16 human decision register; not a state refresh; decides no new fact about repository state):
+1. **Version and history.** The version is `1.1.0`, with a v1.0.13 → v1.1.0 history entry (document header) explicitly stating this is a structural amendment, not a routine v1.0.x state refresh (HD-CE-04); the v1.0.1–v1.0.13 history and self-checks are preserved unchanged. The §1 Document Control table's `Version` row, found stale at `1.0.11` (an oversight predating this correction, not itself a frozen HD-CE decision), is corrected to `1.1.0` in the same edit, disclosed here rather than silently fixed.
+2. **New §18.20.** Added immediately after §18.19.7, before `## 19. P1 Execution Plan`, with subsections A–Q covering: phase = Capability (A, HD-CE-01); path-scoped human authorization (B, HD-CE-02); the authorized execution path's start/contents/end (C); continuous continuation's five-step sequence (D); no-authorization-expansion (E); the `### AI VERIFIED — CONTINUING` footer/state definition (F, HD-CE-06); the human-approval boundary model, including the mandatory per-unit enumeration requirement (G, HD-CE-05); HDR auto-resume (H, HD-CE-07); the prerequisite automatic-execution rule (I, HD-CE-08); the four-way remediation classification with `REM-P0.2.B-03 = Optional` (J, HD-CE-09); the eleven blocking conditions (K, HD-CE-10); unchanged commit semantics (L, HD-CE-11); the absolute Capability boundary (M, HD-CE-14); cross-session reconstruction via evidence plus a deferred runbook §20 field (N, HD-CE-12); the historical/non-retroactive rule and the explicit migration point `EXE-P0.2.C` (O, HD-CE-03 Option B, HD-CE-15); "NO UNAUTHORIZED CHAINING" (P, HD-CE-16); and the preserved-invariants/deferred-artifacts closing statement (Q).
+3. **Cross-references amended (qualifying, not rewriting, pre-existing text — the established superseding-block pattern, extended to inline pointers for this pass).** New paragraphs added, with no prior text edited or deleted, at: §18.2 (commit rule unchanged, approval-checkpoint rule qualified); §18.10 (Gate boundary clarified); §18.11.1 (authorization scope redefined); §18.11.2 (command-syntax authorization scope redefined); §18.11.3 (diagram pointer); §18.11.5 (approval-checkpoint block pointer); §18.11.6 (Gate-as-boundary-approval note); §18.11.7 (reference-sequence pointer); §18.11.12 (`SUPERSEDED BY §18.20` annotation, historical wording retained verbatim per HD-CE-16); §18.12.1.J (verdict-count clarification — no fifth verdict); §18.12.4 (the new `### AI VERIFIED — CONTINUING` block, full text); §18.17 (new `CONTINUING` state branch, explicitly never satisfying a `HUMAN APPROVED` condition); §18.18 (new v1.1.0 continuous-execution sequence for `EXE-P0.2.C` onward, old sequence retained as history); §18.19.1 (governance-diagram pointer); §18.19.7 (cross-reference note, no substantive change — `EXE-P0.2.B` is already historical).
+4. **Historical preservation.** No v1.0.13 (or earlier) text was edited or deleted anywhere in this correction. §18.11.12's historical "no automatic chaining" wording is retained verbatim and annotated, never rewritten (HD-CE-16). Every updated status/readiness/position block is a new, explicitly-labeled block placed after its predecessor with a superseding pointer sentence, exactly as every prior correction pass has done — the sole documented exception remains this document's own terminal verdict line, which supersedes rather than duplicates the prior version's line.
+5. **No requirement/architecture/interface/contract/code change.** `interfaces.md`, `conventions.md`, `architecture.md`, `eval.md`, `implementation-plan.md`, any INTF/schema, any unit Deliverable/Tests/DoD, any count (48 units + 6 Gates = 54 checkpoints, unchanged, §18.20.L note in Summary H), any `SOURCE-GAP-EXECPLAN-*`/`SOURCE-GAP-EVAL-01`/`SOURCE-GAP-IRG-02` definition, and every historical execution/approval record are all unchanged by this correction.
+6. **Deferred artifacts, not modified.** `.claude/agents/eaioc-p0-execution-orchestrator.md`, `.claude/skills/eaioc-execution-governance/SKILL.md`, root `CLAUDE.md`, and `docs/execution-plan-p0-steps.md` are explicitly NOT modified by this correction (§18.20.Q). This document's continuous-execution model is authoritative as of this version but not yet operative in practice until those artifacts are separately, explicitly amended to match it.
+7. **`EXE-P0.2.C`.** Remains `NOT EXECUTED`, `NOT AUTHORIZED` as a repository-state fact — this correction executes, verifies, or approves nothing. What changes is only what issuing `Execute EXE-P0.2.C` will mean going forward (§18.20.B–C, §18.18's new sequence block).
+8. **`REM-P0.2.B-03`.** Formally classified `Optional` under §18.20.J's four-way taxonomy (HD-CE-09) — registered, not executed, not a prerequisite, not automatic under continuous execution, consistent with its existing informal description elsewhere in this document.
+9. **Migration point.** Explicitly recorded at §18.20.O: `CONTINUOUS EXECUTION MODEL EFFECTIVE FROM: EXE-P0.2.C`. `EXE-P0.2.A` and `EXE-P0.2.B` are explicitly recorded as historical, under the prior per-unit model, never relabeled (HD-CE-15).
+10. **File scope.** `git status --short`/`git diff --stat`/`git diff -- docs/execution-plan.md` confirm only this file changed during this correction; `docs/execution-plan-p0-steps.md`, `CLAUDE.md`, `.claude/agents/**`, and `.claude/skills/**` were not touched by this correction (they carry their own, separately-tracked uncommitted or unrelated state).
+11. No blocking issue remains for this correction itself; the document now carries an authoritative, not-yet-operative continuous-execution model, pending the deferred orchestrator/skill/CLAUDE.md/runbook amendments named at §18.20.Q.
+
+**v1.1.1 surgical-correction self-check** (further structural governance correction — implements HD-CE-17, HD-CE-18, HD-CE-19, frozen after v1.1.0; fixes three v1.1.0 drafting omissions; not a new decision round, not implementation, decides no new fact about repository state):
+1. **Version and history.** The version is `1.1.1`, with a v1.0.13 → v1.1.0 → v1.1.1 correction-history chain (document header) explicitly stating this is a further structural governance correction, not a new decision round and not implementation; the v1.0.1–v1.1.0 history and self-checks are preserved unchanged. The §1 Document Control table's `Version` row is updated to `1.1.1`.
+2. **New N/A footer/state.** `### AI VERIFIED — CONTINUING (NOT APPLICABLE)` is defined at §18.12.4, distinct from ordinary `### AI VERIFIED — CONTINUING` (PASS-class/committed-only, unchanged) — verdict `NOT APPLICABLE` (unchanged, no fifth verdict, §18.12.1.J note); no commit; no individual `Approve`; path-internal only; never `HUMAN APPROVED`; never an authorization expansion (HD-CE-17).
+3. **§18.20 extended.** New subsections R (N/A continuation) and S (completion-only guards) added after Q, before the `---`/`## 19.` boundary; §18.20.G amended (boundary-approval enumeration must name N/A-continuation units, never read as their individual approval); §18.20.N amended (N/A-continuation is valid path-completion evidence for cross-session reconstruction).
+4. **§18.15 completion-guard semantics corrected (the most substantive fix in this pass).** The guard's two checks are now explicitly distinguished: "Capability 1 Gate has been approved" (a Gate-level, human-authorization check, unaffected, never satisfied by `CONTINUING`/N/A) versus "Capability `<n>`.A has been approved" (a completion-only check, now explicitly satisfied within the same authorized path by `HUMAN APPROVED`, `AI VERIFIED — CONTINUING`, or `AI VERIFIED — CONTINUING (NOT APPLICABLE)` — HD-CE-18, HD-CE-19). §18.15's existing generalization to later capabilities (at minimum `EXE-P0.3.B`) carries this correction forward automatically; no other structurally equivalent guard exists in the document (Capabilities 4–6's own preconditions are Gate-level only, confirmed unaffected).
+5. **Three drafting omissions fixed.** §18.11.8, §18.12.5, and §18.12.6 each now carry the same v1.1.0-style qualifying cross-reference every other command-protocol section already received in the v1.1.0 pass — these were omissions in that pass, identified by a dedicated follow-up audit, not new design changes.
+6. **§18.2, §18.16, §18.17, §18.18 corrected for internal consistency.** §18.2/§18.16's N/A approval requirement is now explicitly scoped to outside-a-§18.20-path/pre-migration units only, with the path-internal exception stated. §18.17 gains a parallel N/A-continuation state branch and a corrected statement that a completion-only guard (not a human-approval guard) may accept either continuation state. §18.18's v1.1.0 worked sequence — whose Sub-phase F step incorrectly resolved to ordinary `CONTINUING` despite Capability 2's F row being `NOT APPLICABLE` (§18.5) — is corrected to `AI VERIFIED — CONTINUING (NOT APPLICABLE)`.
+7. **Historical preservation.** No v1.1.0 (or earlier) text was edited or deleted anywhere in this correction; every fix is an additive paragraph, a new subsection, or (for §18.15's guard explanation, §18.2/§18.16/§18.17's qualifying sentences, and the worked-sequence line) an additive clarification placed immediately after the text it qualifies. The sole documented exception remains this document's own terminal verdict line.
+8. **No requirement/architecture/interface/contract/code change.** `interfaces.md`, `conventions.md`, `architecture.md`, `eval.md`, `implementation-plan.md`, any INTF/schema, any unit Deliverable/Tests/DoD, any count (48 units + 6 Gates = 54 checkpoints, unchanged), any `SOURCE-GAP-*` definition, and every historical execution/approval record are unchanged by this correction. No new canonical AI Verification verdict is introduced (still exactly four).
+9. **Deferred artifacts, not modified.** `.claude/agents/eaioc-p0-execution-orchestrator.md`, `.claude/skills/eaioc-execution-governance/SKILL.md`, root `CLAUDE.md`, and `docs/execution-plan-p0-steps.md` are explicitly NOT modified by this correction. Continuous execution — including its now-corrected N/A and completion-guard semantics — remains not yet operative in practice until those artifacts are separately amended (§18.20.Q, unchanged).
+10. **`EXE-P0.2.C`.** Remains `NOT EXECUTED`, `NOT AUTHORIZED` as a repository-state fact — this correction executes, verifies, or approves nothing.
+11. **File scope.** `git status --short`/`git diff --stat`/`git diff -- docs/execution-plan.md` confirm only this file changed during this correction; `docs/execution-plan-p0-steps.md`, `CLAUDE.md`, `.claude/agents/**`, and `.claude/skills/**` were not touched.
+12. No blocking issue remains for this correction itself; the document's continuous-execution model is now internally consistent with respect to N/A sub-phases and completion-only guards, pending the same deferred orchestrator/skill/CLAUDE.md/runbook amendments as before.
+
+FINAL EXECUTION PLAN v1.1.1 CORRECTION COMPLETE — HD-CE-17/18/19 IMPLEMENTED: NEW ### AI VERIFIED — CONTINUING (NOT APPLICABLE) FOOTER (§18.12.4, §18.20.R) FOR PATH-INTERNAL N/A SUB-PHASES; §18.15 COMPLETION-GUARD SEMANTICS CORRECTED TO ACCEPT HUMAN APPROVED / CONTINUING / CONTINUING (NOT APPLICABLE) WITHIN THE SAME PATH, NEVER SUBSTITUTING FOR GATE OR BOUNDARY APPROVAL (§18.20.S); THREE v1.1.0 DRAFTING OMISSIONS FIXED (§18.11.8, §18.12.5, §18.12.6); NO NEW VERDICT, NO NEW AUTHORIZATION MECHANISM; EXE-P0.2.C REMAINS NOT EXECUTED, NOT AUTHORIZED; ORCHESTRATOR/SKILL/CLAUDE.MD/RUNBOOK NOT YET AMENDED — MODEL STILL NOT YET OPERATIVE IN PRACTICE; COUNTS UNCHANGED (48+6=54) — NEXT: Execute EXE-P0.2.C (subject to its own pre-flight; now opens the §18.20 authorized path through Capability Gate P0.2 with internally consistent N/A and completion-guard semantics)
