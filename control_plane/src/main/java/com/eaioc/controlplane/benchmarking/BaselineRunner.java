@@ -81,11 +81,17 @@ public class BaselineRunner {
 
         Optional<CostLedgerEntry> measurement =
             ledgerCostReporter.getRequestCost(request.requestId(), request.tenantId());
-        CostLedgerEntry entry = measurement.orElseThrow(() -> new NoBaselineMeasurementException(
-            "No valid baseline measurement (zero, several, or unverified matching ledger entries) for "
-                + "requestId=" + request.requestId() + ", tenantId=" + request.tenantId()));
+        if (measurement.isEmpty()) {
+            // EXE-P0.2.D: every run_baseline() call logs one line, including this failure path.
+            String reason = "no valid baseline measurement (zero, several, or unverified matching ledger entries)";
+            BaselineObservability.logBaselineFailure(request, reason);
+            throw new NoBaselineMeasurementException(
+                "No " + reason + " for requestId=" + request.requestId()
+                    + ", tenantId=" + request.tenantId());
+        }
+        CostLedgerEntry entry = measurement.get();
 
-        return new BaselineEvaluationRecord(
+        BaselineEvaluationRecord record = new BaselineEvaluationRecord(
             UUID.randomUUID().toString(),
             request.requestId(),
             request.tenantId(),
@@ -96,5 +102,9 @@ public class BaselineRunner {
             entry.entryId(),
             entry.baselineCost(),
             entry.performance().e2eLatencyMs());
+
+        // EXE-P0.2.D: one structured log line per successful run (see BaselineObservability).
+        BaselineObservability.logBaselineRun(record);
+        return record;
     }
 }
