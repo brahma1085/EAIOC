@@ -98,17 +98,27 @@ public class BaselineRunner {
         }
         CostLedgerEntry entry = measurement.get();
 
-        BaselineEvaluationRecord record = new BaselineEvaluationRecord(
-            UUID.randomUUID().toString(),
-            request.requestId(),
-            request.tenantId(),
-            RunType.BASELINE,
-            Instant.now(),
-            SCHEMA_VERSION,
-            entry.currency(),
-            entry.entryId(),
-            entry.baselineCost(),
-            entry.performance().e2eLatencyMs());
+        // EXE-P0.2.D corrective change under HD-CG-P0.2-06 (B-R1): the mapping after the read can also
+        // fail — e.g. a null currency reaching the record constructor (CostLedgerEntry does not yet reject
+        // it; see the open contract question recorded in the reconciliation). Every such failure emits the
+        // one required BASELINE_RUN_FAILED line before being rethrown unchanged.
+        BaselineEvaluationRecord record;
+        try {
+            record = new BaselineEvaluationRecord(
+                UUID.randomUUID().toString(),
+                request.requestId(),
+                request.tenantId(),
+                RunType.BASELINE,
+                Instant.now(),
+                SCHEMA_VERSION,
+                entry.currency(),
+                entry.entryId(),
+                entry.baselineCost(),
+                entry.performance().e2eLatencyMs());
+        } catch (RuntimeException mappingFailure) {
+            BaselineObservability.logBaselineFailure(request, "ledger entry mapping failure");
+            throw mappingFailure;
+        }
 
         // EXE-P0.2.D: one structured log line per successful run (see BaselineObservability).
         BaselineObservability.logBaselineRun(record);

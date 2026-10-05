@@ -42,6 +42,16 @@ final class BaselineTestFixtures {
     /** TEST FIXTURE: builds an illustrative {@link CostLedgerEntry}, {@code verified} as given. */
     static CostLedgerEntry fixtureLedgerEntry(
             String tenantId, String entryId, String requestId, boolean verified) {
+        return fixtureLedgerEntryWithCurrency(tenantId, entryId, requestId, verified, "USD");
+    }
+
+    /**
+     * TEST FIXTURE: as {@link #fixtureLedgerEntry}, but with the given {@code currency}. Passing
+     * {@code null} builds an entry that the ledger accepts but that {@code BaselineEvaluationRecord}
+     * rejects during mapping — used only to exercise the post-read failure path (HD-CG-P0.2-06, B-R1).
+     */
+    static CostLedgerEntry fixtureLedgerEntryWithCurrency(
+            String tenantId, String entryId, String requestId, boolean verified, String currency) {
         return new CostLedgerEntry(
             entryId,
             requestId,
@@ -54,7 +64,7 @@ final class BaselineTestFixtures {
             1000L, 200L, 1000L, 200L, 0L, 0L, 0L, 0L, 0L,
             0.05, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0,
             Map.of(),
-            "USD",
+            currency,
             "v1",
             "model-x",
             "provider-x",
