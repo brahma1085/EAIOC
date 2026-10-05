@@ -79,8 +79,15 @@ public class BaselineRunner {
     public BaselineEvaluationRecord runBaseline(ControlPlaneRequest request) {
         Objects.requireNonNull(request, "request must not be null");
 
-        Optional<CostLedgerEntry> measurement =
-            ledgerCostReporter.getRequestCost(request.requestId(), request.tenantId());
+        Optional<CostLedgerEntry> measurement;
+        try {
+            measurement = ledgerCostReporter.getRequestCost(request.requestId(), request.tenantId());
+        } catch (RuntimeException readFailure) {
+            // EXE-P0.2.D (gate-verification fix): a ledger read failure is also a call that must
+            // emit its one structured line. The failure is still rethrown — never a record.
+            BaselineObservability.logBaselineFailure(request, "ledger read failure");
+            throw readFailure;
+        }
         if (measurement.isEmpty()) {
             // EXE-P0.2.D: every run_baseline() call logs one line, including this failure path.
             String reason = "no valid baseline measurement (zero, several, or unverified matching ledger entries)";

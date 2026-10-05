@@ -93,6 +93,30 @@ class BaselineObservabilityTest {
             .doesNotContain("control_plane.cost.estimated");
     }
 
+    @Test
+    void runBaseline_ledgerReadFailure_emitsOneWarningLine_andRethrows() {
+        LedgerCostReporter failingReporter = new LedgerCostReporter(new CostLedgerStore()) {
+            @Override
+            public java.util.Optional<com.eaioc.controlplane.accounting.ledger.CostLedgerEntry> getRequestCost(
+                    String requestId, String tenantId) {
+                throw new IllegalStateException("simulated ledger read failure");
+            }
+        };
+        BaselineRunner runner = new BaselineRunner(failingReporter);
+        ControlPlaneRequest request = fixtureControlPlaneRequest("tenant-obs-d", "request-read-fail");
+
+        assertThatThrownBy(() -> runner.runBaseline(request))
+            .isInstanceOf(IllegalStateException.class);
+
+        assertThat(appender.list).hasSize(1);
+        ILoggingEvent event = appender.list.get(0);
+        assertThat(event.getLevel()).isEqualTo(Level.WARN);
+        assertThat(event.getFormattedMessage())
+            .contains("event_type=BASELINE_RUN_FAILED")
+            .contains("reason=ledger read failure")
+            .contains("request_id=request-read-fail");
+    }
+
     /** Extracts the {@code span_id=} value from a formatted log line. */
     private static String spanIdOf(ILoggingEvent event) {
         String message = event.getFormattedMessage();
