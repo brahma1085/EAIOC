@@ -69,9 +69,9 @@
 **What changed in v1.0.11 (summary):** promotion of your `REM-P0.2.B-01` decisions and registration of two units, documentation and contract text only. Where this runbook and `execution-plan.md` differ, the plan wins.
 - **`REM-P0.2.B-01` is done.** Executed (`e4cf1f5`), AI-verified and approved by you on 2026-09-24; the plan now records it. Do not send `Execute REM-P0.2.B-01` again.
 - **Your decisions are promoted** into `interfaces.md` §18 (new `BaselineEvaluationRecord`, field mappings, and the retrieval rule: all matching entries for a tenant and request are counted first, exactly one is required, and it must then be verified) with notes in `eval.md` and `implementation-plan.md` (plan §18.14.8, label DB-3). `SOURCE-GAP-EXECPLAN-07`/`-08` are resolved at source (additive status updates in the plan's §38); `-09` is narrowed; `-10` to `-15` are new gaps. Six contract decisions of 2026-09-25 are recorded as human contract decisions, not source-derived: `schema_version` `1.0.0`, `source_entry_id`, the carrying of `run_type`, the count-all-then-verify count basis, `run_baseline()` failing without a result when no valid measurement exists, and the retention of the `interfaces.md` document Version 1.2.0 with an amendment-history entry.
-- **Two units are registered, not executed:** `REM-P0.2.B-02` (accounting retrieval; **must be approved before `EXE-P0.2.B`**) and `REM-P0.2.B-03` (Path A producer design; **not** a prerequisite).
+- **Two units are registered, not executed:** `REM-P0.2.B-02` (accounting retrieval; **must be approved before `EXE-P0.2.B`**) and `REM-P0.2.B-03` (Path A producer design; **not** a prerequisite). *(Update, 2026-09-27: `REM-P0.2.B-02` has since been executed — `bf74ac3` — AI-verified `PASS`, and approved by you. Do not send `Execute REM-P0.2.B-02` again; see §20.)*
 - **`EXE-P0.2.B` is now contract-level.** It uses a labelled test-fixture entry and claims no live measurement; live Path A measurement is explicitly deferred at Capability Gate P0.2 (plan §18.10).
-- **Status.** `EXE-P0.2.B` is not yet executable: it needs `REM-P0.2.B-02` first. Each unit needs its own explicit `Execute` and `Approve`; nothing in this runbook authorizes or chains any of them.
+- **Status.** `EXE-P0.2.B` is not yet executable: it needs `REM-P0.2.B-02` first. Each unit needs its own explicit `Execute` and `Approve`; nothing in this runbook authorizes or chains any of them. *(Update, 2026-09-27: `REM-P0.2.B-02` and `EXE-P0.2.B` are both now done — executed, AI-verified `PASS`, and approved (`bf74ac3`, `a2d022f`). `EXE-P0.2.C` is NOT executed and NOT authorized; see §20.)*
 
 ---
 
@@ -177,7 +177,7 @@ Execute REM-P0.2.B-01
 Approve REM-P0.2.B-01
 ```
 
-From v1.0.11 (`execution-plan.md` §18.14.8; registered, **not executed**; send a command only when you decide to run that unit):
+From v1.0.11 (`execution-plan.md` §18.14.8): *(update, 2026-09-27: the two commands below for `REM-P0.2.B-02` were executed and approved — `bf74ac3` — and must not be sent again; retained as history. `REM-P0.2.B-03` remains registered, not executed; send a command only when you decide to run that unit.)*
 
 ```text
 Execute REM-P0.2.B-02
@@ -828,13 +828,13 @@ This approves the remediation only. It does **not** unblock `EXE-P0.2.B`. Next, 
 
 ### Step 1b — Retrieval Realization (v1.0.11)
 
-**Unit:** `REM-P0.2.B-02` (`execution-plan.md` §18.14.8). Remediation unit, outside the 48 units and 54 checkpoints. Status: **registered / not executed**. **A prerequisite of `EXE-P0.2.B`.**
+**Unit:** `REM-P0.2.B-02` (`execution-plan.md` §18.14.8). Remediation unit, outside the 48 units and 54 checkpoints. Status: **DONE — executed (`bf74ac3`), AI-verified (`PASS`), human-approved (2026-09-27).** Do not send `Execute REM-P0.2.B-02` again.
 
 ```text
 Execute REM-P0.2.B-02
 ```
 
-What Claude Code does: implements only the `get_request_cost` subset in `control_plane/accounting/` — exactly one matching ledger entry per tenant and request, counted over all matching entries and consumed only when `verified`, is a measurement; none or several (including a verified entry plus an unverified one) is no measurement — and runs the Architect, Reviewer and Verifier agents. It changes nothing in `evaluation/`, `benchmarking/`, `core/` or any document.
+What Claude Code did: implemented only the `get_request_cost` subset in `control_plane/accounting/` — exactly one matching ledger entry per tenant and request, counted over all matching entries and consumed only when `verified`, is a measurement; none or several (including a verified entry plus an unverified one) is no measurement — and ran the Architect, Reviewer and Verifier agents (all satisfactory). It changed nothing in `evaluation/`, `benchmarking/`, `core/` or any document. `LedgerCostReporter` lives in `accounting.ledger` (same package as `CostLedgerStore`), not a separate `accounting.reporting` package, because Capability 1's Gate-P0.1-approved tenant-isolation guard test structurally limits `CostLedgerStore`'s public surface to exactly `{write, read}`; the new enumeration helper is package-private instead. Gate P0.1 is not reopened.
 
 Then, after reviewing:
 
@@ -842,7 +842,7 @@ Then, after reviewing:
 Approve REM-P0.2.B-02
 ```
 
-This approves the remediation only; it does not itself authorize `EXE-P0.2.B`.
+This approved the remediation only; it did not itself authorize `EXE-P0.2.B`. Both commands above are done — do not resend either.
 
 ### Step 1c — Path A Producer Design (v1.0.11, optional; not a prerequisite)
 
@@ -878,7 +878,11 @@ If any check fails → `AI VERIFICATION: BLOCKED`, no code, no commit, and it na
 
 **v1.0.10.** The remediation that prepares that correction is `REM-P0.2.B-01` (Step 1a above). This step stays blocked until `REM-P0.2.B-01` is approved **and** the follow-up source-contract correction closes `-07`/`-08`.
 
-**v1.0.11.** The source-contract correction is done (DB-3): `-07`/`-08` are resolved at source. This step is now conditioned on `REM-P0.2.B-02` being executed, AI-verified and approved (Step 1b), then pre-flight, the §18.15 guard (with its v1.0.11 addition) and a Code Architect re-assessment. It is contract-level and fixture-based (a labelled test-fixture ledger entry) and claims no live Path A measurement. `Execute REM-P0.2.B-03` is not needed first.
+**v1.0.11.** The source-contract correction is done (DB-3): `-07`/`-08` are resolved at source. This step is conditioned on `REM-P0.2.B-02` being executed, AI-verified and approved (Step 1b), then pre-flight, the §18.15 guard (with its v1.0.11 addition) and a Code Architect re-assessment. It is contract-level and fixture-based (a labelled test-fixture ledger entry) and claims no live Path A measurement. `Execute REM-P0.2.B-03` is not needed first.
+
+*(Update, 2026-09-27: `REM-P0.2.B-02` is now done — executed, AI-verified `PASS`, and approved (`bf74ac3`) — so that precondition is cleared.)*
+
+*(Update, 2026-09-27: this step is now DONE — executed, AI-verified `PASS`, and **approved** (`a2d022f`; 92/92 tests passing). Reviewed by all three governance agents (Architect `APPROVED FOR IMPLEMENTATION`, Reviewer `PASS WITH REQUIRED FOLLOW-UP` — one LOW finding, fixed in the same commit, Verifier `CONFORMANT WITH DOCUMENTED GAPS`); the Architect/Reviewer/Verifier routing ran after implementation rather than before, a documented deviation from the normal sequence, disclosed and not concealed — see `CLAUDE.md`'s "Current position" for the full account. Do not send `Execute EXE-P0.2.B` or `Approve EXE-P0.2.B` again. This approval covers only Sub-phase B — it does **not** authorize Step 3 below.)*
 
 Then:
 
@@ -1728,17 +1732,17 @@ Use this section as a manual checklist. From v1.0.4 each unit has three ticks: e
 [ ] EXE-P0.2.A executed
 [ ] EXE-P0.2.A AI verified (verdict: ______)
 [ ] EXE-P0.2.A approved
-[ ] REM-P0.2.B-01 executed
-[ ] REM-P0.2.B-01 AI verified (verdict: ______)
-[ ] REM-P0.2.B-01 approved
-[ ] Source-contract correction closing SOURCE-GAP-EXECPLAN-07/-08 committed
-[ ] REM-P0.2.B-02 executed
-[ ] REM-P0.2.B-02 AI verified (verdict: ______)
-[ ] REM-P0.2.B-02 approved
+[x] REM-P0.2.B-01 executed (e4cf1f5)
+[x] REM-P0.2.B-01 AI verified (verdict: PASS WITH DOCUMENTED NON-BLOCKING GAP)
+[x] REM-P0.2.B-01 approved (2026-09-24)
+[x] Source-contract correction closing SOURCE-GAP-EXECPLAN-07/-08 committed (196e112, v1.0.11 / DB-3)
+[x] REM-P0.2.B-02 executed (bf74ac3)
+[x] REM-P0.2.B-02 AI verified (verdict: PASS)
+[x] REM-P0.2.B-02 approved (2026-09-27)
 [ ] REM-P0.2.B-03 (registered, not executed; not a prerequisite; run when directed) executed / AI verified / approved
-[ ] EXE-P0.2.B executed
-[ ] EXE-P0.2.B AI verified (verdict: ______)
-[ ] EXE-P0.2.B approved
+[x] EXE-P0.2.B executed (a2d022f)
+[x] EXE-P0.2.B AI verified (verdict: PASS)
+[x] EXE-P0.2.B approved (2026-09-27)
 [ ] EXE-P0.2.C executed
 [ ] EXE-P0.2.C AI verified (verdict: ______)
 [ ] EXE-P0.2.C approved
@@ -1922,7 +1926,19 @@ For a brand-new run of this plan from scratch, the first command is:
 Execute EXE-P0.1.A
 ```
 
-**For this repository, the next command is not `EXE-P0.1.A`** — do not restart it: Capability 1 is closed (Gate P0.1 approved 2026-09-23). `EXE-P0.2.B` is not yet executable: it needs `REM-P0.2.B-02` first. Once the v1.0.11 correction is committed, the next command — sent only when you choose to proceed — is:
+**For this repository, the next command is not `EXE-P0.1.A`** — do not restart it: Capability 1 is closed (Gate P0.1 approved 2026-09-23). `EXE-P0.2.B` is done (executed, AI-verified `PASS`, approved — `a2d022f`, 2026-09-27; 92/92 tests passing). The next command — sent only when you choose to proceed — is:
+
+```text
+Execute EXE-P0.2.C
+```
+
+*(Historical, 2026-09-27 pre-`a2d022f`: the next command was `Execute EXE-P0.2.B`, shown in the block below; it has since been executed and approved — `a2d022f` — and must not be sent again.)*
+
+```text
+Execute EXE-P0.2.B
+```
+
+*(Historical, v1.0.11 pre-2026-09-27: the next command was `Execute REM-P0.2.B-02`, shown in the block below; it has since been executed and approved — `bf74ac3` — and must not be sent again.)*
 
 ```text
 Execute REM-P0.2.B-02
@@ -1988,30 +2004,73 @@ Any AI VERIFICATION BLOCKED → no approval → remediation → re-Execute
 
 ---
 
-# 20. Current Position (governing baseline: `execution-plan.md` v1.0.11)
+# 20. Current Position (governing baseline: `execution-plan.md` v1.0.12)
 
-Taken from the git history and `execution-plan.md` §18.14 / §18.18 (v1.0.11). Check `git log --oneline` for anything newer. Where this runbook and the plan differ, the plan wins.
+Taken from the git history and `execution-plan.md` §18.14 / §18.18 (v1.0.12). Check `git log --oneline` for anything newer. Where this runbook and the plan differ, the plan wins.
 
 ```text
-v1.0.11 position (updates the v1.0.10 block below):
-REM-P0.2.B-01:            DONE + AI VERIFIED + HUMAN APPROVED (e4cf1f5; approved 2026-09-24)
-DB-3 (plan v1.0.11):      promotion of the REM-P0.2.B-01 decisions — to be committed
-SOURCE-GAP-EXECPLAN-07/-08: RESOLVED AT SOURCE;  -09 NARROWED;  -10..-15 registered
-REM-P0.2.B-02:            REGISTERED / NOT EXECUTED — prerequisite of EXE-P0.2.B
+Position updated after EXE-P0.2.H (2026-10-05) — supersedes the "after EXE-P0.2.B" block below.
+Documentation-only reconciliation under human decisions HD-CG-P0.2-01 to -05. No approval is recorded
+here; the Capability Gate is not approved.
+EXE-P0.2.C:               COMMITTED dd1e4c2 (Integration). Executed under the authorized path opened by
+                          `Execute EXE-P0.2.C` (plan §18.20). Formal §18.12.3 revalidation record: NOT YET
+                          PRODUCED — no continuation state is recorded for C as formally verified.
+                          Not HUMAN APPROVED.
+EXE-P0.2.D:               COMMITTED 5a576c5 (original unit commit), plus f75d8f7 — a documented
+                          post-boundary corrective commit, NOT a second unit. Recorded as a governance
+                          deviation (one-commit-per-changing-unit rule, §18.2/§18.20.L) under
+                          HD-CG-P0.2-01; both commits preserved, history not rewritten.
+                          **B-R1 (blocking, from f75d8f7's Reviewer FAIL) — CORRECTED under HD-CG-P0.2-06**
+                          by `0a3a2f7`, a post-boundary corrective commit (NOT a unit commit; not ordinary
+                          §18.20.L compliance). Post-read mapping failures now emit the one WARN line and
+                          rethrow the same exception. Reviewer on the corrective diff: PASS WITH REQUIRED
+                          FOLLOW-UP — no blocking finding. D's commit history: 5a576c5 (unit), f75d8f7
+                          (post-boundary), 0a3a2f7 (post-boundary, HD-CG-P0.2-06). 103/103 tests passing.
+                          **OPEN HUMAN DECISION (HDR, stops the path):** CostLedgerEntry accepts a
+                          `verified=true` entry with null `currency`, which HD-4 does not permit. Options:
+                          (a) reject null currency at ledger write (a Capability 1 scope change, separate
+                          unit); (b) accept as a documented contract gap. Until decided, D approval and the
+                          Gate cannot proceed.
+EXE-P0.2.E:               COMMITTED 86c5964 (Security/Governance). Tenant-scoping realization accepted by
+                          HD-CG-P0.2-03; the broader authorization-equivalence requirement is NOT
+                          implemented by P0 (documented non-blocking limitation for Capability 2).
+EXE-P0.2.F:               COMMITTED 8a840ab — design-note realization (not N/A).
+EXE-P0.2.G:               NO COMMIT. AI VERIFICATION: NOT APPLICABLE (HD-CG-P0.2-02, reason: NO DEDICATED
+                          SCENARIO for harness construction; P1+ scenarios validate future uses).
+                          Continuation state: AI VERIFIED — CONTINUING (NOT APPLICABLE). Not HUMAN APPROVED.
+EXE-P0.2.H:               COMMITTED 8c5e0db (Failure/Recovery). Formal revalidation record: NOT YET PRODUCED.
+Capability Gate P0.2:     BLOCKED — not approved. The reconciliation stopped at the D blocker (B-R1) above.
+                          Gate AI Verification must be re-run only after B-R1 is resolved by a human decision.
+                          `Approve CAPABILITY-GATE P0.2` has not been issued and must not be issued while
+                          this blocker stands.
+Capability 3:             NOT STARTED.
+SOURCE-GAP-EVAL-01, SOURCE-GAP-IRG-02: OPEN (unchanged). Live Path A measurement: NOT DEMONSTRATED (deferred §18.10).
+
+Position updated after EXE-P0.2.B (2026-09-27) — superseded by the block above:
+REM-P0.2.B-02:            DONE + AI VERIFIED (PASS) + HUMAN APPROVED (bf74ac3; approved 2026-09-27)
 REM-P0.2.B-03:            REGISTERED / NOT EXECUTED — NOT a prerequisite
-EXE-P0.2.B:               NOT YET EXECUTABLE — needs REM-P0.2.B-02 approved; contract-level, fixture-based;
-                          live Path A end-to-end baseline measurement: NOT DEMONSTRATED — explicitly deferred (Gate P0.2)
+EXE-P0.2.B:               DONE + AI VERIFIED (PASS) + HUMAN APPROVED (a2d022f; approved 2026-09-27).
+                          92/92 tests passing. Reviewed by Architect (APPROVED FOR IMPLEMENTATION),
+                          Reviewer (PASS WITH REQUIRED FOLLOW-UP — one LOW finding, fixed in the same
+                          commit) and Verifier (CONFORMANT WITH DOCUMENTED GAPS). Disclosed, not
+                          concealed: the Architect/Reviewer/Verifier routing ran after implementation
+                          rather than before, a documented deviation from the normal sequence.
+                          Contract-level, fixture-based; live Path A end-to-end baseline measurement:
+                          NOT DEMONSTRATED — explicitly deferred (Gate P0.2, §18.10).
+EXE-P0.2.C:               NOT EXECUTED, NOT AUTHORIZED. Approve EXE-P0.2.B covers only that one
+                          sub-phase; it does not chain to this one.
+Capability Gate P0.2:     NOT AUTHORIZED. Not reachable until Sub-phases C-H are each separately
+                          executed and approved.
 SOURCE-GAP-EVAL-01, SOURCE-GAP-IRG-02: OPEN (unchanged)
 ```
 
 ```text
 NEXT STEP (sent only when you choose to proceed)
 
-First: commit the v1.0.11 correction.
-Then: Execute REM-P0.2.B-02
+Execute EXE-P0.2.C
 ```
 
-*(The status block, the "NEXT REQUIRED STEP" block and the "Do **not** restart ..." paragraph below are the v1.0.10 position, retained as history; the v1.0.11 position above governs.)*
+*(The "v1.0.11 position, updated after REM-P0.2.B-02" block that previously stood here — EXE-P0.2.B STILL NOT YET EXECUTABLE, next step "Execute EXE-P0.2.B" — is now historical: EXE-P0.2.B is done. The status block, the "NEXT REQUIRED STEP" block and the "Do **not** restart ..." paragraph below are the v1.0.10 position, retained as history; the position above governs.)*
 
 ```text
 EXE-P0.1.A–H:
@@ -2085,20 +2144,19 @@ Detail per unit:
 | `REM-P0.1.B-02` | `c378dc9` | Done + AI verified + human approved (Minimal Implementation Remediation) |
 | Capability Gate P0.1 | — (never a commit) | AI PASS + **approved** 2026-09-23 — Capability 1 closed |
 | `EXE-P0.2.A` | `0e92261` | Executed + approved. Reconciled: **PASS** |
-| `EXE-P0.2.B` | — | **Not yet executable** — needs `REM-P0.2.B-02` approved (plan v1.0.11 §18.14.8, §18.15); not executed |
+| `EXE-P0.2.B` | `a2d022f` | Done + AI verified (`PASS`) + human approved (2026-09-27; 92/92 tests). Architect/Reviewer/Verifier routed after implementation, not before — disclosed deviation, no required design change |
 | `8b68239` | — | Pre-decision record `EvaluationMeasurementReconciliation.md` (`docs:` commit) — not unit evidence, not approved |
 | `REM-P0.2.B-01` | `e4cf1f5` | Done + AI verified + human approved (2026-09-24; plan §18.14.7, §18.14.8) |
-| `REM-P0.2.B-02` | — | **Registered / not executed** (plan v1.0.11 §18.14.8) — prerequisite of `EXE-P0.2.B` |
+| `REM-P0.2.B-02` | `bf74ac3` | Done + AI verified (`PASS`) + human approved (2026-09-27; plan §18.14.8) |
 | `REM-P0.2.B-03` | — | **Registered / not executed** (plan v1.0.11 §18.14.8) — not a prerequisite |
+| `EXE-P0.2.C` | — | **Not executed, not authorized** — `Approve EXE-P0.2.B` covers only that sub-phase |
 | `c3d6ecf`, `a764689` | — | Not implementation commits (`CLAUDE.md` / `.vscode/`) — not counted |
 
-**Remaining sequence up to `EXE-P0.2.B` (v1.0.11)** — one line at a time, with Claude Code stopping after every step:
+**Remaining sequence up to `EXE-P0.2.B` (v1.0.11, updated after `REM-P0.2.B-02`)** — one line at a time, with Claude Code stopping after every step:
 
 ```text
-(needed) commit the v1.0.11 correction
-
-Execute REM-P0.2.B-02
-Approve REM-P0.2.B-02
+DONE: v1.0.11 correction committed (196e112)
+DONE: Execute REM-P0.2.B-02 / Approve REM-P0.2.B-02 (bf74ac3, approved 2026-09-27)
 
 Execute EXE-P0.2.B
 Approve EXE-P0.2.B
@@ -2225,3 +2283,129 @@ stays exactly as it is. The continuous model this subsection documents is effect
 `EXE-P0.2.C` onward (plan §18.20.O); as of this writing `EXE-P0.2.C` is **not executed, not approved,
 not authorized**, so no path is currently open and every field in the template above is currently
 empty / `none` / `false`.
+
+---
+
+### Capability Gate P0.2 — Reconciliation Record (2026-10-05; supersedes the statement above that `EXE-P0.2.C` is not executed)
+
+This record is documentation only. It does not approve anything. It records the state of Capability 2 after the human decisions HD-CG-P0.2-01 to -07. Where it disagrees with an older block, this record governs; git history governs over both.
+
+**Human decisions in force**
+
+- **HD-CG-P0.2-01:** `f75d8f7` is accepted as a documented post-boundary corrective change to `EXE-P0.2.D`. It is not presented as compliance with the one-commit-per-changing-unit rule (§18.2, §18.20.L). Documented governance deviation.
+- **HD-CG-P0.2-02:** `EXE-P0.2.G` is NOT APPLICABLE for the P0 harness-construction scope. Reason: the Capability 2 G row records NO DEDICATED SCENARIO for harness construction itself. Dedicated scenarios validate future P1+ uses, not construction.
+- **HD-CG-P0.2-03:** the existing tenant-scoping implementation is accepted as the P0 realization of the tenant-isolation portion of `EXE-P0.2.E`. The broader authorization-equivalence requirement for the live request path is NOT implemented by P0. It is a documented non-blocking limitation for Capability 2. The enterprise authorization layer remains deferred to its authoritative security/authorization scope.
+- **HD-CG-P0.2-04:** the boundary-approval scope is exactly `EXE-P0.2.C` through `EXE-P0.2.H`.
+- **HD-CG-P0.2-05:** documentation reconciliation only. No implementation change is made under it.
+- **HD-CG-P0.2-06:** corrective change for blocking Reviewer finding B-R1, realized by `0a3a2f7`.
+- **HD-CG-P0.2-07:** the null-currency condition is accepted as a documented Capability 1 implementation and enforcement gap, for later separately authorized remediation. HD-4 is unchanged: `currency` remains non-nullable, and `verified=true` with `currency=null` remains CONTRACT-INVALID. This decision does not make `currency` nullable, does not authorize a Capability 1 code change, and does not create a remediation unit.
+
+**Commit history of `EXE-P0.2.D` (preserved; no history rewritten)**
+
+| Commit | Role |
+|---|---|
+| `5a576c5` | Original `EXE-P0.2.D` unit commit |
+| `f75d8f7` | Post-boundary corrective commit: fix for the Gate's B-1 (read-failure logging) |
+| `0a3a2f7` | Post-boundary corrective commit under HD-CG-P0.2-06: fix for B-R1 (mapping-failure logging) |
+
+Documented governance deviation: `D` has three commits where the one-commit-per-changing-unit rule expects one. Recording it as a deviation does not make it compliant.
+
+**Formal AI Verification reports (§18.12.3), produced 2026-10-05 against current evidence**
+
+Each report is a reconciliation record. Where a unit's routing ran after implementation or was not run at all, the report says so. None of these verdicts is a human approval.
+
+*EXE-P0.2.C — commit `dd1e4c2`*
+1. Scope: integration test with a stub caller, `control_plane/benchmarking/` (test sources only).
+2. Source: `docs/execution-plan.md` §18.5 C row.
+3. Requirement: "Integration test with a stub caller"; DoD: public API stable for technique gates to call.
+4. Architecture: no `src/main` change; wiring via `AnnotationConfigApplicationContext` with explicit registration.
+5. Tests: `BaselineRunnerIntegrationTest` (1 test), passing in the full suite (103/103).
+6. Failure path: N/A per the row.
+7. Git: `dd1e4c2` contains only the two test files.
+8. Prerequisites: `EXE-P0.2.B` approved (`a2d022f`).
+9. Source gaps: none new. The Verifier's Javadoc overstatement finding was fixed before commit.
+10. Execution assistance: Architect (pre-implementation, APPROVED WITH CONDITIONS, earlier session context); Reviewer PASS (earlier context); Verifier CONFORMANT WITH DOCUMENTED GAPS (2026-10-05).
+- **Verdict: PASS WITH DOCUMENTED NON-BLOCKING GAP.** The integration test does not exercise component scanning.
+- **Continuation state: `### AI VERIFIED — CONTINUING`.** Not `HUMAN APPROVED`.
+
+*EXE-P0.2.D — commits `5a576c5`, `f75d8f7`, `0a3a2f7`*
+1. Scope: structured log output for `run_baseline()`, `benchmarking/` (`BaselineObservability` plus `BaselineRunner` changes).
+2. Source: `docs/execution-plan.md` §18.5 D row ("every `run_baseline()` call emits one structured log line").
+3. Requirement: one line per call, INFO on success, WARNING on failure, same exception rethrown.
+4. Architecture: mirrors `LedgerObservability`; no public API change; no tenant leakage in the log line.
+5. Tests: `BaselineObservabilityTest` (5 tests, including read-failure, mapping-failure and success/failure cases); full suite 103/103.
+6. Failure path: covered by read-failure and mapping-failure tests (`isSameAs` identity on the read failure).
+7. Git: three commits, see the table above. The documented deviation is preserved.
+8. Prerequisites: `EXE-P0.2.B`, `REM-P0.2.B-02`.
+9. Source gaps: `SOURCE-GAP-EXECPLAN-01` (interim sink, referenced, unchanged); HD-07 null-currency gap (Capability 1, documented non-blocking).
+10. Execution assistance: Reviewer on `5a576c5` PASS WITH REQUIRED FOLLOW-UP (required changes applied); Reviewer on `f75d8f7` FAIL (B-R1); Reviewer on `0a3a2f7` PASS WITH REQUIRED FOLLOW-UP, no blocking finding. Gate Verifier on `f75d8f7` (B-1 resolved).
+- **Verdict: PASS WITH DOCUMENTED NON-BLOCKING GAP.** Documented governance deviation (commit count) and a documented non-blocking contract-enforcement gap (HD-07).
+- **Continuation state: `### AI VERIFIED — CONTINUING`**, recorded with the deviation. Not ordinary §18.20.L compliance.
+
+*EXE-P0.2.E — commit `86c5964`*
+1. Scope: tenant-scoping tests for the benchmark harness, `benchmarking/` (test only).
+2. Source: `docs/execution-plan.md` §18.5 E row; plan line 77 deferral of identity and authorization to the enterprise scope.
+3. Requirement: no cross-tenant consumption; no cross-tenant verified-entry reuse; tenant identity enforced through the harness path (HD-03 realization).
+4. Architecture: no `src/main` change in this commit; tenant-first partitioning in `CostLedgerStore`.
+5. Tests: `BaselineTenantScopingTest` (4 tests), passing in the full suite.
+6. Failure path: cross-tenant read and consumption attempts fail closed (no record returned).
+7. Git: `86c5964` contains only the test file.
+8. Prerequisites: `EXE-P0.2.B`.
+9. Source gaps: broader authorization-equivalence NOT implemented by P0 (HD-03; documented non-blocking limitation).
+10. Execution assistance: no reviewer run (test-only unit, recorded in the commit trailer).
+- **Verdict: PASS WITH DOCUMENTED NON-BLOCKING GAP.** The tenant-isolation realization is proven. The authorization-equivalence clause is not, and is deferred under HD-03.
+- **Continuation state: `### AI VERIFIED — CONTINUING`.**
+
+*EXE-P0.2.F — commit `8a840ab`*
+1. Scope: design note `control_plane/evaluation/QualityValidationReadiness.md`, documentation only.
+2. Source: `docs/execution-plan.md` §18.5 F row; `docs/quality-gates.md` §5.
+3. Requirement: documented readiness to accept `QG-NNN` calls once P1 ships; design note cross-references §5.
+4. Architecture: no code; no implementation claim.
+5. Tests: N/A per the row (no code).
+6. Failure path: N/A per the row.
+7. Git: `8a840ab` contains only the design note.
+8. Prerequisites: `EXE-P0.2.B`.
+9. Source gaps: none new.
+10. Execution assistance: the Gate Verifier confirmed the QG list matches `quality-gates.md` §5 (QG-001 to QG-010).
+- **Verdict: PASS.** Design-note realization, not N/A (HD-CG-P0.2-04).
+- **Continuation state: `### AI VERIFIED — CONTINUING`.**
+
+*EXE-P0.2.G — NO COMMIT*
+1. Scope: scenario validation for harness construction.
+2. Source: `docs/execution-plan.md` §18.5 G row ("NO DEDICATED SCENARIO … individual scenarios validate specific uses once P1+ techniques exist").
+3. Requirement: none defined by the row beyond the finding.
+4. Architecture: none.
+5. Tests: none.
+6. Failure path: none.
+7. Git: no commit, by design.
+8. Prerequisites: none.
+9. Source gaps: none new; the scenario-matrix search is the basis for the decision.
+10. Execution assistance: none.
+- **Verdict: AI VERIFICATION: NOT APPLICABLE.** Reason (HD-CG-P0.2-02): no dedicated scenario validates harness construction itself; dedicated scenarios validate future P1+ uses.
+- **Continuation state: `### AI VERIFIED — CONTINUING (NOT APPLICABLE)`.** No commit exists or is required. Not `HUMAN APPROVED`.
+
+*EXE-P0.2.H — commit `8c5e0db`*
+1. Scope: failure and recovery tests for the harness, `benchmarking/` (test only).
+2. Source: `docs/execution-plan.md` §18.5 H row (a harness failure never marks a technique validated).
+3. Requirement: failure surfaces as an exception, never as a record.
+4. Architecture: `runBaseline` never returns a record on any failure path (confirmed through the B-R1 corrective change).
+5. Tests: `BaselineFailureRecoveryTest` (2 tests: read-failure propagation; no-valid-measurement fail-closed); full suite 103/103 on the final D behavior.
+6. Failure path: covered by the two tests above, plus the mapping-failure test in `BaselineObservabilityTest` added under B-R1.
+7. Git: `8c5e0db` contains only the test file.
+8. Prerequisites: `EXE-P0.2.B`, `EXE-P0.2.D`.
+9. Source gaps: none new.
+10. Execution assistance: no reviewer run (test-only unit, recorded in the commit trailer); the Gate Verifier checked the failure-injection paths.
+- **Verdict: PASS.** Revalidated against the final D behavior (`0a3a2f7`).
+- **Continuation state: `### AI VERIFIED — CONTINUING`.**
+
+**Capability Gate P0.2 status**
+
+- Gate AI Verification: recorded below once run on the current evidence.
+- Gate: NOT APPROVED by Claude Code. Human approval is required.
+- Capability 3: NOT STARTED.
+- Live Path A end-to-end baseline measurement: NOT DEMONSTRATED. Explicitly deferred (§18.10, §18.14.8).
+- Open source gaps: `SOURCE-GAP-EVAL-01`, `SOURCE-GAP-IRG-02` (unchanged). Capability 1 null-currency contract-enforcement gap (HD-07, documented non-blocking).
+
+**Final AI Capability Gate Verification (2026-10-05, HEAD `0a3a2f7`): `PASS WITH DOCUMENTED GAPS`. No blocking finding.** Test result: `Tests run: 103, Failures: 0, Errors: 0, Skipped: 0`, BUILD SUCCESS. Non-blocking items recorded for the human approver: (a) `CLAUDE.md` stale blocker text, corrected in the same pass; (b) HD-CG-P0.2-03 authorization-equivalence not implemented (documented limitation); (c) HD-CG-P0.2-07 null-currency gap (CostLedgerEntry accepts null currency; BaselineEvaluationRecord rejects it); (d) null-argument `run_baseline(null)` throws NullPointerException before any log line (caller-programming error, untested, human decision only if the strict reading is intended); (e) the D commit-count deviation (HD-CG-P0.2-01); (f) the HD-CG-P0.2-* decisions are recorded in this runbook only, not yet in `execution-plan.md`. This verdict is governance evidence, not a human approval.
+
+**HUMAN APPROVAL RECORDED (2026-10-05): `Approve CAPABILITY-GATE P0.2` issued by the operator.** Boundary approval covers exactly `EXE-P0.2.C`, `D`, `E`, `F`, `G`, `H` with the continuation states recorded above: C `AI VERIFIED — CONTINUING`; D `AI VERIFIED — CONTINUING` (recorded with the post-boundary deviation, commits `5a576c5`, `f75d8f7`, `0a3a2f7`); E `AI VERIFIED — CONTINUING` (tenant-isolation realization, HD-03 limitation); F `AI VERIFIED — CONTINUING` (design note); G `AI VERIFIED — CONTINUING (NOT APPLICABLE)`, no commit; H `AI VERIFIED — CONTINUING`. Capability Gate P0.2 is APPROVED. Live Path A end-to-end baseline measurement remains NOT DEMONSTRATED (deferred §18.10, §18.14.8). Capability 3 is NOT STARTED and requires its own explicit `Execute EXE-P0.3.A`. Uncommitted documentation changes: `CLAUDE.md` and this runbook, with the operator's pre-existing edits.
