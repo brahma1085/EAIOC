@@ -2409,3 +2409,71 @@ Each report is a reconciliation record. Where a unit's routing ran after impleme
 **Final AI Capability Gate Verification (2026-10-05, HEAD `0a3a2f7`): `PASS WITH DOCUMENTED GAPS`. No blocking finding.** Test result: `Tests run: 103, Failures: 0, Errors: 0, Skipped: 0`, BUILD SUCCESS. Non-blocking items recorded for the human approver: (a) `CLAUDE.md` stale blocker text, corrected in the same pass; (b) HD-CG-P0.2-03 authorization-equivalence not implemented (documented limitation); (c) HD-CG-P0.2-07 null-currency gap (CostLedgerEntry accepts null currency; BaselineEvaluationRecord rejects it); (d) null-argument `run_baseline(null)` throws NullPointerException before any log line (caller-programming error, untested, human decision only if the strict reading is intended); (e) the D commit-count deviation (HD-CG-P0.2-01); (f) the HD-CG-P0.2-* decisions are recorded in this runbook only, not yet in `execution-plan.md`. This verdict is governance evidence, not a human approval.
 
 **HUMAN APPROVAL RECORDED (2026-10-05): `Approve CAPABILITY-GATE P0.2` issued by the operator.** Boundary approval covers exactly `EXE-P0.2.C`, `D`, `E`, `F`, `G`, `H` with the continuation states recorded above: C `AI VERIFIED — CONTINUING`; D `AI VERIFIED — CONTINUING` (recorded with the post-boundary deviation, commits `5a576c5`, `f75d8f7`, `0a3a2f7`); E `AI VERIFIED — CONTINUING` (tenant-isolation realization, HD-03 limitation); F `AI VERIFIED — CONTINUING` (design note); G `AI VERIFIED — CONTINUING (NOT APPLICABLE)`, no commit; H `AI VERIFIED — CONTINUING`. Capability Gate P0.2 is APPROVED. Live Path A end-to-end baseline measurement remains NOT DEMONSTRATED (deferred §18.10, §18.14.8). Capability 3 is NOT STARTED and requires its own explicit `Execute EXE-P0.3.A`. Uncommitted documentation changes: `CLAUDE.md` and this runbook, with the operator's pre-existing edits.
+
+---
+
+### Capability 3 — position update (plan v1.1.2, 2026-10-05)
+
+Documentation sync only. Plan v1.1.2 is the governing version (`docs/execution-plan.md` header and correction history).
+
+- Human decisions in force: HD-CG-P0.3-01 (Option 3: T1.1 is fail-open RESTORE_ORIGINAL; CIS is a separate fail-closed component and is not part of EXE-P0.3), HD-CG-P0.3-02 (register `SOURCE-GAP-EXECPLAN-16` and `-17`), HD-CG-P0.3-03 (plan v1.1.2), HD-CG-P0.3-04 (no invented T1.1 types; B stays blocked until a source contract is approved).
+- Plan correction commit: `73ae247` (documentation only, not a unit commit).
+- `EXE-P0.3.A`: commit `e4519d7` (design note only). Formal verdict `AI VERIFICATION: PASS WITH DOCUMENTED NON-BLOCKING GAP`; continuation `### AI VERIFIED — CONTINUING`; not individually approved. The A-row checklist boxes below remain unticked on purpose, because human approval of A has not been given.
+- [SUPERSEDED by the later block "Capability 3 — final pre-authorization reconciliation"; kept as history.] The Capability 3 path has stopped before `EXE-P0.3.B`. `EXE-P0.3.B` is BLOCKED on `SOURCE-GAP-EXECPLAN-16` (no approved counter-identity values for the T1.1 contract (the input, output and counting shape are now in `interfaces.md` §44; see the counter bullet there)).
+- Capability 4 has NOT started. The Capability 3 Gate has NOT been approved.
+
+**Capability 3 — source-contract state (plan v1.1.2; HD-CG-P0.3-05 to -08, 2026-10-05).** Documentation only.
+
+- `interfaces.md` v1.3.0 adds §44, T1.1 Sanitizer Contract, `INTF-072` (§37.1 row and index row added). Input: `ControlPlaneRequest.user_input`. Output: `sanitized_input`, `token_count_pre`, `token_count_post`, `counter`. Counting: both counts use the same counter (HD-CG-P0.3-06).
+- `optimization-catalog.md` `TECH-001` now cites `INTF-072` for T1.1. The earlier `INTF-001` citation is kept only as the `user_input` carrier.
+- `SOURCE-GAP-EXECPLAN-17`: resolved at source. `SOURCE-GAP-EXECPLAN-16`: narrowed, still OPEN and BLOCKING for `EXE-P0.3.B`. The open item is the values of `counter_id` and `counter_version`, which no frozen source names.
+- `EXE-P0.3.A` remains `AI VERIFIED — CONTINUING` (commit `e4519d7`). It is not individually approved.
+- `EXE-P0.3.B` remains BLOCKED. Capability 4 has NOT started. The Capability 3 Gate has NOT been approved.
+
+**Capability 3 — T1.1 contract state (plan v1.1.2 partial; HD-CG-P0.3-09 to -11, 2026-10-05).** Documentation only.
+
+- Null `user_input` (HD-CG-P0.3-10): resolved at contract level as `SOURCE-GAP-EXECPLAN-18`. T1.1 is not invoked for null input; no conversion to empty text; no new error code.
+- EC-014 `content_type` routing (HD-CG-P0.3-11): documented P0 applicability gap, NOT resolved. No content type is added to `user_input`.
+- Counter identity (HD-CG-P0.3-09): NOT APPLIED. The concrete `counter_id` and `counter_version` values have not been supplied. `SOURCE-GAP-EXECPLAN-16` remains OPEN and BLOCKING for `EXE-P0.3.B`.
+- `EXE-P0.3.A` remains `AI VERIFIED — CONTINUING` (commit `e4519d7`). Its design note carries a documentation-synchronization note; the original text is preserved.
+- `EXE-P0.3.B` remains BLOCKED. Capability 4 has NOT started. The Capability 3 Gate has NOT been approved.
+
+**Capability 3 — T1.1 contract reconciliation (plan v1.1.2; HD-CG-P0.3-09 to -11, reconciled 2026-10-05).** Documentation only. This block supersedes the earlier Capability 3 state blocks above it, which are kept as history.
+
+- Counter (HD-CG-P0.3-09): applied. `counter_id` = `JTOKKIT_CL100K_BASE`, `counter_version` = `1.1.0`, the EAIOC P0 local estimator for T1.1 (basis `com.knuddels:jtokkit:1.1.0`, encoding `CL100K_BASE`). Not the provider billing tokenizer. Replaceable behind the T1.1 counting abstraction.
+- Null `user_input` (HD-CG-P0.3-10): partially applied. `SOURCE-GAP-EXECPLAN-18` remains open for the numeric validation error code; the corpus defines only `OPT-1xxx` and no specific code. No code is invented.
+- EC-014 `content_type` routing (HD-CG-P0.3-11): OPEN as `SOURCE-GAP-EXECPLAN-19`. Non-blocking unless a specific implementation step requires EC-014 routing.
+- Generic RESTORE_ORIGINAL fallback metric: documented non-blocking gap `SOURCE-GAP-EXECPLAN-20`. No metric invented.
+- `SOURCE-GAP-EXECPLAN-16`: resolved at contract level. `SOURCE-GAP-EXECPLAN-17`: resolved at source.
+- `EXE-P0.3.A`: committed (`e4519d7`), `AI VERIFIED — CONTINUING`, not individually approved.
+- `EXE-P0.3.B`: NOT YET EXECUTABLE. Not authorized by this reconciliation; it needs its own explicit `Execute EXE-P0.3.B` and its own AI verification.
+- Capability 3 Gate: not approved. Capability 4: not started.
+
+**Capability 3 — final pre-authorization reconciliation (plan v1.1.2; HD-CG-P0.3-12 to -15, 2026-10-05).** Documentation only. This block supersedes the earlier Capability 3 blocks above it, which are kept as history.
+
+- `SOURCE-GAP-EXECPLAN-18` (null `user_input`, numeric validation code): NON-BLOCKING for `EXE-P0.3.B` (HD-CG-P0.3-12). Still OPEN for the broader request-validation contract. No numeric code is invented.
+- `SOURCE-GAP-EXECPLAN-19` (EC-014 `content_type` routing): OPEN and OUT OF SCOPE for `EXE-P0.3.B` (HD-CG-P0.3-13).
+- `SOURCE-GAP-EXECPLAN-20` (RESTORE_ORIGINAL recording): RESOLVED AT CONTRACT LEVEL FOR P0 (HD-CG-P0.3-15). The fallback is recorded as one structured WARNING with `event_type = SANITIZER_FALLBACK_RESTORE_ORIGINAL`.
+- `EXE-P0.3.B` may add `com.knuddels:jtokkit:1.1.0` to the existing `control_plane` Maven declaration, and only that (HD-CG-P0.3-14).
+- `EXE-P0.3.B`: NOT YET EXECUTABLE. Source-level blockers are closed for the D0 no-op realization (HD-CG-P0.3-16); `SOURCE-GAP-EXECPLAN-21` to `-26` are DEFERRED and do not block it. It still needs its own explicit `Execute EXE-P0.3.B` and its own AI verification. This reconciliation does not authorize execution.
+- Capability 3 Gate: not approved. Capability 4: not started.
+
+**Capability 3 — D0 no-op transform scope (HD-CG-P0.3-16, 2026-10-05).** Documentation only.
+- P0 T1.1 realization: safe no-op normalization. `sanitized_input` equals `user_input` unchanged; `token_count_pre == token_count_post` with the approved local counter (`JTOKKIT_CL100K_BASE`, 1.1.0). No content reduction, and the 2–15% benefit is not claimed.
+- Deferred operations, each registered: `SOURCE-GAP-EXECPLAN-21` (umbrella), `-22` (whitespace and formatting), `-23` (irrelevant formatting), `-24` (duplicated content), `-25` (UI noise), `-26` (Unicode normalization form). All OPEN, none implemented.
+- `SOURCE-GAP-EXECPLAN-18` OPEN and non-blocking for B; `-19` OPEN and out of scope for B; `-20` resolved for P0 (structured WARNING).
+- `EXE-P0.3.B`: NOT YET EXECUTABLE. Path-internal to the Capability 3 path (opened by `Execute EXE-P0.3.A`); resumes automatically under §18.20.H (HD-CG-P0.3-17 Q1), no fresh Execute required. This block does not authorize execution. Capability 3 Gate and Capability 4 are not approved or started.
+
+**Capability 3 — HD-CG-P0.3-17 authorized-path state (2026-10-05).** Documentation only.
+- Q1: same-path resume under §18.20.H. `EXE-P0.3.B` is path-internal to the Capability 3 path opened by `Execute EXE-P0.3.A`. No fresh `Execute EXE-P0.3.B` is required after the HDR is resolved and reconciliation succeeds. The path does not expand and does not cross the Capability 3 Gate.
+- Q2: §18.20.K.2 stops the path only on an unresolved HDR or a BLOCKING source gap. `SOURCE-GAP-EXECPLAN-21` to `-26` are OPEN/DEFERRED and non-blocking for the D0 no-op realization.
+- Q3: interfaces.md 1.3.0 is a recorded human decision. Q4: JTOKKIT_CL100K_BASE / 1.1.0 is the P0 local estimator only. Q5: stale version references outside T1.1 scope are a non-blocking documentation-synchronization gap; frozen conventions.md is not edited.
+- Reviews: fresh Architect and Verifier verdicts on the current tree are required before the documentation commit and before any B execution. The previous BLOCKED verdict is superseded but not declared cleared until these fresh verdicts exist.
+
+**Capability 3 — HD-CG-P0.3-18 counter-failure decision (2026-10-06).** Documentation only.
+- T1.1 token-counter failure propagates: no partial `SanitizerOutput`, no fabricated, `0`, `null`, stale, estimated or fallback count, no fallback counter, no nullable or `verified` field, no new error code or schema, never mapped to RESTORE_ORIGINAL. Normalization-failure RESTORE_ORIGINAL is unchanged.
+- `SOURCE-GAP-EXECPLAN-27`: RESOLVED BY HUMAN DECISION (contract level), recorded in `interfaces.md` §44.4.
+- HD-CG-P0.3-19 (2026-10-06): HD-18 stays valid at the T1.1 contract layer. Pipeline handling of a failed optional T1.1 stage follows frozen EC-114 / `architecture.md` §30 / `conventions.md` §16.1–§16.2: discard the failed result, continue with the pre-stage representation, do not reject the request solely for T1.1 failure, log, exclude from savings. "Propagates" in HD-18 means no contract result, not request rejection. `SOURCE-GAP-EXECPLAN-28` RESOLVED BY HUMAN DECISION (layer/ownership clarification). EC-114 is not marked resolved or changed. Frozen sources are not edited.
+- Stage ordering in this scope: T1.1 counter failure → no `SanitizerOutput` → EC-114 continuation with pre-stage representation.
+- JTokkit: `com.knuddels:jtokkit:1.1.0` verified resolvable in this environment; no downgrade to 1.0.0.
+- This decision does not execute or approve `EXE-P0.3.B`. Commit only after both fresh Architect and Verifier reviews are clean. Then `EXE-P0.3.B` may resume under §18.20.H with no fresh `Execute`, only if no §18.20.K condition exists. The Capability 3 Gate and Capability 4 are not approved or started.

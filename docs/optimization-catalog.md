@@ -115,14 +115,14 @@ Assigned in the exact order the 20 techniques appear in `architecture.md` §23. 
 | Field | Value |
 |---|---|
 | **Category** | Prompt/Input Token Optimization (Layer 2; ARCH §47.9 ownership row 1) |
-| **Governing Component(s)** | T1.1-SANITIZER (ARCH §11.1; INTF-001). Decision-Ownership: `ENFORCEMENT` (it may strip content before admission) with an `ADVISORY` fallback path when content-type detection is uncertain. |
+| **Governing Component(s)** | T1.1-SANITIZER (ARCH §11.1; INTF-072, `interfaces.md` §44 — corrected under HD-CG-P0.3-08 from the earlier citation of INTF-001, which is `ControlPlaneRequest` and not a T1.1-specific contract). Decision-Ownership: `ENFORCEMENT` (it may strip content before admission) with an `ADVISORY` fallback path when content-type detection is uncertain. |
 | **Applicability** | All request types; first stage in every pipeline invocation (ARCH §23) |
 | **Explicitly Not Applicable When** | Content is already normalized (e.g., a programmatic/API-originated request with no free-text noise); running the sanitizer against binary/non-text payloads it cannot parse — those bypass to their own content-type handler, not this stage |
 | **Prerequisites** | Raw input available; content-type awareness for code vs. prose detection (ARCH §23) |
 | **Expected Benefit** | 2–15% token reduction from whitespace/formatting/UI-noise removal; normalizes input for downstream stages (ARCH §23) — Evidence classification: Research/architecture-estimate, not yet locally benchmarked |
 | **Optimization Overhead** | Deterministic, near-zero latency; negligible compute cost (ARCH §23); Appendix A budget: < 10 ms, 0 overhead tokens |
 | **Quality Risks** | Risk of removing syntax meaningful to the task (Python indentation, diff whitespace) — this is EC-014's documented failure mode; mitigated by content-aware logic (ARCH §23) |
-| **Fallback** | If sanitization fails: use original input verbatim (PS §11; CONV §16.1) |
+| **Fallback** | If sanitization (normalization) fails: use original input verbatim (PS §11; CONV §16.1). A token-counter failure is not this fallback: at the T1.1 contract boundary it produces no result (`interfaces.md` §44.4, HD-CG-P0.3-18); the pipeline then applies the EC-114 stage-level fallback and continues with the pre-stage representation without rejecting the request (HD-CG-P0.3-19) |
 | **Evaluation Methodology** | Token count before vs. after; quality gate on sanitized vs. original output; false-removal rate on benchmark corpus (ARCH §23) |
 | **Observability Metrics** | `tokens.raw_input`, `tokens.sanitized`, `tokens.removed_by_sanitizer`, `sanitizer.false_removal_rate` (ARCH §23, §27.1) |
 | **Implementation Priority** | P0 — Foundation, unblocked, no validation gate required (ARCH §36; CONV §25) |
@@ -136,7 +136,7 @@ Assigned in the exact order the 20 techniques appear in `architecture.md` §23. 
 | **Composition / Ordering / Conflicts** | Stage 3 of the 24-stage default order (CONV §6.1), after exact/semantic cache lookup, before duplicate removal. No known conflicts with other stages; it is a prerequisite for reliable downstream token counting. |
 | **Reversibility / Side Effects** | No external side effect (`ADVISORY`/`ENFORCEMENT` only, never `EXECUTION_OWNERSHIP`). Original input is preserved for audit/fallback (PS §6.16 analog); no `ReversibilityRecord` is required because sanitization operates on the transient input, not the persistent Logical Task Context. |
 | **Validated By** | No dedicated `SCN-OPT-*`/`SCN-NOPT-*` scenario exists for Sanitization specifically; it is exercised as a pipeline precondition in `SCN-REQ-001` (normal end-to-end admission). |
-| **Traceability** | PS §6.4, §11, §25; ES §7.4; ARCH §11.1, §23, §36, §41; INTF-001 §2; CONV §6.1, §6.3, §8.2, §13.1, §16.1, §25; EC-014 (Pruner Removes Python Indentation — the sanitizer-adjacent instance of this same content-awareness risk) |
+| **Traceability** | PS §6.4, §11, §25; ES §7.4; ARCH §11.1, §23, §36, §41; INTF-072 §44; INTF-001 §2 (the `user_input` carrier only, HD-CG-P0.3-05); CONV §6.1, §6.3, §8.2, §13.1, §16.1, §25; EC-014 (Pruner Removes Python Indentation — the sanitizer-adjacent instance of this same content-awareness risk) |
 
 ---
 

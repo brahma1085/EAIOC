@@ -9,12 +9,14 @@
 **Engineering Spec cross-reference:** `Ent_Agent_LLM_Inference_Opt_Control_Plane_Engineering_Spec.md` (EAIOC-SPEC-001 Rev 1.4)
 **Architecture cross-reference:** `architecture.md` (EAIOC-ARCH-001 Rev 1.3)
 **Date:** 2026-09-08
-**Version:** 1.2.0
+**Version:** 1.3.0
 **Amendment history:**
 - 1.0.0 (2026-09-08) — Baseline: INTF-001–049 across §1–41, drawn directly from the Problem Statement and an early draft of `architecture.md`.
 - 1.1.0 (2026-09-10) — §42 added: Dynamic Execution Interfaces (INTF-050–062), propagating ARCH §46 / SPEC §41 / PS §51.
 - 1.2.0 (2026-09-16) — §43 added: Hardening Interfaces (INTF-063–071), propagating ARCH §47 / SPEC §42 / PS §52 (H01–H20, OBJ-023–035, SEC-011–016, NFR-014, AC-039–053). TOC corrected (§42 was missing from the Table of Contents; §43 added). §41's "Recommended Next Documentation Artifact" corrected — it previously recommended generating the Engineering Specification, which already exists as EAIOC-SPEC-001 and precedes this document in the authoritative chain (PS → Engineering Spec → Architecture → Interfaces); it now correctly points to `conventions.md`.
 - (no version change; document Version remains 1.2.0 by human versioning decision, 2026-09-25) 2026-09-25 — execution-plan v1.0.11 / DB-3 correction: §18 `run_baseline()` return type `EvaluationRun` → `BaselineEvaluationRecord` and the new schema `BaselineEvaluationRecord` (INTF-030 now lists 4 schemas), with the retrieval/consumption and no-measurement rules; §24 versioning note; §28.1, §28.2, §36 and §40.2 notes. Migration statement: see the §24 versioning note (inference: no implemented consumer exists; `eval.md` and `implementation-plan.md` are annotated). Human contract decisions of 2026-09-25 recorded by this correction (not source-derived): `BaselineEvaluationRecord.schema_version` `1.0.0`; the source-entry field `source_entry_id`; the record carries `run_type` (`BASELINE`); the count basis count-all-then-verify; a failed baseline measurement makes `run_baseline()` fail without a result; and the retention of Version 1.2.0 recorded by this entry.
+- 1.3.0 (2026-10-05) — §44 added: T1.1 Sanitizer Contract (INTF-072), under human decisions HD-CG-P0.3-05 (input carrier `ControlPlaneRequest.user_input`; `ContextItem.content_type` reused only where a real `ContextItem` exists), HD-CG-P0.3-06 (deterministic token counting, with the counter's identity and version carried on every count) and HD-CG-P0.3-07 (interface ID INTF-072). Adds the §37.1 T1.1 row. The counter identity and version are recorded by HD-CG-P0.3-09 (`counter_id` `JTOKKIT_CL100K_BASE`, `counter_version` `1.1.0`; §44.2, §44.4). Version 1.3.0 is the MINOR bump for an additive section (interfaces §1.3, inference; no separate version decision is recorded): INTF-072 is a new T1.1-specific contract and INTF-001–071 are unchanged. No existing interface (INTF-001–071) is modified. Consistent with the frozen T1.1 normalization-failure behaviour: fail-open RESTORE_ORIGINAL (`architecture.md` §11.1, §30; `conventions.md` §16.2). This wording does not cover token-counter failure; that is governed by HD-CG-P0.3-18 and HD-CG-P0.3-19 (§44.4). CIS is not part of this contract.
+- (no version change; document Version remains 1.3.0) 2026-10-06 — T1.1 Sanitizer Contract §44 amendment under human decisions HD-CG-P0.3-18 (counter-failure result at the contract layer: no `SanitizerOutput`, no fabricated/nullable/fallback/verified count, no new error code, never RESTORE_ORIGINAL) and HD-CG-P0.3-19 (layer reconciliation: pipeline recovery of a failed optional stage follows EC-114, with the pre-stage representation). Recorded in §44.4 and §44.5. SOURCE-GAP-EXECPLAN-27 and -28 resolved by those decisions. No interface INTF-001–071 changed.
 
 ---
 
@@ -69,6 +71,7 @@
 41. Recommended Next Documentation Artifact
 42. Dynamic Execution Interfaces
 43. Hardening Interfaces — Operating Model, Governance, and Trust Boundaries (2026-09-15)
+44. T1.1 Sanitizer Contract (INTF-072, 2026-10-05)
 
 
 ---
@@ -3263,8 +3266,9 @@ These concerns belong in downstream documents — primarily `conventions.md` (na
 | INTF-069 | CrossExecutionCoordinator (XEC) | §43.7 | 4 schemas |
 | INTF-070 | SelfProtectionController (SPC) | §43.8 | 5 schemas |
 | INTF-071 | VerifierCalibrationLayer (VCL) | §43.9 | 5 schemas |
+| INTF-072 | T1.1 Sanitizer Contract (`SanitizerOutput`, `TokenCounterIdentity`; input is `ControlPlaneRequest.user_input`) | §44 | 2 schemas |
 
-**Total: 71 interface definitions, 260+ schema types** (INTF-001–062 unchanged; INTF-063–071 added 2026-09-16. §43.10's `OperatingMode`/`DecisionOwnership` shared enums and §3.4's `OptimizationPlan` extension fields are counted within the above interfaces' schema counts, not as a separate INTF ID, since they are cross-cutting type extensions rather than a component-owned interface.)
+**Total: 72 interface definitions, 260+ schema types** (INTF-072 added 2026-10-05, §44) (INTF-001–062 unchanged; INTF-063–071 added 2026-09-16. §43.10's `OperatingMode`/`DecisionOwnership` shared enums and §3.4's `OptimizationPlan` extension fields are counted within the above interfaces' schema counts, not as a separate INTF ID, since they are cross-cutting type extensions rather than a component-owned interface.)
 
 
 ---
@@ -3276,6 +3280,7 @@ These concerns belong in downstream documents — primarily `conventions.md` (na
 | Component (ARCH ID) | Consumes | Produces |
 |---|---|---|
 | T0.x — Request Gateway | — | INTF-001 |
+| T1.1 — Sanitizer (`T1.1-SANITIZER`) | INTF-001 (`user_input`, §2.1) | INTF-072 (§44) |
 | OI.x — Optimization Intelligence | INTF-001, INTF-014, INTF-035 | INTF-002, INTF-045 |
 | T1.x — Context Pruner | INTF-001, INTF-004 | INTF-006 result |
 | T1.x — Context Deduplicator | INTF-004 | INTF-007 result |
@@ -4709,9 +4714,81 @@ No interface is defined for this requirement — it is a scope boundary, not a r
 >
 > All 9 Hardening component interface definitions (INTF-063–071) plus the Memory Authority (§43.13), Net Optimization Economics (§43.14), and Anti-Scope (§43.15) extensions are internally consistent, fully traceable to ARCH §47, SPEC §42, and PS §52 (H01–H20). No existing interface (INTF-001–062) has been modified. All security invariants (fail-closed for security/authorization/PII, fail-open for optimization only) are preserved or extended.
 
+## 44. T1.1 Sanitizer Contract (INTF-072) — added 2026-10-05
+
+**Human decisions cited in this section:** HD-CG-P0.3-05, -06, -07 (2026-10-05, the INTF-072 contract shape), HD-CG-P0.3-08 (documentation-only correction), HD-CG-P0.3-09 (counter identity, applied below), HD-CG-P0.3-10 (null input, partially applied), HD-CG-P0.3-11 (EC-014 open gap), HD-CG-P0.3-18 (2026-10-06, counter-failure semantics at the T1.1 contract layer, applied in §44.4 and §44.5), HD-CG-P0.3-19 (2026-10-06, layer reconciliation with EC-114, applied in §44.4 and §44.5).
+
+**Sources.** `architecture.md` §11.1 (purpose, capabilities, outputs, content-awareness caution); `architecture.md` §30 and the optimization fallback table (~line 1957); `conventions.md` §16.1 and §16.2 (T1.x fail-open RESTORE_ORIGINAL); `edge-cases.md` EC-014 (code-content routing) and EC-012 (local tokenizer estimates versus provider counts); `optimization-catalog.md` `TECH-001` (governing component, corrected to INTF-072 under this amendment). **Human decisions** (2026-10-05): HD-CG-P0.3-05 (input carrier), HD-CG-P0.3-06 (token counting), HD-CG-P0.3-07 (interface ID). Nothing in this section adds a field, enum, error code, validation rule or runtime behaviour beyond those decisions and the frozen text cited above.
+
+**Scope.** T1.1 is the frozen-source normalization and token-counting stage. It is **not** a security-screening component. Screening of externally-sourced content is the Content Integrity Screen (CIS, §43.5, INTF-067), which is separate and fail-closed; nothing here implements or depends on CIS.
+
+**Labelling.** The type and field names in §44 (`SanitizerOutput`, `TokenCounterIdentity`, `sanitized_input`, `token_count_pre`, `token_count_post`, `counter`, `counter_id`, `counter_version`) are author-chosen mappings of the §11.1 prose labels; they are not frozen text. Counting the pre-sanitization text over `user_input` and the post-sanitization text over `sanitized_input` is an INFERENCE from those labels. **T0.x normalization is unaffected:** the T1.1 fail-open rule does not alter the T0.x fail-closed REJECT rule (`conventions.md` §16.2; `interfaces.md` §22.2), which governs request canonicalization, a different component.
+
+### 44.1 Input
+
+The raw-input entry point is `ControlPlaneRequest.user_input` (`string | null`, INTF-001 §2.1), used directly as the input. No wrapper or input record type is introduced to bridge any gap (HD-CG-P0.3-05).
+
+- `user_input` is `string | null` in INTF-001 and is REQUIRED only for non-batch requests (§2.1). Handling when it is null is decided by HD-CG-P0.3-10 (§44.4): T1.1 is not invoked. The current Java core (`ControlPlaneRequest`) already rejects a null `user_input` for non-batch requests, so the T1.1 rule matters for BATCH requests only; what a BATCH caller receives when T1.1 is not invoked is not yet defined (§44.4).
+- `ContextItem.content_type` (§5.1) is **not** part of this input. It is reused only where an actual `ContextItem` exists and applies; at P0 the input is `user_input`, which is not a `ContextItem`.
+
+### 44.2 Output
+
+```
+SanitizerOutput {
+  sanitized_input:   string                  // §11.1 "Sanitized input"
+  token_count_pre:   integer                 // §11.1 "Baseline token count (pre-sanitization)" — counted over the input text (INFERRED from the §11.1 label)
+  token_count_post:  integer                 // §11.1 "Post-sanitization token count" — counted over sanitized_input (INFERRED from the §11.1 label)
+  counter:           TokenCounterIdentity    // HD-CG-P0.3-06: identifies how both counts were produced
+}
+
+TokenCounterIdentity {
+  counter_id:        string                  // = "JTOKKIT_CL100K_BASE" (HD-CG-P0.3-09): the EAIOC P0 local token estimator for T1.1; NOT the provider billing tokenizer (§44.4)
+  counter_version:   string                  // = "1.1.0" (HD-CG-P0.3-09). Implementation basis: com.knuddels:jtokkit:1.1.0, encoding CL100K_BASE (documentation only; no encoding field is added to INTF-072)
+}
+```
+
+### 44.3 Counting rule (HD-CG-P0.3-06)
+
+1. `token_count_pre` and `token_count_post` **MUST** be produced by the same counter, identified by the same `counter_id` and `counter_version`, so that the two counts are comparable.
+2. The counter is the EAIOC P0 local token estimator (HD-CG-P0.3-09). It is not the provider's billing tokenizer and is not described as the universal tokenizer for all providers. Provider-reported actual token usage remains a separate measurement used for provider, billing and cost reconciliation as already defined by the authoritative corpus; it is not a T1.1 counting input. No provider-specific counting semantics are added to T1.1. The counter is replaceable behind the T1.1 counting abstraction.
+3. No alternate or fallback counter may be used without a separate human contract decision (HD-CG-P0.3-09, item 2). Any such counter must be identified in `TokenCounterIdentity` like the P0 counter.
+
+### 44.4 Open items and decisions
+
+- **Counter identity and version (RESOLVED by HD-CG-P0.3-09).** `counter_id = JTOKKIT_CL100K_BASE`, `counter_version = 1.1.0`. The implementation basis is `com.knuddels:jtokkit:1.1.0`, encoding `CL100K_BASE`. This counter is the EAIOC P0 local estimator used by T1.1 only; it is not the provider's billing tokenizer and is not described as universal. Implementation rules: keep the counter replaceable behind the T1.1 counting abstraction; no Python or Python-runtime dependency for T1.1; no tokenizer implemented from scratch. Earlier open wording, which said no frozen source names the counter, is superseded by this entry; EC-012 and `scenario-matrix.md` still refer to "the local tokenizer" generically and are not edited.
+- **EC-014 applicability (OPEN — `SOURCE-GAP-EXECPLAN-19`; OUT OF SCOPE FOR `EXE-P0.3.B`, HD-CG-P0.3-11, -13).** `edge-cases.md` EC-014 routes items by `content_type = CODE`. The selected P0 input carrier, `user_input`, has no authoritative `content_type` field, so EC-014's routing condition has no P0 carrier. No `content_type` is added to `ControlPlaneRequest.user_input`, no wrapper is introduced, no routing semantics are invented, and `ControlPlaneRequest` is not modified for EC-014. The frozen code-preservation caution (`architecture.md` §11.1: the sanitizer "must not blindly remove syntax that is meaningful to the task") remains in force as stated there.
+- **Null `user_input` (PARTIALLY RESOLVED by HD-CG-P0.3-10; `SOURCE-GAP-EXECPLAN-18`; NON-BLOCKING for `EXE-P0.3.B`, HD-CG-P0.3-12).** When `ControlPlaneRequest.user_input == null`: T1.1 is NOT invoked; T1.1 does NOT convert null to empty text; T1.1 does NOT define a new error code; the request is rejected or handled at the request-validation boundary before T1.1 (the T0.x boundary, `conventions.md` §16.2; `interfaces.md` §22.2). T0.x request canonicalization and T1.1 normalization remain distinct stages. HD-CG-P0.3-10 fixes the non-invocation and no-conversion rules; the exact response at that boundary (which component, which existing error class, which response) is not specified and remains an open human decision.
+  **Remaining sub-question (OPEN, `SOURCE-GAP-EXECPLAN-18`).** The numeric validation error code is not established. The corpus defines only the series `OPT-1xxx | VALIDATION | Request schema invalid` (§25.2), and §25.1 `ControlPlaneError` does not enumerate a specific code within it. No numeric code is invented here (HD-CG-P0.3-10, step 9). `OPT-1001`, which appears only in Java test code, is not an authoritative corpus code and is not used.
+- **Token-counter failure (RESOLVED BY HD-CG-P0.3-18; `SOURCE-GAP-EXECPLAN-27`).** If the approved T1.1 counter fails while producing either `token_count_pre` or `token_count_post`, the counter failure propagates. T1.1 does NOT return a partial `SanitizerOutput`; does NOT return a `0`, `null`, stale, estimated or otherwise synthetic count; does NOT use a fallback counter; does NOT add a nullable count field or a `verified` field; does NOT add an error code or error schema; and does NOT map the failure to RESTORE_ORIGINAL. This applies only to failure of the token-counting operation. It does not modify the normalization-failure behaviour of §44.5. Consequence: if the counter fails while producing the RESTORE_ORIGINAL `token_count_post` (§44.5), that is still a counter failure and propagates; it is not a second RESTORE_ORIGINAL. Layer boundary (HD-CG-P0.3-19): HD-CG-P0.3-18 governs only the shape and result of the T1.1 stage contract. "Propagates" means the stage produces no result; it does NOT mean rejecting the user request. The surrounding pipeline's recovery of a failed optional optimization stage is governed by `edge-cases.md` EC-114, `architecture.md` §30 and `conventions.md` §16.1–§16.2 (T1.x fail-open), which are unchanged. `conventions.md` §14.4 governs only the unverified-accounting marking and is not the source of stage continuation. Sequence: T1.1 counter failure → no contract-valid `SanitizerOutput` → stage failure reaches the pipeline → EC-114 stage-level fallback: the failed T1.1 result is discarded, processing continues with the pre-stage (baseline) representation, the request is not rejected solely because T1.1 failed, the failure is logged, the failed optimization is excluded from savings and optimization-success reporting, and already-completed security, authorization and policy stages remain in effect. The `token_count_pre` / `token_count_post` fields are stage-local outputs of INTF-072, not the canonical `CostLedgerEntry` record; the canonical ledger's existing `unverified` rules are unchanged there, and no `verified` field is added to `SanitizerOutput`. The contract defines no fallback counter and no nullable count representation, so no contract-valid `SanitizerOutput` can exist without both counts. This is an intentional fail-without-result for the counting operation, not a new security policy and not a replacement for RESTORE_ORIGINAL. The counter identity above is unchanged: no downgrade to JTokkit 1.0.0 and no substitute counter without a new human decision.
+- **Normalization transform set (OPEN, DEFERRED — `SOURCE-GAP-EXECPLAN-21` to `-26`; does not block the D0 no-op realization, HD-CG-P0.3-16).** `architecture.md` §11.1 lists the normalization operations only in prose (whitespace and formatting, irrelevant formatting, duplicated content, known UI noise, Unicode normalization) and defines no transform rule for any of them. This contract defines shapes and counting, not transforms, and no decision on record supplies the rules. Deferred by HD-CG-P0.3-16 (D0): no transform is implemented in P0.
+- **RESTORE_ORIGINAL generic fallback recording (RESOLVED AT CONTRACT LEVEL FOR P0, HD-CG-P0.3-15; `SOURCE-GAP-EXECPLAN-20`).** No frozen source names a metric for the generic T1.1 RESTORE_ORIGINAL fallback. The only fallback counter cited, `sanitizer.code_sanitizer_fallback_count`, belongs to EC-014's code path, which is itself gated by `SOURCE-GAP-EXECPLAN-19`. The `EXE-P0.3.B` row's failure-path wording refers to "EC-014 (superseded: the authorized structured WARNING is used, HD-CG-P0.3-15)" for this fallback, so the gap should be re-checked when B is authorized. No metric name is invented to close it.
+
+### 44.5 Fallback (frozen text; recording per HD-CG-P0.3-15)
+
+If T1.1 normalization fails, `sanitized_input` is `user_input` returned verbatim (`architecture.md` §30, table row "Sanitization fails | Use original input"; `architecture.md` §23, "If sanitization fails: use original input verbatim"; `conventions.md` §16.1, "Sanitization fails | Use original input verbatim"; `conventions.md` §16.2, "T1.x — Context ops | Fail-open: RESTORE_ORIGINAL"). The count of the unchanged text, `token_count_post`, with the same counter (§44.3) is an INFERENCE from the §44.2 labels, not a frozen statement. This contract defines no failure code or failure-record type. This fallback covers normalization failure only. Token-counter failure is a different class: at the T1.1 contract boundary it propagates without a result (§44.4, HD-CG-P0.3-18), and the pipeline then applies EC-114 stage-level fallback to continue with the pre-stage representation (HD-CG-P0.3-19). Three distinct classes apply: (A) normalization failure → RESTORE_ORIGINAL (this section); (B) token-counter failure → no `SanitizerOutput` at the T1.1 contract boundary (§44.4); (C) pipeline handling of the failed optional T1.1 stage → EC-114 continuation with the pre-stage representation (§44.4). No fourth failure semantic exists. Recording (HD-CG-P0.3-15): when normalization fails and RESTORE_ORIGINAL applies, T1.1 emits exactly one structured WARNING log entry with `event_type = SANITIZER_FALLBACK_RESTORE_ORIGINAL` under the existing logging conventions (`conventions.md` §17.2, WARNING for a fallback). No dedicated metric is added, no persistent fallback record type is added, and the entry does not depend on EC-014. `SOURCE-GAP-EXECPLAN-20` is resolved at contract level for P0 on this basis. EC-014 continues to name only its code-path metric, which is not used here.
+
+### 44.7 P0 realization: no-op normalization (HD-CG-P0.3-16, D0)
+
+Human decision D0 (HD-CG-P0.3-16) fixes the P0 behaviour of T1.1 as follows. This is a **safe no-op normalization**, deterministic local token counting, and no content reduction. It is NOT a claim that the architecture's transforms have been implemented.
+
+- `sanitized_input` = `user_input`, exactly and unchanged.
+- `token_count_pre` = the deterministic count of the input text, using the approved P0 counter (`counter_id` `JTOKKIT_CL100K_BASE`, `counter_version` `1.1.0`, implemented with JTokkit).
+- `token_count_post` = the deterministic count of the unchanged `sanitized_input`, with the same counter.
+- Therefore, for P0, `token_count_pre == token_count_post`.
+
+The five operations in `architecture.md` §11.1 are **DEFERRED** from P0 implementation and are registered individually: `SOURCE-GAP-EXECPLAN-21` (umbrella), `-22` (whitespace and formatting), `-23` (irrelevant formatting), `-24` (duplicated content), `-25` (known UI noise), `-26` (Unicode normalization form). They remain OPEN as implementation semantics. No heuristic, regex, normalization form, duplicate rule or content-sensitive behaviour is introduced for them. The 2–15% benefit stated in `architecture.md` §23 is neither realized nor validated by P0.
+
+RESTORE_ORIGINAL (§44.5) and its structured WARNING are unchanged by D0.
+
+### 44.6 Not in this contract
+
+- No CIS behaviour (§43.5).
+- No new error code, enum (beyond what is cited), validation rule, or runtime semantic.
+- INTF-001 remains `ControlPlaneRequest`. It is referenced only for the `user_input` field and is not a T1.1 contract.
+
 ---
 
-*Total interface definitions: 71 | Total schema types: 260+ | Total sections: 43*
+*Total interface definitions: 72 | Total schema types: 260+ | Total sections: 44*
 *Authoritative source: `Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt` (as hardened 2026-09-15, PS §52; reconciled 2026-09-16, PS §51.13)*
 *Architecture cross-reference: `architecture.md` (EAIOC-ARCH-001 Rev 1.3)*
 *Engineering specification cross-reference: EAIOC-SPEC-001 Rev 1.4*
