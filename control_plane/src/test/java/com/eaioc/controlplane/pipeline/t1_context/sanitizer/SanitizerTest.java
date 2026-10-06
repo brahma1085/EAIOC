@@ -16,6 +16,7 @@ import com.eaioc.controlplane.core.schemas.RequestType;
 import com.eaioc.controlplane.core.schemas.SecurityClassification;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
@@ -24,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 /**
- * EXE-P0.3.B tests for the T1.1 Sanitizer (interfaces.md §44; HD-CG-P0.3-14 to -19).
+ * EXE-P0.3.B and EXE-P0.3.D tests for the T1.1 Sanitizer (interfaces.md §44; HD-CG-P0.3-14 to -19).
  *
  * <p>Covers: byte-equal no-op output; equal pre/post counts from the same counter; counter identity on
  * every output; counter failure propagates with no output and is never RESTORE_ORIGINAL; normalization
@@ -224,6 +225,102 @@ class SanitizerTest {
         ControlPlaneRequest batch = request(null, RequestType.BATCH);
 
         assertThrows(NullPointerException.class, () -> new Sanitizer().sanitize(batch));
+    }
+
+    // EXE-P0.3.D: one structured line per call (plan §18.6 D row; human decision 2026-10-07).
+
+    @Test
+    void successEmitsExactlyOneCompletedLineWithTokenFieldsAndCounterIdentity() {
+        String input = "observable input text";
+
+        SanitizerOutput out = new Sanitizer().sanitize(request(input));
+
+        List<String> completed = completedLines();
+        assertEquals(1, completed.size());
+        String line = completed.get(0);
+        assertTrue(line.contains("tokens.raw_input=" + out.tokenCountPre()), line);
+        assertTrue(line.contains("tokens.sanitized=" + out.tokenCountPost()), line);
+        assertTrue(line.contains("counter_id=JTOKKIT_CL100K_BASE"), line);
+        assertTrue(line.contains("counter_version=1.1.0"), line);
+        assertTrue(line.contains("component_id=T1.1-SANITIZER"), line);
+        assertTrue(line.contains("tenant_id=tenant-t11"), line);
+        assertTrue(line.contains("request_id=req-t11"), line);
+        assertTrue(line.contains("correlation_id=corr-t11"), line);
+        assertTrue(line.contains("span_id="), line);
+        assertTrue(line.contains("parent_span_id=null"), line);
+        assertEquals(Level.INFO, completedEvent().getLevel());
+    }
+
+    @Test
+    void completedLineNeverCarriesUserInputText() {
+        String secret = "sensitive-user-text-do-not-log-4242";
+
+        new Sanitizer().sanitize(request(secret));
+
+        assertTrue(completedLines().stream().noneMatch(l -> l.contains(secret)));
+    }
+
+    @Test
+    void completedLineIsNotEmittedOnNormalizationFallback() {
+        Normalizer failing = in -> {
+            throw new IllegalArgumentException("normalizer broke");
+        };
+
+        new Sanitizer(jtokkit, failing).sanitize(request("fallback input"));
+
+        assertEquals(0, completedLines().size());
+        assertEquals(1, fallbackWarnings());
+    }
+
+    @Test
+    void completedLineIsNotEmittedWhenPostCountFailsAfterFallback() {
+        Normalizer failing = in -> {
+            throw new IllegalArgumentException("normalizer broke");
+        };
+
+        assertThrows(IllegalStateException.class,
+            () -> new Sanitizer(new StubCounter(2), failing).sanitize(request("x")));
+        assertEquals(0, completedLines().size());
+        // The fallback WARNING from before the failed post-count is retained (interfaces.md §44.4).
+        assertEquals(1, fallbackWarnings());
+    }
+
+    @Test
+    void removedBySanitizerIsNeverEmitted() {
+        new Sanitizer().sanitize(request("no removed-count field expected"));
+
+        assertTrue(t11Lines().stream().noneMatch(l -> l.contains("tokens.removed_by_sanitizer")));
+    }
+
+    @Test
+    void counterFailureEmitsNoT11LinesAtAll() {
+        assertThrows(IllegalStateException.class,
+            () -> new Sanitizer(new StubCounter(1), Normalizer.NO_OP).sanitize(request("x")));
+        assertThrows(IllegalStateException.class,
+            () -> new Sanitizer(new StubCounter(2), Normalizer.NO_OP).sanitize(request("x")));
+
+        assertEquals(0, t11Lines().size());
+    }
+
+    private List<ILoggingEvent> completedEvents() {
+        return logs.list.stream()
+            .filter(e -> e.getFormattedMessage().contains("event_type=SANITIZER_COMPLETED"))
+            .toList();
+    }
+
+    private ILoggingEvent completedEvent() {
+        return completedEvents().get(0);
+    }
+
+    private List<String> completedLines() {
+        return completedEvents().stream().map(ILoggingEvent::getFormattedMessage).toList();
+    }
+
+    private List<String> t11Lines() {
+        return logs.list.stream()
+            .map(ILoggingEvent::getFormattedMessage)
+            .filter(m -> m.contains("component_id=T1.1-SANITIZER"))
+            .toList();
     }
 
     private long fallbackWarnings() {

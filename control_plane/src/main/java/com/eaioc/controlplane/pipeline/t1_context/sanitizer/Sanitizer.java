@@ -1,13 +1,15 @@
 package com.eaioc.controlplane.pipeline.t1_context.sanitizer;
 
 import com.eaioc.controlplane.core.schemas.ControlPlaneRequest;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * T1.1 Sanitizer, Capability 3 Sub-phase B (EXE-P0.3.B): safe no-op normalization with deterministic
+ * T1.1 Sanitizer, Capability 3 Sub-phases B and D (EXE-P0.3.B, EXE-P0.3.D): safe no-op normalization with deterministic
  * token counting. Governed by interfaces.md §44 (INTF-072) and the human decisions HD-CG-P0.3-05 to
  * -19.
  *
@@ -63,6 +65,7 @@ public final class Sanitizer {
         int tokenCountPre = counter.countTokens(input);
 
         String sanitized;
+        boolean fallbackApplied = false;
         try {
             sanitized = normalizer.normalize(input);
             if (sanitized == null) {
@@ -72,13 +75,60 @@ public final class Sanitizer {
             // RESTORE_ORIGINAL (interfaces.md §44.5): the original input verbatim, one WARNING.
             logRestoreOriginal(request, normalizationFailure);
             sanitized = input;
+            fallbackApplied = true;
         }
 
         // Post-count over sanitized_input with the SAME counter (interfaces.md §44.3 rule 1).
         // A counter failure here propagates; it is not a second RESTORE_ORIGINAL (HD-CG-P0.3-18).
         int tokenCountPost = counter.countTokens(sanitized);
 
+        // One line per call (plan §18.6 D row, human decision 2026-10-07): a fallback call is already
+        // covered by its WARNING, so the success line is emitted only when no fallback was applied.
+        // It follows the post-count, so a counter failure never logs a success for a call that returns nothing.
+        if (!fallbackApplied) {
+            logCompleted(request, tokenCountPre, tokenCountPost, counter.identity());
+        }
+
         return new SanitizerOutput(sanitized, tokenCountPre, tokenCountPost, counter.identity());
+    }
+
+    /**
+     * Emits exactly one structured INFO line for a successful sanitization call (plan §18.6 D row).
+     * Carries the token counts under the §27.1 field names {@code tokens.raw_input} and
+     * {@code tokens.sanitized}, and the counter identity. Never carries user input text.
+     *
+     * <p>{@code SANITIZER_COMPLETED} is a local event name chosen for this unit. No source document
+     * defines a T1.1 success event; precedent is {@code BASELINE_RUN_COMPLETED}.
+     *
+     * <p>{@code tokens.raw_input} and {@code tokens.sanitized} are INFERRED mappings from the §11.1
+     * labels (token_count_pre, token_count_post). {@code tokens.removed_by_sanitizer} is intentionally
+     * not emitted: its derivation is not defined in the corpus.
+     *
+     * <p>The {@code tokens.*} names are logged as <b>fields only, not emitted as metrics</b>; no metric
+     * is created here (interfaces.md §44.5).
+     *
+     * <p><b>IMPLEMENTATION GAP, not claimed as realized:</b> {@code conventions.md} §17.1 requires every
+     * component invocation to emit an {@code OptimizationSpan}. No span exists in P0. {@code span_id} is a
+     * fresh per-line UUID that links to no span, the same pattern the Capability 1 and 2 log lines use.
+     */
+    private static void logCompleted(
+            ControlPlaneRequest request, int tokenCountPre, int tokenCountPost, TokenCounterIdentity counter) {
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fields.put("tokens.raw_input", tokenCountPre);
+        fields.put("tokens.sanitized", tokenCountPost);
+        // conventions.md §17.2: INFO for a normal decision.
+        LOG.info(
+            "event_type=SANITIZER_COMPLETED component_id=T1.1-SANITIZER "
+                + "message=\"sanitization completed\" "
+                + "tenant_id={} request_id={} correlation_id={} span_id={} parent_span_id=null "
+                + "counter_id={} counter_version={} fields={}",
+            request.tenantId(),
+            request.requestId(),
+            Objects.requireNonNullElse(request.correlationId(), request.requestId()),
+            UUID.randomUUID(),
+            counter.counterId(),
+            counter.counterVersion(),
+            fields);
     }
 
     /**
