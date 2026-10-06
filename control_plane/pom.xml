@@ -61,5 +61,12 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <!-- EXE-P0.3.B (HD-CG-P0.3-14): the approved T1.1 local token counter, counter_id JTOKKIT_CL100K_BASE / counter_version 1.1.0 (interfaces.md §44). Not managed by the Boot parent; the version is pinned here. -->
+    <dependency>
+      <groupId>com.knuddels</groupId>
+      <artifactId>jtokkit</artifactId>
+      <version>1.1.0</version>
+    </dependency>
   </dependencies>
 </project>
