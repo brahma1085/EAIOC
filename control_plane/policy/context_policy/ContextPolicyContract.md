@@ -120,7 +120,7 @@ In scope for A: citing `interfaces.md` §20's contract as-is; confirming package
 
 ## 7. Open items (none blocks this design note)
 
-1. `PolicyOverride`, `CacheEntry`, and `AuthorizationContext` are referenced by §20 but not reproduced here, since B's declared scope does not need them (§2 above). A future sub-phase needing them must look them up directly.
+1. **Correction (2026-10-07, EXE-P0.4.B pre-flight finding):** the three types referenced by §20 but not reproduced here are not one undifferentiated group. `CacheEntry` (`interfaces.md` §6.3) **is fully defined**; it is merely out of B's declared scope. `PolicyOverride` and `AuthorizationContext` are **genuinely undefined anywhere in the corpus** (confirmed by exhaustive grep) — `PolicyOverride` is registered as `SOURCE-GAP-EXECPLAN-33`; `AuthorizationContext` is noted here but not separately registered, since nothing at P0 needs it yet. A future sub-phase needing any of the three must look it up directly rather than trust this note's original, now-corrected, characterization.
 2. `OptimizationPlan`'s `CORE-GAP-03`/`CORE-GAP-04` (Capability-1-foundation-owned, pre-existing) are not resolved here and are not this capability's gap to close.
 3. No dedicated architecture subsection exists for "Context Policy" (`execution-plan.md` §9's own honest note, restated in §1 above) — this is a pre-existing, already-recorded condition of the capability's own definition, not a new gap this note introduces.
 4. No `SOURCE-GAP`/`CONTRA` ID is newly registered by this sub-phase: nothing here is underspecified relative to what A requires (cite the contract, confirm placement); both were verified directly against the live files.
