@@ -4,7 +4,11 @@ import com.eaioc.controlplane.core.schemas.ControlPlaneRequest;
 import com.eaioc.controlplane.core.schemas.InstructionContext;
 import com.eaioc.controlplane.pipeline.t1_context.sanitizer.SanitizerOutput;
 import com.eaioc.controlplane.policy.context_policy.BudgetEnforcementResult;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * EXE-P0.5.B (Capability 5, Prompt Assembler — Minimal Implementation): the assembly hook named by
@@ -75,8 +79,32 @@ import java.util.Objects;
  * mirroring the precondition-guard pattern already used by {@code Sanitizer}/{@code
  * PolicyBudgetEnforcer}. A non-compliant {@code BudgetEnforcementResult} does not block assembly
  * (HD-CG-P0.5-03) — only a missing one does (programmer error, not a policy outcome).
+ *
+ * <p><b>Observability (EXE-P0.5.D, plan §18.8 D row):</b> exactly one structured log line per
+ * successful call. Unlike {@code Sanitizer}/{@code PolicyBudgetEnforcer}, {@code assemble()} has no
+ * conditional outcome to distinguish by level — it either throws (missing required input, no line
+ * logged, matching the precondition-guard precedent) or succeeds — so a single INFO line covers
+ * every call that returns a result, per {@code conventions.md} §17.2's "normal optimization
+ * decisions" row. No metric or event name is cited from any source: {@code architecture.md} §23/§36
+ * and {@code observability.md} name no Prompt-Assembler-specific metric, and — checked directly,
+ * learning from the {@code POLICY_VIOLATION} citation lesson of {@code EXE-P0.4.D} — {@code
+ * interfaces.md} §23.2's Standard Event Types table has no entry matching "ASSEMBL*"/"PROMPT*"
+ * either, so {@code PROMPT_ASSEMBLED} below is genuinely local to this unit, not a citation.
+ * No {@code OptimizationSpan} exists in P0 ({@code conventions.md} §17.1 requires one per component
+ * invocation): {@code span_id} below is a fresh per-line {@link UUID} linking to no real span —
+ * the same disclosed, not-claimed-as-realized gap every other P0 log line carries ({@code
+ * SOURCE-GAP-EXECPLAN-29}), explicitly cited here (Reviewer/Verifier finding, 2026-10-07) rather
+ * than silently repeating the same behavior without the same disclosure its two named precedents
+ * both give.
+ * {@code component_id} is {@code PROMPT-ASSEMBLER} — no canonical architecture ID exists for this
+ * capability (§1 above), following the same plain, non-numbered precedent as {@code
+ * ACCOUNTING-LEDGER}/{@code EVALUATION-BASELINE}/{@code CONTEXT-POLICY}. No region content (which
+ * may include security-classified instructions, SEC-001) is logged — only identifiers and the
+ * final token count.
  */
 public final class PromptAssembler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PromptAssembler.class);
 
     public AssembledPrompt assemble(
             ControlPlaneRequest request, SanitizerOutput sanitized, BudgetEnforcementResult budgetResult) {
@@ -100,8 +128,29 @@ public final class PromptAssembler {
         tokenCount += route(request.systemContext(), cacheablePrefix, semiStableRegion, volatileSuffix);
         tokenCount += route(request.developerContext(), cacheablePrefix, semiStableRegion, volatileSuffix);
 
-        return new AssembledPrompt(
+        AssembledPrompt result = new AssembledPrompt(
             cacheablePrefix.toString(), semiStableRegion.toString(), volatileSuffix.toString(), tokenCount);
+        logAssembled(request, result);
+        return result;
+    }
+
+    /**
+     * Exactly one structured INFO line per successful call (conventions.md §17.2: "normal
+     * optimization decisions"). {@code correlation_id} is {@code ControlPlaneRequest}'s own
+     * required field (never null), unlike {@code Sanitizer}'s request fixture, so no fallback is
+     * needed here.
+     */
+    private static void logAssembled(ControlPlaneRequest request, AssembledPrompt result) {
+        LOG.info(
+            "event_type=PROMPT_ASSEMBLED component_id=PROMPT-ASSEMBLER "
+                + "message=\"prompt assembly completed\" "
+                + "tenant_id={} request_id={} correlation_id={} span_id={} parent_span_id=null "
+                + "fields={}",
+            request.tenantId(),
+            request.requestId(),
+            request.correlationId(),
+            UUID.randomUUID(),
+            Map.of("final_token_count", result.finalTokenCount()));
     }
 
     /** Routes {@code instruction} (if present) to the region its own {@code stability} names; returns its token estimate. */

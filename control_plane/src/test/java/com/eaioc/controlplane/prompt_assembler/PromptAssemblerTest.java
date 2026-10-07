@@ -1,9 +1,14 @@
 package com.eaioc.controlplane.prompt_assembler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.eaioc.controlplane.core.schemas.ControlPlaneRequest;
 import com.eaioc.controlplane.core.schemas.InstructionContext;
 import com.eaioc.controlplane.core.schemas.LatencyRequirements;
@@ -16,22 +21,41 @@ import com.eaioc.controlplane.policy.context_policy.BudgetEnforcementResult;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 /**
- * EXE-P0.5.B tests for {@link PromptAssembler} (architecture.md §12.2; HD-CG-P0.5-01 to -04;
- * execution-plan.md §18.8 B row).
+ * EXE-P0.5.B and EXE-P0.5.D tests for {@link PromptAssembler} (architecture.md §12.2;
+ * HD-CG-P0.5-01 to -04; execution-plan.md §18.8 B and D rows).
  *
  * <p>Covers: assembly correctness for a representative input (system/developer/user content routed
  * to the correct region by {@code stability}); security-instruction preservation (system/developer
  * content survives verbatim); cache-stable-prefix ordering (regions stay structurally separate);
  * the vacuous SEMI-STABLE REGION at P0 scope; the final-token-count sum; the one conservative
- * failure path (missing {@link SanitizerOutput}); and that a non-compliant {@link
- * BudgetEnforcementResult} does not block assembly (HD-CG-P0.5-03).
+ * failure path (missing {@link SanitizerOutput}); that a non-compliant {@link
+ * BudgetEnforcementResult} does not block assembly (HD-CG-P0.5-03); and (EXE-P0.5.D) exactly one
+ * structured INFO log line per successful call, never carrying region content.
  */
 class PromptAssemblerTest {
 
     private final PromptAssembler assembler = new PromptAssembler();
+    private ListAppender<ILoggingEvent> logs;
+    private Logger assemblerLog;
+
+    @BeforeEach
+    void attachLogCapture() {
+        assemblerLog = (Logger) LoggerFactory.getLogger(PromptAssembler.class);
+        logs = new ListAppender<>();
+        logs.start();
+        assemblerLog.addAppender(logs);
+    }
+
+    @AfterEach
+    void detachLogCapture() {
+        assemblerLog.detachAppender(logs);
+    }
 
     @Test
     void assemblesStableSystemAndDeveloperContextIntoCacheablePrefixInOrder() {
@@ -145,6 +169,46 @@ class PromptAssemblerTest {
         AssembledPrompt result = assembler.assemble(request, sanitized("input", 1), nonCompliant);
 
         assertEquals("input", result.volatileSuffix());
+    }
+
+    // EXE-P0.5.D: exactly one structured line per successful call (plan §18.8 D row).
+
+    @Test
+    void successfulAssemblyEmitsExactlyOneInfoLine() {
+        ControlPlaneRequest request = request(
+            instruction("sys", InstructionContext.Type.SYSTEM, InstructionContext.Stability.STABLE, 3), null);
+
+        AssembledPrompt result = assembler.assemble(request, sanitized("input", 4), BudgetEnforcementResult.ok());
+
+        List<String> lines = linesContaining("event_type=PROMPT_ASSEMBLED");
+        assertEquals(1, lines.size());
+        assertEquals(1, allLines().size());
+        assertEquals(Level.INFO, logs.list.get(0).getLevel());
+        String line = lines.get(0);
+        assertTrue(line.contains("component_id=PROMPT-ASSEMBLER"), line);
+        assertTrue(line.contains("tenant_id=tenant-pa"), line);
+        assertTrue(line.contains("request_id=req-pa-1"), line);
+        assertTrue(line.contains("final_token_count=" + result.finalTokenCount()), line);
+    }
+
+    @Test
+    void logLineNeverCarriesRegionContent() {
+        String secret = "do-not-log-this-security-instruction-8675309";
+        ControlPlaneRequest request = request(
+            instruction(secret, InstructionContext.Type.SYSTEM, InstructionContext.Stability.STABLE, 5), null);
+
+        assembler.assemble(request, sanitized("also do not log this user input", 2), BudgetEnforcementResult.ok());
+
+        assertFalse(allLines().stream().anyMatch(l -> l.contains(secret)));
+        assertFalse(allLines().stream().anyMatch(l -> l.contains("also do not log this user input")));
+    }
+
+    private List<String> allLines() {
+        return logs.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+    }
+
+    private List<String> linesContaining(String substring) {
+        return allLines().stream().filter(l -> l.contains(substring)).toList();
     }
 
     private static InstructionContext instruction(
