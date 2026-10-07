@@ -27,16 +27,27 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 /**
- * EXE-P0.5.B and EXE-P0.5.D tests for {@link PromptAssembler} (architecture.md §12.2;
- * HD-CG-P0.5-01 to -04; execution-plan.md §18.8 B and D rows).
+ * EXE-P0.5.B, EXE-P0.5.D, and EXE-P0.5.E tests for {@link PromptAssembler} (architecture.md §12.2;
+ * HD-CG-P0.5-01 to -04; execution-plan.md §18.8 B, D, and E rows).
  *
  * <p>Covers: assembly correctness for a representative input (system/developer/user content routed
  * to the correct region by {@code stability}); security-instruction preservation (system/developer
  * content survives verbatim); cache-stable-prefix ordering (regions stay structurally separate);
  * the vacuous SEMI-STABLE REGION at P0 scope; the final-token-count sum; the one conservative
  * failure path (missing {@link SanitizerOutput}); that a non-compliant {@link
- * BudgetEnforcementResult} does not block assembly (HD-CG-P0.5-03); and (EXE-P0.5.D) exactly one
- * structured INFO log line per successful call, never carrying region content.
+ * BudgetEnforcementResult} does not block assembly (HD-CG-P0.5-03); (EXE-P0.5.D) exactly one
+ * structured INFO log line per successful call, never carrying region content; and (EXE-P0.5.E)
+ * that security-classified content is never dropped, truncated, or overwritten even when another
+ * instruction contends for the same region — the only real contention point this schema admits,
+ * since {@code PromptAssembler} has no reordering/prioritization mechanism to "force" at all (the
+ * row's own "cache-stable-prefix reordering" language presupposes one that B's approved minimal
+ * design never built; resolved the same way {@code EXE-P0.4.E} resolved an identical presupposition
+ * for {@code PolicyBudgetEnforcer} — a functional test against the closest real stress point, plus
+ * a structural test proving no such injection point exists). Independently confirmed, not merely
+ * asserted (Verifier finding, 2026-10-08): {@code architecture.md} §24/§37 list "Context reordering"
+ * as its own distinct optimization technique at maturity tier <b>P3</b> ("Advanced Optimization") —
+ * categorically outside this P0 capability's approved scope, not something this unit's own design
+ * omits or evades.
  */
 class PromptAssemblerTest {
 
@@ -209,6 +220,56 @@ class PromptAssemblerTest {
 
     private List<String> linesContaining(String substring) {
         return allLines().stream().filter(l -> l.contains(substring)).toList();
+    }
+
+    // EXE-P0.5.E: security-classified content is never dropped, truncated, or overwritten (plan
+    // §18.8 E row; root CLAUDE.md rule 6; SEC-001).
+
+    @Test
+    void securityClassifiedContentSurvivesVerbatimWhenSharingARegionWithAnotherInstruction() {
+        // The row's own "cache-stable-prefix reordering" language presupposes a reordering/
+        // optimization mechanism that PromptAssembler does not have (see the structural test
+        // below) -- its region placement is a fixed rule, not a tunable one. The only real
+        // contention point this schema admits is two STABLE instructions (systemContext and
+        // developerContext) sharing the CACHEABLE PREFIX region; this test proves neither is
+        // dropped, truncated, or overwritten by the other.
+        String secret = "security-classified-instruction-must-survive-intact-13579";
+        String contending = "a second, unrelated developer instruction occupying the same region";
+        ControlPlaneRequest request = request(
+            instruction(secret, InstructionContext.Type.SYSTEM, InstructionContext.Stability.STABLE, 9),
+            instruction(contending, InstructionContext.Type.DEVELOPER, InstructionContext.Stability.STABLE, 6));
+
+        AssembledPrompt result = assembler.assemble(request, sanitized("input", 1), BudgetEnforcementResult.ok());
+
+        // Exact equality: both contents present in full, in the documented system-before-developer
+        // order, with nothing dropped or altered in between.
+        assertEquals(secret + "\n\n" + contending, result.cacheablePrefix());
+    }
+
+    @Test
+    void promptAssemblerHasNoReorderingOrPrioritizationInjectionPoint() {
+        // Structural proof, not merely behavioral: no "cache-stable-prefix reordering" mechanism
+        // is reachable through this class's public surface -- exactly one public method is
+        // declared, and none of its parameters is ordering/priority/Comparator-shaped. (This
+        // checks the public, caller-reachable surface specifically -- the DoD's own "assembly
+        // path" language is necessarily public-API-reachable -- not every private helper.)
+        long publicMethodCount = java.util.Arrays.stream(PromptAssembler.class.getMethods())
+            .filter(m -> m.getDeclaringClass() == PromptAssembler.class)
+            .count();
+        assertEquals(1, publicMethodCount, "expected exactly one public method declared on PromptAssembler");
+
+        java.lang.reflect.Method assemble;
+        try {
+            assemble = PromptAssembler.class.getMethod(
+                "assemble", ControlPlaneRequest.class, SanitizerOutput.class, BudgetEnforcementResult.class);
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError("assemble signature changed", e);
+        }
+        for (Class<?> paramType : assemble.getParameterTypes()) {
+            String name = paramType.getSimpleName().toLowerCase();
+            assertFalse(name.contains("comparator") || name.contains("order") || name.contains("priority"),
+                "unexpected ordering-shaped parameter: " + paramType);
+        }
     }
 
     private static InstructionContext instruction(
