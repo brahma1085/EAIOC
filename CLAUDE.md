@@ -11,7 +11,7 @@ This repository's documentation baseline — two authoritative source documents 
 | `docs/Ent_Agent_LLM_Inference_Opt_Control_Plane_problemstatement.txt` | **The primary authoritative source** (EAIOC-SPEC-001). If any other doc conflicts with this file, this file wins. |
 | `docs/Ent_Agent_LLM_Inference_Opt_Control_Plane_Engineering_Spec.md` (Rev 1.4) | Companion engineering specification — authoritative alongside the problem statement for downstream documents (e.g. the scenario matrix, see below), but subordinate to it if the two conflict. |
 | `docs/architecture.md` (EAIOC-ARCH-001, Rev 1.3) | Full architecture: objectives, pipeline stages, component specs, optimization catalog. Status: PRE-IMPLEMENTATION, pending approval. |
-| `docs/interfaces.md` (EAIOC-INTF-001, v1.2.0) | Contracts/schemas for all 71 interfaces (INTF-001–071) and 230+ types crossing component boundaries. |
+| `docs/interfaces.md` (EAIOC-INTF-001, v1.3.0) | Contracts/schemas for all 72 interfaces (INTF-001–072; §44/INTF-072, the T1.1 Sanitizer Contract, added 2026-10-05 during the Capability 3 path, commit `1d81a13`) and 230+ types crossing component boundaries. |
 | `docs/conventions.md` (EAIOC-CONV-001, Rev 1.1.0) | Mandatory engineering conventions (naming, module layout, fail-open/closed rules, anti-patterns) that any implementation must follow. |
 | `docs/edge-cases.md` (EAIOC-EDGE-001, v1.2.0) | Catalogue of edge cases (EC-001–EC-213), each with detection/expected-behavior/fallback/observability/test requirements. |
 
