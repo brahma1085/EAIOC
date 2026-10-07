@@ -4,23 +4,48 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.eaioc.controlplane.accounting.ledger.CostLedgerEntry;
 import com.eaioc.controlplane.accounting.ledger.CostLedgerStore;
 import com.eaioc.controlplane.accounting.ledger.LedgerCostReporter;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 /**
- * EXE-P0.4.B tests for {@link PolicyBudgetEnforcer} (interfaces.md §20; HD-CG-P0.4-01/-02;
- * execution-plan.md §18.7 B row).
+ * EXE-P0.4.B and EXE-P0.4.D tests for {@link PolicyBudgetEnforcer} (interfaces.md §20;
+ * HD-CG-P0.4-01/-02/-03; execution-plan.md §18.7 B and D rows).
  *
  * <p>Covers: a compliant request under budget; a request over {@code max_cost_per_request}; a
  * {@code null} limit (no cap configured) resolving to compliant; the two distinct conservative
- * failure paths (missing policy, missing ledger measurement) never resolving to compliant; and
- * tenant isolation of the underlying ledger lookup.
+ * failure paths (missing policy, missing ledger measurement) never resolving to compliant; tenant
+ * isolation of the underlying ledger lookup; and (EXE-P0.4.D) exactly one structured log line per
+ * call, at the level conventions.md §17.2 assigns to each outcome.
  */
 class PolicyBudgetEnforcerTest {
+
+    private ListAppender<ILoggingEvent> logs;
+    private Logger enforcerLog;
+
+    @BeforeEach
+    void attachLogCapture() {
+        enforcerLog = (Logger) LoggerFactory.getLogger(PolicyBudgetEnforcer.class);
+        logs = new ListAppender<>();
+        logs.start();
+        enforcerLog.addAppender(logs);
+    }
+
+    @AfterEach
+    void detachLogCapture() {
+        enforcerLog.detachAppender(logs);
+    }
 
     @Test
     void requestUnderBudget_isCompliant() {
@@ -132,6 +157,92 @@ class PolicyBudgetEnforcerTest {
         // tenant-a has no matching entry of its own -> conservative denial, never tenant-b's result.
         assertFalse(result.compliant());
         assertEquals("LEDGER_MEASUREMENT_UNAVAILABLE", result.violations().get(0).ruleId());
+    }
+
+    // EXE-P0.4.D: exactly one structured line per call (plan §18.7 D row).
+
+    @Test
+    void compliantResolutionEmitsExactlyOneInfoLine() {
+        CostLedgerStore store = new CostLedgerStore();
+        LedgerCostReporter reporter = new LedgerCostReporter(store);
+        store.write(entry("tenant-d", "entry-d-1", "request-d-1", 5.0));
+        PolicyBudgetEnforcer enforcer = new PolicyBudgetEnforcer(reporter);
+
+        enforcer.enforceRequestBudget("request-d-1", "tenant-d", policy(10.0));
+
+        List<String> lines = linesContaining("event_type=POLICY_ENFORCEMENT_COMPLETED");
+        assertEquals(1, lines.size());
+        assertEquals(1, allLines().size());
+        assertEquals(Level.INFO, allEvents().get(0).getLevel());
+        String line = lines.get(0);
+        assertTrue(line.contains("component_id=CONTEXT-POLICY"), line);
+        assertTrue(line.contains("tenant_id=tenant-d"), line);
+        assertTrue(line.contains("request_id=request-d-1"), line);
+        assertTrue(line.contains("policy_id=policy-1"), line);
+        assertTrue(line.contains("span_id="), line);
+        assertTrue(line.contains("parent_span_id=null"), line);
+    }
+
+    @Test
+    void maxCostPerRequestViolationEmitsExactlyOneErrorLineWithRuleIdAndSeverity() {
+        CostLedgerStore store = new CostLedgerStore();
+        LedgerCostReporter reporter = new LedgerCostReporter(store);
+        store.write(entry("tenant-d", "entry-d-2", "request-d-2", 15.0));
+        PolicyBudgetEnforcer enforcer = new PolicyBudgetEnforcer(reporter);
+
+        enforcer.enforceRequestBudget("request-d-2", "tenant-d", policy(10.0));
+
+        List<String> lines = linesContaining("event_type=POLICY_VIOLATION");
+        assertEquals(1, lines.size());
+        assertEquals(1, allLines().size());
+        assertEquals(Level.ERROR, allEvents().get(0).getLevel());
+        String line = lines.get(0);
+        assertTrue(line.contains("rule_id=MAX_COST_PER_REQUEST_EXCEEDED"), line);
+        assertTrue(line.contains("severity=BLOCK"), line);
+        assertTrue(line.contains("policy_id=policy-1"), line);
+    }
+
+    @Test
+    void missingLedgerMeasurementEmitsExactlyOneErrorLine() {
+        CostLedgerStore store = new CostLedgerStore();
+        LedgerCostReporter reporter = new LedgerCostReporter(store);
+        PolicyBudgetEnforcer enforcer = new PolicyBudgetEnforcer(reporter);
+
+        enforcer.enforceRequestBudget("request-d-3", "tenant-d", policy(10.0));
+
+        List<String> lines = linesContaining("event_type=POLICY_VIOLATION");
+        assertEquals(1, lines.size());
+        assertEquals(1, allLines().size());
+        assertTrue(lines.get(0).contains("rule_id=LEDGER_MEASUREMENT_UNAVAILABLE"), lines.get(0));
+        assertTrue(lines.get(0).contains("severity=BLOCK"), lines.get(0));
+    }
+
+    @Test
+    void nullPolicyEmitsExactlyOneWarningLineWithNoPolicyId() {
+        CostLedgerStore store = new CostLedgerStore();
+        LedgerCostReporter reporter = new LedgerCostReporter(store);
+        PolicyBudgetEnforcer enforcer = new PolicyBudgetEnforcer(reporter);
+
+        enforcer.enforceRequestBudget("request-d-4", "tenant-d", null);
+
+        List<String> lines = linesContaining("event_type=POLICY_ENFORCEMENT_FALLBACK_NO_POLICY");
+        assertEquals(1, lines.size());
+        assertEquals(1, allLines().size());
+        assertEquals(Level.WARN, allEvents().get(0).getLevel());
+        assertTrue(lines.get(0).contains("reason=no_policy_supplied"), lines.get(0));
+        assertFalse(lines.get(0).contains("policy_id="), lines.get(0));
+    }
+
+    private List<ILoggingEvent> allEvents() {
+        return logs.list;
+    }
+
+    private List<String> allLines() {
+        return logs.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+    }
+
+    private List<String> linesContaining(String substring) {
+        return allLines().stream().filter(l -> l.contains(substring)).toList();
     }
 
     /** TEST FIXTURE: a minimal, schema-valid, verified=true CostLedgerEntry with the given total cost. */

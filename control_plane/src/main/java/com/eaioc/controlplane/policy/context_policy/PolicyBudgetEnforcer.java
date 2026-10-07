@@ -2,9 +2,14 @@ package com.eaioc.controlplane.policy.context_policy;
 
 import com.eaioc.controlplane.accounting.ledger.CostLedgerEntry;
 import com.eaioc.controlplane.accounting.ledger.LedgerCostReporter;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -63,9 +68,59 @@ import org.springframework.stereotype.Component;
  * {@link BudgetEnforcementResult} shape, inventing no new field, type, or enum. The missing-ledger-
  * measurement path is unaffected: a policy is supplied there, so {@code policy.policyId()} remains a
  * real, non-fabricated value for that {@link PolicyViolation}.
+ *
+ * <p><b>Observability (EXE-P0.4.D, plan §18.7 D row):</b> exactly one structured log line per call,
+ * matching the T1.1 Sanitizer's own D-row discipline. {@code architecture.md} §23/§36 and
+ * {@code observability.md} name no Context-Policy-specific <em>metric</em>, so the D row's own cell
+ * ("Cite existing policy-adjacent metrics where named; otherwise structured log output only")
+ * resolves to log-output-only — but two of the three event names below are genuinely local
+ * ({@code POLICY_ENFORCEMENT_COMPLETED}, {@code POLICY_ENFORCEMENT_FALLBACK_NO_POLICY}, chosen the
+ * same way {@code SANITIZER_COMPLETED} was). The third, {@code POLICY_VIOLATION}, is <b>not</b>
+ * locally invented: {@code interfaces.md} §23.2's Standard Event Types table already defines exactly
+ * this event type, with source component {@code POLICY-ENFORCER} and payload fields {@code
+ * policy_id}, {@code rule_id}, {@code severity} — the same shape {@link #logViolation} emits. Level
+ * selection follows {@code conventions.md} §17.2's table exactly, not a level invented here:
+ * <ul>
+ *   <li>{@code compliant = true} → INFO ("normal optimization decisions").</li>
+ *   <li>{@code compliant = false} with a non-empty {@code violations} list → ERROR ("policy
+ *       violation" / "stage failure" — covers both {@code MAX_COST_PER_REQUEST_EXCEEDED} and
+ *       {@code LEDGER_MEASUREMENT_UNAVAILABLE}).</li>
+ *   <li>{@code compliant = false} with an <em>empty</em> {@code violations} list (the {@code policy
+ *       == null} case) → WARNING ("fallback triggered... near-threshold behavior"), since this is
+ *       conservative-default fallback behavior, not a policy-content violation.</li>
+ * </ul>
+ * No user input or policy content beyond identifiers/counts is logged. {@code span_id} is a fresh
+ * per-line {@link UUID} linking to no real span — the same disclosed, not-claimed-as-realized
+ * {@code conventions.md} §17.1 gap every other P0 log line carries (`SOURCE-GAP-EXECPLAN-29`).
+ *
+ * <p><b>{@code POLICY_VIOLATION} is cited, not fully realized (disclosed gap, {@code
+ * SOURCE-GAP-EXECPLAN-35}):</b> {@code conventions.md} §17.4 / {@code interfaces.md} §23.3 require
+ * {@code POLICY_VIOLATION} to be a <em>durably written</em> event, not merely a log line — no event
+ * bus exists anywhere in P0 (the same pre-existing, already-disclosed disposition every other
+ * capability's log-only interim sink carries, {@code SOURCE-GAP-EXECPLAN-01}), so this requirement is
+ * not met here. The reused event name and payload fields are an intentional, accurate citation of
+ * §23.2's contract shape — only the durable-write and event-bus-delivery parts of §23.1/§23.3 are out
+ * of scope for this interim sink, exactly as they are for every other P0 capability's structured
+ * logging.
+ *
+ * <p>{@code component_id} is {@code CONTEXT-POLICY}, not {@code P0.4-CONTEXT-POLICY}: Capability 4
+ * has no dedicated architecture component ({@code execution-plan.md} §18.7, "Architecture
+ * components: None dedicated"), so there is no canonical {@code conventions.md} §3.1 ID to use
+ * (unlike the T1.1 Sanitizer's real {@code T1.1-SANITIZER}, {@code interfaces.md} §44/INTF-072) —
+ * the "P0.4" prefix is {@code execution-plan.md}'s own gated-unit numbering, a build-sequencing
+ * artifact, never a component identity, and does not belong in a field meant to outlive the gated
+ * build process. {@code CONTEXT-POLICY} instead follows the same plain, non-numbered,
+ * no-canonical-ID precedent as {@link
+ * com.eaioc.controlplane.accounting.ledger.LedgerObservability}'s {@code ACCOUNTING-LEDGER} and
+ * {@code BaselineObservability}'s {@code EVALUATION-BASELINE}. It is also deliberately not the
+ * documented {@code POLICY-ENFORCER} (§23.2's Source Component for this event): this class is
+ * explicitly not a {@code PolicyEnforcer} realization (see the first paragraph above), so logging
+ * under that documented source component would falsely imply one exists.
  */
 @Component
 public class PolicyBudgetEnforcer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PolicyBudgetEnforcer.class);
 
     private final LedgerCostReporter costReporter;
 
@@ -85,22 +140,26 @@ public class PolicyBudgetEnforcer {
             // No PolicyViolation: §20.2's policy_id is required, and there is no policy to cite one
             // from. "No policy supplied" is conservative (never permissive) but not a content
             // violation, so an empty violations list is the honest, already-supported representation.
+            logFallbackNoPolicy(requestId, tenantId);
             return new BudgetEnforcementResult(false, List.of());
         }
 
         Optional<CostLedgerEntry> entry = costReporter.getRequestCost(requestId, tenantId);
         if (entry.isEmpty()) {
-            return BudgetEnforcementResult.violation(new PolicyViolation(
+            PolicyViolation violation = new PolicyViolation(
                 policy.policyId(),
                 "LEDGER_MEASUREMENT_UNAVAILABLE",
                 PolicyViolation.Severity.BLOCK,
                 "no verified ledger measurement exists for this request",
-                "retry once a verified ledger entry exists, or treat the request as unbudgeted"));
+                "retry once a verified ledger entry exists, or treat the request as unbudgeted");
+            logViolation(requestId, tenantId, violation);
+            return BudgetEnforcementResult.violation(violation);
         }
 
         Double limit = policy.maxCostPerRequest();
         if (limit == null) {
             // §20.1: `max_cost_per_request: float | null` — null means no cap configured.
+            logCompliant(requestId, tenantId, policy.policyId());
             return BudgetEnforcementResult.ok();
         }
 
@@ -108,14 +167,66 @@ public class PolicyBudgetEnforcer {
         // counterfactual); a budget check must compare against what was actually spent.
         double actualCost = entry.get().cost().totalOptimized();
         if (actualCost > limit) {
-            return BudgetEnforcementResult.violation(new PolicyViolation(
+            PolicyViolation violation = new PolicyViolation(
                 policy.policyId(),
                 "MAX_COST_PER_REQUEST_EXCEEDED",
                 PolicyViolation.Severity.BLOCK,
                 "request cost " + actualCost + " exceeds max_cost_per_request " + limit,
-                "reduce the request's cost or raise the policy's max_cost_per_request"));
+                "reduce the request's cost or raise the policy's max_cost_per_request");
+            logViolation(requestId, tenantId, violation);
+            return BudgetEnforcementResult.violation(violation);
         }
 
+        logCompliant(requestId, tenantId, policy.policyId());
         return BudgetEnforcementResult.ok();
+    }
+
+    /**
+     * Exactly one structured INFO line for a compliant resolution (conventions.md §17.2: "normal
+     * optimization decisions"). {@code correlation_id} defaults to {@code requestId}: this method
+     * takes no separate correlation identifier (no {@code ControlPlaneRequest} parameter exists at
+     * this capability's narrowed B/C scope), so there is no caller-supplied value to prefer.
+     */
+    private static void logCompliant(String requestId, String tenantId, String policyId) {
+        LOG.info(
+            "event_type=POLICY_ENFORCEMENT_COMPLETED component_id=CONTEXT-POLICY "
+                + "message=\"budget enforcement resolved compliant\" "
+                + "tenant_id={} request_id={} correlation_id={} span_id={} parent_span_id=null "
+                + "policy_id={} fields={}",
+            tenantId, requestId, requestId, UUID.randomUUID(), policyId, Map.of());
+    }
+
+    /**
+     * Exactly one structured ERROR line for a resolution with a populated {@code violations} list
+     * (conventions.md §17.2: "policy violation" / "stage failure"). Carries {@code rule_id} and
+     * {@code severity} as fields; never logs {@code message}/{@code remediation} text, which are
+     * fixed, non-user-controlled strings but are not themselves part of this capability's declared
+     * log schema.
+     */
+    private static void logViolation(String requestId, String tenantId, PolicyViolation violation) {
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fields.put("rule_id", violation.ruleId());
+        fields.put("severity", violation.severity());
+        LOG.error(
+            "event_type=POLICY_VIOLATION component_id=CONTEXT-POLICY "
+                + "message=\"budget enforcement resolved non-compliant\" "
+                + "tenant_id={} request_id={} correlation_id={} span_id={} parent_span_id=null "
+                + "policy_id={} fields={}",
+            tenantId, requestId, requestId, UUID.randomUUID(), violation.policyId(), fields);
+    }
+
+    /**
+     * Exactly one structured WARNING line for the {@code policy == null} conservative-fallback
+     * resolution (conventions.md §17.2: "fallback triggered... near-threshold behavior"). Distinct
+     * from {@link #logViolation}: this path produces no {@link PolicyViolation} (HD-CG-P0.4-03), so
+     * there is no {@code policy_id} to log.
+     */
+    private static void logFallbackNoPolicy(String requestId, String tenantId) {
+        LOG.warn(
+            "event_type=POLICY_ENFORCEMENT_FALLBACK_NO_POLICY component_id=CONTEXT-POLICY "
+                + "message=\"no policy supplied; conservative denial\" "
+                + "tenant_id={} request_id={} correlation_id={} span_id={} parent_span_id=null "
+                + "reason=no_policy_supplied fields={}",
+            tenantId, requestId, requestId, UUID.randomUUID(), Map.of());
     }
 }
