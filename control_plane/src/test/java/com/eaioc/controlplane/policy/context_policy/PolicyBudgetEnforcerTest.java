@@ -20,14 +20,16 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 /**
- * EXE-P0.4.B and EXE-P0.4.D tests for {@link PolicyBudgetEnforcer} (interfaces.md §20;
- * HD-CG-P0.4-01/-02/-03; execution-plan.md §18.7 B and D rows).
+ * EXE-P0.4.B, EXE-P0.4.D, and EXE-P0.4.E tests for {@link PolicyBudgetEnforcer} (interfaces.md §20;
+ * HD-CG-P0.4-01/-02/-03; execution-plan.md §18.7 B, D, and E rows).
  *
  * <p>Covers: a compliant request under budget; a request over {@code max_cost_per_request}; a
  * {@code null} limit (no cap configured) resolving to compliant; the two distinct conservative
  * failure paths (missing policy, missing ledger measurement) never resolving to compliant; tenant
- * isolation of the underlying ledger lookup; and (EXE-P0.4.D) exactly one structured log line per
- * call, at the level conventions.md §17.2 assigns to each outcome.
+ * isolation of the underlying ledger lookup; (EXE-P0.4.D) exactly one structured log line per call,
+ * at the level conventions.md §17.2 assigns to each outcome; and (EXE-P0.4.E) that no
+ * optimization-outcome signal reachable near this call graph can override a genuine policy
+ * violation, both behaviorally and at the method's own type signature.
  */
 class PolicyBudgetEnforcerTest {
 
@@ -233,6 +235,61 @@ class PolicyBudgetEnforcerTest {
         assertFalse(lines.get(0).contains("policy_id="), lines.get(0));
     }
 
+    // EXE-P0.4.E: policy is never overridden by an optimization signal (plan §18.7 E row).
+
+    @Test
+    void favorableOptimizationSavingsNeverSuppressesAGenuinePolicyViolation() {
+        // enforceRequestBudget's own signature (requestId, tenantId, policy) accepts no
+        // optimization signal at all -- no OptimizationPlan, no quality/ROI score -- so there is
+        // no parameter to "force favorable" in the first place (see
+        // enforceRequestBudgetSignatureAcceptsNoOptimizationSignalParameter below). The fixture
+        // below sets every savings-shaped field CostLedgerEntry carries -- both the retained
+        // top-level group (baselineCost/grossSavings/netSavings/netSavingsPct) and the newer
+        // Cost group (baselineEstimated/netSavings/savingsPct) -- to look maximally favorable,
+        // while PolicyBudgetEnforcer reads only cost().totalOptimized() (confirmed by reading its
+        // source: no other Cost or top-level savings field is referenced anywhere in the method).
+        // Even against this maximally favorable entry, the real MAX_COST_PER_REQUEST_EXCEEDED
+        // violation measured by totalOptimized is reported unchanged, proving no override path
+        // exists rather than merely asserting it never ran.
+        CostLedgerStore store = new CostLedgerStore();
+        LedgerCostReporter reporter = new LedgerCostReporter(store);
+        store.write(entry("tenant-e", "entry-e-1", "request-e-1", 15.0, 1000.0, 985.0, 0.985));
+        PolicyBudgetEnforcer enforcer = new PolicyBudgetEnforcer(reporter);
+
+        BudgetEnforcementResult result = enforcer.enforceRequestBudget("request-e-1", "tenant-e", policy(10.0));
+
+        assertFalse(result.compliant());
+        assertEquals(1, result.violations().size());
+        assertEquals("MAX_COST_PER_REQUEST_EXCEEDED", result.violations().get(0).ruleId());
+    }
+
+    @Test
+    void enforceRequestBudgetSignatureAcceptsNoOptimizationSignalParameter() {
+        // Structural proof, not merely behavioral: "No override path exists" (plan §18.7 E row's
+        // DoD) holds at the type-signature level too -- there is exactly one enforceRequestBudget
+        // overload, and it has no parameter of any OptimizationPlan/quality-score/ROI-shaped type
+        // to even attempt forcing favorable, now or on a future regression that might add a second
+        // overload alongside this one. Mirrors CostLedgerCanonicalContractTest's reflection-based
+        // contract-pinning precedent (Capability 1).
+        long overloadCount = java.util.Arrays.stream(PolicyBudgetEnforcer.class.getMethods())
+            .filter(m -> m.getName().equals("enforceRequestBudget"))
+            .count();
+        assertEquals(1, overloadCount, "expected exactly one enforceRequestBudget overload");
+
+        java.lang.reflect.Method method;
+        try {
+            method = PolicyBudgetEnforcer.class.getMethod(
+                "enforceRequestBudget", String.class, String.class, OptimizationPolicy.class);
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError("enforceRequestBudget signature changed", e);
+        }
+        assertEquals(3, method.getParameterCount());
+        for (Class<?> paramType : method.getParameterTypes()) {
+            assertTrue(paramType == String.class || paramType == OptimizationPolicy.class,
+                "unexpected parameter type: " + paramType);
+        }
+    }
+
     private List<ILoggingEvent> allEvents() {
         return logs.list;
     }
@@ -247,10 +304,30 @@ class PolicyBudgetEnforcerTest {
 
     /** TEST FIXTURE: a minimal, schema-valid, verified=true CostLedgerEntry with the given total cost. */
     private static CostLedgerEntry entry(String tenantId, String entryId, String requestId, double totalOptimizedCost) {
+        return entry(tenantId, entryId, requestId, totalOptimizedCost, 0.0, 0.0, 0.0);
+    }
+
+    /**
+     * TEST FIXTURE (EXE-P0.4.E): as {@link #entry(String, String, String, double)}, but also setting
+     * every savings-shaped field on {@link CostLedgerEntry} favorably — both the retained top-level
+     * group ({@code baselineCost}, {@code grossSavings}, {@code netSavings}, {@code netSavingsPct})
+     * and the newer {@code Cost} group ({@code baselineEstimated}, {@code netSavings},
+     * {@code savingsPct}) — so a test can characterize a <em>maximally</em> favorable-looking entry,
+     * not merely one narrow field. {@code totalOptimizedCost}/{@code actualCost} are left as the
+     * real, unfavorable measurement: it is the only field {@link
+     * PolicyBudgetEnforcer#enforceRequestBudget} actually reads (via {@code cost().totalOptimized()}).
+     * With all three new parameters {@code 0.0} (the 4-arg overload's call), every field is
+     * byte-for-byte identical to this fixture's pre-E-row shape — no pre-existing test's fixture
+     * values change.
+     */
+    private static CostLedgerEntry entry(
+            String tenantId, String entryId, String requestId, double totalOptimizedCost,
+            double baselineEstimated, double netSavings, double savingsPct) {
+        double baselineCost = baselineEstimated == 0.0 ? totalOptimizedCost : baselineEstimated;
         return new CostLedgerEntry(
             entryId, requestId, tenantId, "org-1", null, null, "task-1", Instant.parse("2026-10-07T00:00:00Z"),
             100, 50, 100, 50, 0, 0, 0, 0, 0,
-            totalOptimizedCost, totalOptimizedCost, 0.0, 0.0, 0.0, 0.0, 0.0,
+            baselineCost, totalOptimizedCost, 0.0, 0.0, netSavings, netSavings, savingsPct,
             Map.of(), "USD", "v1", "model-1", "provider-1",
             new CostLedgerEntry.Input(100, 100, 0, 0, 0, 0, 0, 0, 0, 100),
             new CostLedgerEntry.Output(50, 50, 0, 0),
@@ -258,7 +335,8 @@ class PolicyBudgetEnforcerTest {
             new CostLedgerEntry.Model("model-1", "model-1", "DIRECT", false, "MEDIUM", null),
             new CostLedgerEntry.Tools(0, 0, 0, 0, 0),
             new CostLedgerEntry.Workflow(0, 0, 0, 0, 0),
-            new CostLedgerEntry.Cost(totalOptimizedCost, 0.0, 0.0, 0.0, 0.0, totalOptimizedCost, 0.0, 0.0, 0.0),
+            new CostLedgerEntry.Cost(
+                totalOptimizedCost, 0.0, 0.0, 0.0, 0.0, totalOptimizedCost, baselineEstimated, netSavings, savingsPct),
             new CostLedgerEntry.Performance(100, 50, 50, 0, 0, 0),
             new CostLedgerEntry.Quality(1.0, 1.0, true, 1.0, 1.0, true),
             true);
