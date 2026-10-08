@@ -9,8 +9,10 @@
 **Architecture cross-reference:** `architecture.md` (EAIOC-ARCH-001)
 **Interfaces cross-reference:** `interfaces.md` (EAIOC-INTF-001)
 **Conventions cross-reference:** `conventions.md` (EAIOC-CONV-001)
-**Date:** 2026-09-09 (Rev 1.1 hardening pass: 2026-09-10; Rev 1.2 hardening pass: 2026-09-15, propagated 2026-09-16)
-**Version:** 1.2.0
+**Date:** 2026-09-09 (Rev 1.1 hardening pass: 2026-09-10; Rev 1.2 hardening pass: 2026-09-15, propagated 2026-09-16; Rev 1.2.1 correction: 2026-10-08)
+**Version:** 1.2.1
+**Correction history:**
+- 1.2.1 (2026-10-08) — `EC-060`'s Fallback/Recovery and Expected Behavior item 3 corrected from "default (permissive) policy on fetch failure" to fail-closed/most-conservative, resolving a direct contradiction with root `CLAUDE.md` rule 2. Human decision HDR-1, EAIOC P0→P1 Architecture Readiness Review (2026-10-08). Resolves `CONTRA-EXECPLAN-02` at source (`execution-plan.md` §38), superseding its prior Capability-4-only local resolution. No other edge case changed.
 
 ---
 
@@ -2348,15 +2350,18 @@ Every edge case follows this structure:
 **Expected Behavior:**
 1. Policy service MUST scope every policy fetch by `tenant_id + organization_id`.
 2. Tenant A's policy must never influence Tenant B's requests.
-3. Policy fetch failures must return the safe default policy, not another tenant's policy.
+3. Policy fetch failures must return the most conservative, fail-closed policy — never a permissive default, and never another tenant's policy.
 
-**Fallback/Recovery:** Return default (permissive) policy on fetch failure. Never return another tenant's policy.
+**Fallback/Recovery:** Return the most conservative (fail-closed) policy on fetch failure, consistent with root `CLAUDE.md` rule 2 (a policy-fetch failure is a failure to establish authorization, not an optimization failure, and must fail closed). Never return a permissive default. Never return another tenant's policy.
+
+> **Correction (2026-10-08, human decision HDR-1, EAIOC P0→P1 Architecture Readiness Review):** This entry previously read "Return default (**permissive**) policy on fetch failure," directly contradicting root `CLAUDE.md` rule 2 (fail-closed on authorization/policy-establishment failure). That earlier wording is superseded above, not merely overridden locally. The contradiction had previously been recorded as `CONTRA-EXECPLAN-02` and resolved only within Capability 4's own narrow implementation scope (`HD-CG-P0.4-01`, `execution-plan.md` §38); this correction resolves it at source, corpus-wide, so no future policy-fetch consumer needs to re-litigate it. The tenant-isolation requirement (never return another tenant's policy) is unchanged and remains this edge case's primary concern.
 
 **Observability:**
 - `policy.cross_tenant_access.count` +1 (alert if > 0 — security event)
 
 **Testing Requirements:**
 - Security test: Two tenant policies → confirm no cross-contamination.
+- Fail-closed test: Simulated policy-fetch failure → confirm the returned policy is the most conservative configured policy, never a permissive default and never another tenant's policy.
 
 ---
 

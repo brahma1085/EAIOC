@@ -16,7 +16,7 @@
 5. Provider-adapter abstraction implementation pattern (root `CLAUDE.md` rule 1)
 6. Coordination-mechanism implementation for `XEC` (`architecture.md` §47.3.2)
 
-No discrepancy was found. No seventh ADR was created; none of the six was omitted.
+No discrepancy was found. No seventh ADR was created; none of the six was omitted. *(This sentence describes this set's own original generation pass and is retained unchanged as historical fact about that pass. A seventh ADR, `ADR-0007`, was added later — 2026-10-08, a separate governance pass, not a correction to this generation — with a different origin: see the ADR Set table and the note following it.)*
 
 ## ADR Candidate ≠ `BLOCKED BY ADR`
 
@@ -32,6 +32,9 @@ Per `requirements-traceability.md` §16's already-established distinction (cited
 | `ADR-0004` | Telemetry / Observability Backend | `PROPOSED` | `implementation-plan.md` §24/§25 | No | Selects the backend hosting `interfaces.md` §19's fixed telemetry schemas; `AuditRecord` immutability is the sharpest constraint. |
 | `ADR-0005` | Provider-Adapter Implementation Pattern | `PROPOSED` | root `CLAUDE.md` rule 1 | No | Selects the internal structure of `providers/adapters/`; must satisfy provider neutrality across 5 integration modes and the FTR's per-platform feasibility tiers. |
 | `ADR-0006` | `XEC` Coordination / Locking Mechanism | `PROPOSED` | `architecture.md` §47.3.2 | No | Selects the coordination substrate for cross-execution conflict detection; the fail-closed-on-coordination-unavailable rule is the sharpest constraint. |
+| `ADR-0007` | `FallbackAction` Canonical Definition | `ACCEPTED` | `control_plane/core/CoreFoundation.md` §6 (`CORE-GAP-04`); HDR-3, EAIOC P0→P1 Architecture Readiness Review (2026-10-08) | No | Selects `interfaces.md` §22.1's `FallbackAction` as canonical over the conflicting §17 duplicate; a documentation disambiguation, not an infrastructure/technology selection — the only reason its Status is `ACCEPTED` rather than `PROPOSED`. |
+
+**Note on `ADR-0007`:** added in a later, separate governance pass (2026-10-08), not part of the original six-candidate set `implementation-plan.md` §25 identified. It did not originate from that §25 list; it originated from a source contradiction (`CORE-GAP-04`) discovered during P0 implementation (`REM-P0.1.A-01`) and resolved by explicit human decision during the EAIOC P0→P1 Architecture Readiness Review. Unlike `ADR-0001`–`ADR-0006`, it requires no local benchmark or production evidence — it disambiguates two already-fully-specified text blocks already present in `interfaces.md` — which is why its Status is `ACCEPTED`, not `PROPOSED`. It is additive to this index, not a correction of the original six.
 
 ## Cross-ADR Consistency Review
 
@@ -133,10 +136,14 @@ File-scope validation: PASS — git status confirms only the 7 docs/adr/ files c
 
 ## ADR Set Readiness
 
+*(Figures below describe the original six-ADR generation pass and are retained unchanged as historical fact about that pass. `ADR-0007`, added later per the note above, is accounted for separately immediately following.)*
+
 - ADR candidates identified: `6`
 - ADRs generated: `6`
 - ADRs with `PROPOSED` status: `6`
 - ADRs with accepted decisions: `0`
+
+**Updated totals including `ADR-0007` (2026-10-08):** ADRs in the set: `7`. `PROPOSED`: `6` (`0001`–`0006`, unchanged). `ACCEPTED`: `1` (`0007` only). Existing source gaps formally closed by this set: `1` (`CORE-GAP-04`, by `ADR-0007` — the first and only gap this ADR set has actually closed; `0001`–`0006` close none, per the original figures above). `BLOCKED BY ADR` remains `0` — `ADR-0007`'s acceptance blocks nothing, since the two P0 fields it touches (`OptimizationPlan.fallback_strategy`, `OptimizationStage.fallback_on_failure`) stay deferred for the separate, independent reason `CORE-GAP-03`.
 - Requirements `BLOCKED BY ADR`: `0` (independently re-confirmed against `requirements-traceability.md` §16/§17, not merely carried forward)
 - Source-gap disposition (verified against each ADR's own "Source Gaps / Assumptions" section and `requirements-traceability.md` §8's master register — "resolved" below means formally closed, not merely discussed):
 

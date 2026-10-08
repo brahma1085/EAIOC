@@ -17,6 +17,7 @@
 - (no version change; document Version remains 1.2.0 by human versioning decision, 2026-09-25) 2026-09-25 — execution-plan v1.0.11 / DB-3 correction: §18 `run_baseline()` return type `EvaluationRun` → `BaselineEvaluationRecord` and the new schema `BaselineEvaluationRecord` (INTF-030 now lists 4 schemas), with the retrieval/consumption and no-measurement rules; §24 versioning note; §28.1, §28.2, §36 and §40.2 notes. Migration statement: see the §24 versioning note (inference: no implemented consumer exists; `eval.md` and `implementation-plan.md` are annotated). Human contract decisions of 2026-09-25 recorded by this correction (not source-derived): `BaselineEvaluationRecord.schema_version` `1.0.0`; the source-entry field `source_entry_id`; the record carries `run_type` (`BASELINE`); the count basis count-all-then-verify; a failed baseline measurement makes `run_baseline()` fail without a result; and the retention of Version 1.2.0 recorded by this entry.
 - 1.3.0 (2026-10-05) — §44 added: T1.1 Sanitizer Contract (INTF-072), under human decisions HD-CG-P0.3-05 (input carrier `ControlPlaneRequest.user_input`; `ContextItem.content_type` reused only where a real `ContextItem` exists), HD-CG-P0.3-06 (deterministic token counting, with the counter's identity and version carried on every count) and HD-CG-P0.3-07 (interface ID INTF-072). Adds the §37.1 T1.1 row. The counter identity and version are recorded by HD-CG-P0.3-09 (`counter_id` `JTOKKIT_CL100K_BASE`, `counter_version` `1.1.0`; §44.2, §44.4). Version 1.3.0 is the MINOR bump for an additive section (interfaces §1.3, inference; no separate version decision is recorded): INTF-072 is a new T1.1-specific contract and INTF-001–071 are unchanged. No existing interface (INTF-001–071) is modified. Consistent with the frozen T1.1 normalization-failure behaviour: fail-open RESTORE_ORIGINAL (`architecture.md` §11.1, §30; `conventions.md` §16.2). This wording does not cover token-counter failure; that is governed by HD-CG-P0.3-18 and HD-CG-P0.3-19 (§44.4). CIS is not part of this contract.
 - (no version change; document Version remains 1.3.0) 2026-10-06 — T1.1 Sanitizer Contract §44 amendment under human decisions HD-CG-P0.3-18 (counter-failure result at the contract layer: no `SanitizerOutput`, no fabricated/nullable/fallback/verified count, no new error code, never RESTORE_ORIGINAL) and HD-CG-P0.3-19 (layer reconciliation: pipeline recovery of a failed optional stage follows EC-114, with the pre-stage representation). Recorded in §44.4 and §44.5. SOURCE-GAP-EXECPLAN-27 and -28 resolved by those decisions. No interface INTF-001–071 changed.
+- (no version change; document Version remains 1.3.0) 2026-10-08 — `FallbackAction` canonical-definition correction under `ADR-0007` (human decision HDR-3, EAIOC P0→P1 Architecture Readiness Review). Two conflicting `FallbackAction` definitions existed (§17, §22.1 — previously `CORE-GAP-04`). §22.1's definition (superset, includes `max_cost`, co-located with `FallbackStrategy`, its own actual consumer) is selected as canonical; §17's local duplicate is marked deprecated and now refers to §22.1. No enum value or field invented; no existing field removed. `OptimizationPlan.fallback_strategy`/`OptimizationStage.fallback_on_failure` (§3.2) remain deferred in the P0 core foundation for independent reasons (`CORE-GAP-03`, `EscalationPolicy` still undefined) — this correction removes the `CORE-GAP-04` half of that deferral's cause but does not itself realize either field in P0.
 
 ---
 
@@ -2016,6 +2017,8 @@ FallbackAction {
 }
 ```
 
+> **DEPRECATED (2026-10-08, `ADR-0007`):** This local `FallbackAction` definition duplicated, and conflicted with, the one at §22.1 (different `action` enum values; no `max_cost` field) — previously recorded as `CORE-GAP-04`. `ADR-0007` selects §22.1's `FallbackAction` as the sole canonical definition. `ValidationResult.recommended_fallback` (above) now refers to the §22.1 type. This local block is retained only as historical record of the pre-correction text; it is not a second valid definition.
+
 ---
 
 ## 18. Evaluation Interface
@@ -2414,6 +2417,8 @@ FallbackAction {
   max_cost:   float | null
 }
 ```
+
+> **CANONICAL (2026-10-08, `ADR-0007`):** This is the sole canonical `FallbackAction` definition, confirmed by human decision (HDR-3, EAIOC P0→P1 Architecture Readiness Review). It supersedes the duplicate, conflicting local definition at §17, now marked deprecated there. `OptimizationPlan.fallback_strategy` and `OptimizationStage.fallback_on_failure` (§3.2) and `ValidationResult.recommended_fallback` (§17) all refer to this definition. Resolves `CORE-GAP-04`. No enum value or field was invented beyond what this pre-existing definition already specified.
 
 ### 22.2 Per-Stage Fallback Requirements
 
