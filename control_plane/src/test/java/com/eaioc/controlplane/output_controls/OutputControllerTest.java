@@ -14,8 +14,16 @@ import org.junit.jupiter.api.Test;
  * {@code EXE-P0.6.B} unit tests (execution-plan.md §18.9 B row): schema-pass case, schema-fail
  * case, length-truncation case, and the mandatory failure-path test (a malformed response is
  * rejected, never silently passed through as valid).
+ *
+ * <p><b>{@code requestId}/{@code tenantId} (HD-CG-P0.6-06a/b, EXE-P0.6.D):</b> every call site was
+ * updated to {@link OutputController#enforce}'s current five-parameter signature when D added
+ * mandatory observability — these identifiers are not themselves under test here (that is D's own
+ * {@code OutputControllerObservabilityTest}); a single fixed pair is reused across every test.
  */
 class OutputControllerTest {
+
+    private static final String REQUEST_ID = "request-c6b";
+    private static final String TENANT_ID = "tenant-c6b";
 
     private final OutputController controller = new OutputController();
 
@@ -33,7 +41,8 @@ class OutputControllerTest {
             new CandidateOutput("Paris is the capital of France.",
                 Map.of("answer", "Paris", "confidence", 0.97));
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), null);
+        ValidatedOutput result =
+            controller.enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), null);
 
         assertEquals("Paris is the capital of France.", result.content());
         assertFalse(result.truncated());
@@ -46,7 +55,8 @@ class OutputControllerTest {
             new CandidateOutput("Short answer.", Map.of("answer", "Short answer.", "confidence", 0.8));
         BudgetConstraints budget = new BudgetConstraints(null, 1000, null, null);
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), budget);
+        ValidatedOutput result =
+            controller.enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), budget);
 
         assertEquals("Short answer.", result.content());
         assertFalse(result.truncated());
@@ -61,7 +71,7 @@ class OutputControllerTest {
 
         MalformedOutputException thrown = assertThrows(
             MalformedOutputException.class,
-            () -> controller.enforce(candidate, factualSchema(), null));
+            () -> controller.enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), null));
 
         assertTrue(thrown.getMessage().contains("confidence"));
     }
@@ -73,7 +83,7 @@ class OutputControllerTest {
 
         MalformedOutputException thrown = assertThrows(
             MalformedOutputException.class,
-            () -> controller.enforce(candidate, factualSchema(), null));
+            () -> controller.enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), null));
 
         assertTrue(thrown.getMessage().contains("confidence"));
     }
@@ -87,7 +97,8 @@ class OutputControllerTest {
             new CandidateOutput(longContent, Map.of("answer", longContent, "confidence", 0.5));
         BudgetConstraints budget = new BudgetConstraints(null, 5, null, null);
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), budget);
+        ValidatedOutput result =
+            controller.enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), budget);
 
         assertTrue(result.truncated());
         assertEquals(5, result.finalTokenCount());
@@ -103,7 +114,8 @@ class OutputControllerTest {
             new CandidateOutput("Paris", Map.of("answer", "Paris", "confidence", 0.9));
         BudgetConstraints zeroBudget = new BudgetConstraints(null, 0, null, null);
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), zeroBudget);
+        ValidatedOutput result =
+            controller.enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), zeroBudget);
 
         assertTrue(result.truncated());
         assertEquals("", result.content());
@@ -116,7 +128,8 @@ class OutputControllerTest {
             new CandidateOutput("Paris", Map.of("answer", "Paris", "confidence", 0.9));
         BudgetConstraints negativeBudget = new BudgetConstraints(null, -5, null, null);
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), negativeBudget);
+        ValidatedOutput result =
+            controller.enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), negativeBudget);
 
         assertTrue(result.truncated());
         assertEquals("", result.content());
@@ -128,7 +141,8 @@ class OutputControllerTest {
         CandidateOutput candidate = new CandidateOutput("", Map.of("answer", "", "confidence", 0.0));
         BudgetConstraints zeroBudget = new BudgetConstraints(null, 0, null, null);
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), zeroBudget);
+        ValidatedOutput result =
+            controller.enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), zeroBudget);
 
         assertFalse(result.truncated());
         assertEquals("", result.content());
@@ -139,11 +153,12 @@ class OutputControllerTest {
         CandidateOutput candidate =
             new CandidateOutput("Paris", Map.of("answer", "Paris", "confidence", 0.9));
         int exactTokenCount = new OutputController()
-            .enforce(candidate, factualSchema(), null)
+            .enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), null)
             .finalTokenCount();
         BudgetConstraints budget = new BudgetConstraints(null, exactTokenCount, null, null);
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), budget);
+        ValidatedOutput result =
+            controller.enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), budget);
 
         assertFalse(result.truncated());
         assertEquals("Paris", result.content());
@@ -159,7 +174,7 @@ class OutputControllerTest {
         // for a schema-non-conformant CandidateOutput.
         assertThrows(
             MalformedOutputException.class,
-            () -> controller.enforce(malformed, factualSchema(), null));
+            () -> controller.enforce(REQUEST_ID, TENANT_ID, malformed, factualSchema(), null));
     }
 
     @Test
@@ -172,22 +187,36 @@ class OutputControllerTest {
 
         assertThrows(
             MalformedOutputException.class,
-            () -> controller.enforce(malformed, factualSchema(), tinyBudget));
+            () -> controller.enforce(REQUEST_ID, TENANT_ID, malformed, factualSchema(), tinyBudget));
     }
 
     // --- null-parameter failure paths ---
 
     @Test
+    void nullRequestIdThrowsNullPointerException() {
+        CandidateOutput candidate = new CandidateOutput("x", Map.of());
+        assertThrows(NullPointerException.class,
+            () -> controller.enforce(null, TENANT_ID, candidate, factualSchema(), null));
+    }
+
+    @Test
+    void nullTenantIdThrowsNullPointerException() {
+        CandidateOutput candidate = new CandidateOutput("x", Map.of());
+        assertThrows(NullPointerException.class,
+            () -> controller.enforce(REQUEST_ID, null, candidate, factualSchema(), null));
+    }
+
+    @Test
     void nullCandidateThrowsNullPointerException() {
         assertThrows(NullPointerException.class,
-            () -> controller.enforce(null, factualSchema(), null));
+            () -> controller.enforce(REQUEST_ID, TENANT_ID, null, factualSchema(), null));
     }
 
     @Test
     void nullSchemaThrowsNullPointerException() {
         CandidateOutput candidate = new CandidateOutput("x", Map.of());
         assertThrows(NullPointerException.class,
-            () -> controller.enforce(candidate, null, null));
+            () -> controller.enforce(REQUEST_ID, TENANT_ID, candidate, null, null));
     }
 
     @Test
@@ -195,7 +224,8 @@ class OutputControllerTest {
         CandidateOutput candidate =
             new CandidateOutput("No limit here.", Map.of("answer", "No limit here.", "confidence", 0.6));
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), null);
+        ValidatedOutput result =
+            controller.enforce(REQUEST_ID, TENANT_ID, candidate, factualSchema(), null);
 
         assertFalse(result.truncated());
     }
@@ -207,7 +237,8 @@ class OutputControllerTest {
                 Map.of("answer", "No limit here either.", "confidence", 0.6));
         BudgetConstraints budgetWithNoOutputLimit = new BudgetConstraints(100, null, 1.0, 50);
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), budgetWithNoOutputLimit);
+        ValidatedOutput result = controller.enforce(
+            REQUEST_ID, TENANT_ID, candidate, factualSchema(), budgetWithNoOutputLimit);
 
         assertFalse(result.truncated());
     }
@@ -216,7 +247,8 @@ class OutputControllerTest {
     void emptySchemaRequiredFieldsAlwaysValidates() {
         CandidateOutput candidate = new CandidateOutput("anything", Map.of());
 
-        ValidatedOutput result = controller.enforce(candidate, new OutputSchema(List.of()), null);
+        ValidatedOutput result =
+            controller.enforce(REQUEST_ID, TENANT_ID, candidate, new OutputSchema(List.of()), null);
 
         assertEquals("anything", result.content());
     }

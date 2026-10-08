@@ -91,7 +91,8 @@ class OutputControllerIntegrationTest {
             new CandidateOutput(longContent, Map.of("answer", longContent, "confidence", 0.5));
         BudgetConstraints budgetFromLedger = new BudgetConstraints(null, (int) realBudget, null, null);
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), budgetFromLedger);
+        ValidatedOutput result =
+            controller.enforce("request-c6c-1", "tenant-c6c", candidate, factualSchema(), budgetFromLedger);
 
         assertTrue(result.truncated());
         assertEquals(realBudget, result.finalTokenCount());
@@ -104,7 +105,8 @@ class OutputControllerIntegrationTest {
             new CandidateOutput(longContent, Map.of("answer", longContent, "confidence", 0.5));
         BudgetConstraints budget = new BudgetConstraints(null, 5, null, null);
 
-        ValidatedOutput result = controller.enforce(candidate, factualSchema(), budget);
+        ValidatedOutput result =
+            controller.enforce("request-c6c-2", "tenant-c6c", candidate, factualSchema(), budget);
         assertTrue(result.truncated());
 
         int originalTokenCount = CL100K_BASE.countTokens(longContent);
